@@ -9,10 +9,14 @@ set(CMAKE_CXX_FLAGS "-Wall -g")
 find_package(OpenCV REQUIRED)
 
 include_directories("${PROJECT_SOURCE_DIR}/modules/common/include")
+include_directories("${PROJECT_SOURCE_DIR}/modules/cpu-processing/include")
 add_subdirectory(modules/common)
+add_subdirectory(modules/cpu-processing)
 
 add_executable(CIR CIR.cpp)
+
 target_link_libraries(CIR ${OpenCV_LIBS})
+target_link_libraries(CIR cpu-processing)
 
 if(test)
 	find_package(GTest REQUIRED)

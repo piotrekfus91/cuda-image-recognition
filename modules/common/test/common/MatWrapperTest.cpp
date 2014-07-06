@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "common/MatWrapper.h"
-#include "common/exception/InvalidMatTypeException.h"
+#include "cir/common/MatWrapper.h"
+#include "cir/common/exception/InvalidMatTypeException.h"
 
 using namespace cv;
 using namespace cv::gpu;

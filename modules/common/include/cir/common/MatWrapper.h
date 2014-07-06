@@ -11,15 +11,15 @@ public:
 	MatWrapper(const cv::Mat& mat);
 	MatWrapper(const cv::gpu::GpuMat& gpuMat);
 
-	cv::Mat getMat();
-	cv::gpu::GpuMat getGpuMat();
+	cv::Mat getMat() const;
+	cv::gpu::GpuMat getGpuMat() const;
 
 	enum MAT_TYPE {
 		MAT,
 		GPU_MAT
 	};
 
-	MAT_TYPE getType();
+	MAT_TYPE getType() const;
 
 private:
 	cv::Mat _mat;

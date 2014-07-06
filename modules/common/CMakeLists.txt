@@ -1,5 +1,6 @@
 add_library(common
 src/common/MatWrapper.cpp 
+src/common/ImageProcessingService.cpp
 src/common/exception/InvalidMatTypeException.cpp
 )
 
