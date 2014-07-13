@@ -25,10 +25,11 @@ int main(int argc, char** argv) {
 		gpuFrame.upload(frame);
 
 		cir::common::MatWrapper matWrapper(frame);
-		matWrapper = service.toGrey(matWrapper);
+		matWrapper = service.highPass(matWrapper);
 
 		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
 		gpuMatWrapper = gpuService.toGrey(gpuMatWrapper);
+		gpuMatWrapper = gpuService.highPass(gpuMatWrapper);
 
 		imshow("Test CPU", matWrapper.getMat());
 		imshow("Test GPU", cv::Mat(gpuMatWrapper.getGpuMat()));

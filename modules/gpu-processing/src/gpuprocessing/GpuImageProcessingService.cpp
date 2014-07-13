@@ -24,3 +24,20 @@ MatWrapper GpuImageProcessingService::threshold(const MatWrapper& input, double 
 	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, cv::THRESH_BINARY);
 	return output;
 }
+
+MatWrapper GpuImageProcessingService::lowPass(const MatWrapper& input, int size) {
+	cv::gpu::GpuMat output;
+	if(size == DEFAULT_LOW_PASS_KERNEL_SIZE) {
+		cv::gpu::filter2D(input.getGpuMat(), output, -1, DEFAULT_LOW_PASS_KERNEL);
+	} else {
+		cv::Mat kernel = cv::Mat::ones(size, size, CV_32F) / (float)(size*size);
+		cv::gpu::filter2D(input.getGpuMat(), output, -1, kernel);
+	}
+	return output;
+}
+
+MatWrapper GpuImageProcessingService::highPass(const MatWrapper& input, int size) {
+	cv::gpu::GpuMat output;
+	cv::gpu::Laplacian(input.getGpuMat(), output, -1, size);
+	return output;
+}
