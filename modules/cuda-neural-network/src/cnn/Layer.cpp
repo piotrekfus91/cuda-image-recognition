@@ -17,6 +17,9 @@ Layer::Layer(const int neuronsNumber, NeuronType neuronType, int neuronInputNumb
 }
 
 Layer::~Layer() {
+	for(int i = 0; i < _neuronsNumber; i++) {
+		free(_neurons[i]);
+	}
 	free(_neurons);
 }
 
@@ -30,6 +33,10 @@ void Layer::setWeights(const int neuronIndex, double* weights) {
 
 const double Layer::getOutput(const int neuronIndex) const {
 	return _neurons[neuronIndex]->getOutput();
+}
+
+const int Layer::getNeuronsNumber() const {
+	return _neuronsNumber;
 }
 
 }

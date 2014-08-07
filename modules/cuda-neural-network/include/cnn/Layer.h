@@ -14,6 +14,7 @@ public:
 	void setInputs(const int neuronIndex, double* inputs);
 	void setWeights(const int neuronIndex, double* weights);
 	const double getOutput(const int neuronIndex) const;
+	const int getNeuronsNumber() const;
 
 private:
 	cnn::neuron::Neuron** _neurons;
