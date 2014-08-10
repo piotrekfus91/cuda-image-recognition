@@ -4,7 +4,8 @@
 namespace cnn { namespace neuron {
 
 enum NeuronType {
-	IDENTITY
+	IDENTITY,
+	SIGMOID
 };
 
 }}
