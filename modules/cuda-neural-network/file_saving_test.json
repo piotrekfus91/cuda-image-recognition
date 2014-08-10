@@ -1,0 +1,43 @@
+
+{
+	"layers" : 
+	[
+		
+		{
+			"layer_index" : 0,
+			"neuron_number" : 2,
+			"neurons" : 
+			[
+				
+				{
+					"inpu_number" : 1,
+					"neuron_index" : 0,
+					"weights" : [ 2 ]
+				},
+				
+				{
+					"inpu_number" : 1,
+					"neuron_index" : 1,
+					"weights" : [ 3 ]
+				}
+			]
+		},
+		
+		{
+			"layer_index" : 1,
+			"neuron_number" : 1,
+			"neurons" : 
+			[
+				
+				{
+					"inpu_number" : 2,
+					"neuron_index" : 0,
+					"weights" : [ 4, 4 ]
+				}
+			]
+		}
+	],
+	"layers_number" : 2,
+	"layers_size" : [ 2, 1 ],
+	"neuron_type" : "IDENTITY"
+}

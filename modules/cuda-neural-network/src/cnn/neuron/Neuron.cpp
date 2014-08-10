@@ -24,6 +24,10 @@ void Neuron::setWeights(double* weights) {
 	_weights = weights;
 }
 
+const double* Neuron::getWeights() const {
+	return _weights;
+}
+
 void Neuron::setInputs(double* inputs) {
 	_inputs = inputs;
 	activate();

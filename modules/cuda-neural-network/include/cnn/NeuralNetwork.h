@@ -13,7 +13,12 @@ public:
 
 	void setInputs(double* inputs);
 	void setWeights(const int layerIndex, const int neuronIndex, double* weights);
-	const double getOutput(const int neuronIndex);
+	const double getOutput(const int neuronIndex) const;
+	const int getLayersNumber() const;
+	const cnn::neuron::NeuronType getNeuronType() const;
+	const int* getLayersSize() const;
+	const double* getWeights(const int layerIndex, const int neuronIndex) const;
+	const int getNeuronInputNumber(const int layerIndex) const;
 
 	void run();
 
@@ -24,8 +29,6 @@ private:
 	int* _layersSize;
 	int INPUT_LAYER;
 	int OUTPUT_LAYER;
-
-	const int getNeuronInputNumber(int layerIndex) const;
 };
 
 }

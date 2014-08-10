@@ -15,12 +15,15 @@ public:
 	void setWeights(const int neuronIndex, double* weights);
 	const double getOutput(const int neuronIndex) const;
 	const int getNeuronsNumber() const;
+	const double* getWeights(const int neuronIndex) const;
+	const int getNeuronInputNumber() const;
 
 private:
 	cnn::neuron::Neuron** _neurons;
 	int _neuronsNumber;
 	cnn::neuron::NeuronType _neuronType;
 	int _neuronTypeSize;
+	int _neuronInputNumber;
 };
 
 }

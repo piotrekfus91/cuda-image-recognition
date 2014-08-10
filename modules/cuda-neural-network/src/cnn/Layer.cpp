@@ -8,7 +8,7 @@ using namespace cnn::neuron;
 namespace cnn {
 
 Layer::Layer(const int neuronsNumber, NeuronType neuronType, int neuronInputNumber)
-		: _neuronsNumber(neuronsNumber), _neuronType(neuronType) {
+		: _neuronsNumber(neuronsNumber), _neuronType(neuronType), _neuronInputNumber(neuronInputNumber) {
 	_neuronTypeSize = NeuronUtil::sizeOf(neuronType);
 	_neurons = (Neuron**) malloc(sizeof(Neuron*) * _neuronsNumber);
 	for(int i = 0; i < _neuronsNumber; i++) {
@@ -37,6 +37,14 @@ const double Layer::getOutput(const int neuronIndex) const {
 
 const int Layer::getNeuronsNumber() const {
 	return _neuronsNumber;
+}
+
+const double* Layer::getWeights(const int neuronIndex) const {
+	return _neurons[neuronIndex]->getWeights();
+}
+
+const int Layer::getNeuronInputNumber() const {
+	return _neuronInputNumber;
 }
 
 }

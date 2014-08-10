@@ -2,9 +2,11 @@
 #include <iostream>
 #include "cnn/NeuralNetwork.h"
 
+using namespace cnn::neuron;
+
 namespace cnn {
 
-NeuralNetwork::NeuralNetwork(const cnn::neuron::NeuronType neuronType, int layersNumber, int* layersSize)
+NeuralNetwork::NeuralNetwork(const NeuronType neuronType, int layersNumber, int* layersSize)
 		: _neuronType(neuronType), _layersNumber(layersNumber), _layersSize(layersSize), INPUT_LAYER(0),
 		  OUTPUT_LAYER(_layersNumber-1) {
 	_layers = (Layer**) malloc(sizeof(Layer*) * layersNumber);
@@ -18,7 +20,7 @@ NeuralNetwork::~NeuralNetwork() {
 	free(_layers);
 }
 
-const double NeuralNetwork::getOutput(const int neuronIndex) {
+const double NeuralNetwork::getOutput(const int neuronIndex) const {
 	return _layers[OUTPUT_LAYER]->getOutput(neuronIndex);
 }
 
@@ -57,6 +59,22 @@ const int NeuralNetwork::getNeuronInputNumber(int layerIndex) const {
 		return 1;
 
 	return _layersSize[layerIndex-1];
+}
+
+const int NeuralNetwork::getLayersNumber() const {
+	return _layersNumber;
+}
+
+const NeuronType NeuralNetwork::getNeuronType() const {
+	return _neuronType;
+}
+
+const int* NeuralNetwork::getLayersSize() const {
+	return _layersSize;
+}
+
+const double* NeuralNetwork::getWeights(const int layerIndex, const int neuronIndex) const {
+	return _layers[layerIndex]->getWeights(neuronIndex);
 }
 
 }

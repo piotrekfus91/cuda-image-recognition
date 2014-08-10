@@ -13,6 +13,7 @@ public:
 	const double getOutput() const;
 	void setInputs(double* inputs);
 	void setWeights(double* weights);
+	const double* getWeights() const;
 
 	virtual NeuronType getType() = 0;
 
