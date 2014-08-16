@@ -41,3 +41,30 @@ MatWrapper GpuImageProcessingService::highPass(const MatWrapper& input, int size
 	cv::gpu::Laplacian(input.getGpuMat(), output, -1, size);
 	return output;
 }
+
+MatWrapper GpuImageProcessingService::bgrToHsv(const MatWrapper& input) {
+	cv::gpu::GpuMat output;
+	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_BGR2HSV);
+	return output;
+}
+
+MatWrapper GpuImageProcessingService::hsvToBgr(const MatWrapper& input) {
+	cv::gpu::GpuMat output;
+	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_BGR2HSV);
+	return output;
+}
+
+MatWrapper GpuImageProcessingService::detectColorHsv(const MatWrapper& input, const double minHue,
+		const double maxHue, const double minSaturation, const double maxSaturation,
+		const double minValue, const double maxValue) {
+	cv::gpu::GpuMat output;
+	const int iMinHue = minHue / 2;
+	const int iMaxHue = maxHue / 2;
+	const int iMinSaturation = 255 * minSaturation;
+	const int iMaxSaturation = 255 * maxSaturation;
+	const int iMinValue = 255 * minValue;
+	const int iMaxValue = 255 * maxValue;
+	cv::inRange(input.getGpuMat(), cv::Scalar(iMinHue, iMinSaturation, iMinValue),
+			cv::Scalar(iMaxHue, iMaxSaturation, iMaxValue), output);
+	return output;
+}

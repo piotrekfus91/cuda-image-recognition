@@ -18,21 +18,30 @@ int main(int argc, char** argv) {
 	cv::gpu::GpuMat gpuFrame;
 
 	cv::namedWindow("Test CPU", CV_WINDOW_AUTOSIZE);
-	cv::namedWindow("Test GPU", CV_WINDOW_AUTOSIZE);
+//	cv::namedWindow("Test GPU", CV_WINDOW_AUTOSIZE);
 
 	while(true) {
 		capture >> frame;
 		gpuFrame.upload(frame);
 
 		cir::common::MatWrapper matWrapper(frame);
-		matWrapper = service.highPass(matWrapper);
+		matWrapper = service.bgrToHsv(matWrapper);
+		matWrapper = service.detectColorHsv(matWrapper,
+				45, 75,
+				0.3, 1,
+				0.3, 1);
+		matWrapper = service.hsvToBgr(matWrapper);
 
-		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
-		gpuMatWrapper = gpuService.toGrey(gpuMatWrapper);
-		gpuMatWrapper = gpuService.highPass(gpuMatWrapper);
+//		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
+//		gpuMatWrapper = gpuService.bgrToHsv(gpuMatWrapper);
+//		gpuMatWrapper = gpuService.detectColorHsv(gpuMatWrapper,
+//				0, 30,
+//				0, 1,
+//				0, 1);
 
+		imshow("Orig", frame);
 		imshow("Test CPU", matWrapper.getMat());
-		imshow("Test GPU", cv::Mat(gpuMatWrapper.getGpuMat()));
+//		imshow("Test GPU", cv::Mat(gpuMatWrapper.getGpuMat()));
 
 		char c = (char)cv::waitKey(30);
 		if (c == 27) break;

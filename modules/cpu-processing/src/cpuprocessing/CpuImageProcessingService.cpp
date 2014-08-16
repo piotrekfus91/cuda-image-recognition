@@ -1,6 +1,5 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
-#include <iostream>
 
 using namespace cir::common;
 using namespace cir::cpuprocessing;
@@ -40,4 +39,33 @@ MatWrapper CpuImageProcessingService::highPass(const MatWrapper& input, int size
 	cv::Mat output;
 	cv::Laplacian(input.getMat(), output, -1, size);
 	return output;
+}
+
+MatWrapper CpuImageProcessingService::bgrToHsv(const MatWrapper& input) {
+	cv::Mat output;
+	cv::cvtColor(input.getMat(), output, cv::COLOR_BGR2HSV);
+	return output;
+}
+
+MatWrapper CpuImageProcessingService::hsvToBgr(const MatWrapper& input) {
+	cv::Mat output;
+	cv::cvtColor(input.getMat(), output, cv::COLOR_HSV2BGR);
+	return output;
+}
+
+MatWrapper CpuImageProcessingService::detectColorHsv(const MatWrapper& input, const double minHue,
+			const double maxHue, const double minSaturation, const double maxSaturation,
+			const double minValue, const double maxValue) {
+
+	const int iMinHue = minHue / 2;
+	const int iMaxHue = maxHue / 2;
+	const int iMinSaturation = 255 * minSaturation;
+	const int iMaxSaturation = 255 * maxSaturation;
+	const int iMinValue = 255 * minValue;
+	const int iMaxValue = 255 * maxValue;
+
+	cv::Mat inputMat = input.getMat();
+
+	return _cpuColorDetector.detectColor(inputMat, iMinHue, iMaxHue, iMinSaturation, iMaxSaturation,
+			iMinValue, iMaxValue);
 }
