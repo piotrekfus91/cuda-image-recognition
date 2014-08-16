@@ -1,9 +1,11 @@
+file(GLOB src_gpuprocessing_files "src/gpuprocessing/*.cpp")
+
 add_library(gpu-processing
-src/gpuprocessing/GpuImageProcessingService.cpp 
+	${src_gpuprocessing_files}
 )
 
 target_link_libraries(gpu-processing common)
 
 if(test)
-	enable_testing()
+	
 endif()
