@@ -2,9 +2,12 @@ file(GLOB src_common_files "src/common/*.cpp")
 file(GLOB src_common_exception_files "src/common/exception*.cpp")
 file(GLOB test_common_files "test/common/*.cpp")
 
+cuda_compile(CUDA_UTIL src/common/cuda_host_util.cu)
+
 add_library(common
 	${src_common_files}
 	${src_common_exception_files}
+	${CUDA_UTIL}
 )
 
 if(test)
