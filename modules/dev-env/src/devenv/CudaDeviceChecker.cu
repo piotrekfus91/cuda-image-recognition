@@ -1,8 +1,6 @@
-#include <iostream>
+#include "cir/devenv/CudaDeviceChecker.cuh"
 
-#include "cir/devenv/CudaDeviceChecker.h"
-
-using namespace cir::devenv;
+namespace cir { namespace devenv {
 
 CudaDeviceChecker::CudaDeviceChecker() {
 
@@ -21,3 +19,10 @@ int CudaDeviceChecker::getCudaDevicesCount() {
 	cudaGetDeviceCount(&count);
 	return count;
 }
+
+DeviceProps CudaDeviceChecker::getCudaDeviceProperties(int device) {
+	DeviceProps deviceProps(device);
+	return deviceProps;
+}
+
+}}

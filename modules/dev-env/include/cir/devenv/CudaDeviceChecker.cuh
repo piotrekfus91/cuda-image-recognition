@@ -1,6 +1,8 @@
 #ifndef CUDADEVICECHECKER_H_
 #define CUDADEVICECHECKER_H_
 
+#include "cir/devenv/DeviceProps.cuh"
+
 namespace cir { namespace devenv {
 
 class CudaDeviceChecker {
@@ -10,6 +12,8 @@ public:
 
 	bool canRunNativeCudaCode();
 	int getCudaDevicesCount();
+
+	DeviceProps getCudaDeviceProperties(int device);
 };
 
 }}

@@ -1,17 +1,16 @@
 file(GLOB src_devenv_files "src/devenv/*.cpp")
 file(GLOB src_devenv_cu_files "src/devenv/*.cu")
 file(GLOB test_devenv_files "test/devenv/*.cpp")
-file(GLOB test_devenv_cu_files "test/devenv/*.cu")
 
 find_package(CUDA)
-cuda_compile(CUDA_DEVICE_CHECKER src/devenv/CudaDeviceChecker.cu)
 
 if(test)
+	enable_testing()
+	
 	cuda_add_executable(DevEnvTests
 		${src_devenv_files}
 		${src_devenv_cu_files}
 		${test_devenv_files}
-		${test_devenv_cu_files}
 	)
 	
 	target_link_libraries(DevEnvTests gtest gtest_main pthread)
