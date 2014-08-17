@@ -2,6 +2,7 @@
 #define GPUIMAGEPROCESSINGSERVICE_H_
 
 #include "cir/common/ImageProcessingService.h"
+#include "cir/gpuprocessing/GpuColorDetector.h"
 
 namespace cir { namespace gpuprocessing {
 
@@ -19,6 +20,9 @@ public:
 	virtual cir::common::MatWrapper detectColorHsv(const cir::common::MatWrapper& input, const double minHue,
 				const double maxHue, const double minSaturation, const double maxSaturation,
 				const double minValue, const double maxValue);
+
+private:
+	GpuColorDetector _gpuColorDetector;
 };
 
 }}

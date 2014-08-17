@@ -1,17 +1,19 @@
 #ifndef CPUCOLORDETECTOR_H_
 #define CPUCOLORDETECTOR_H_
 
-#include "opencv2/opencv.hpp"
+#include "cir/common/ColorDetector.h"
 
 namespace cir { namespace cpuprocessing {
 
-class CpuColorDetector {
+class CpuColorDetector : public cir::common::ColorDetector {
 public:
 	CpuColorDetector();
 	virtual ~CpuColorDetector();
 
-	cv::Mat detectColor(cv::Mat& input, const int minHue, const int maxHue,
-			const int minSat, const int maxSat, const int minValue, const int maxValue);
+protected:
+	virtual cir::common::MatWrapper doDetectColor(cir::common::MatWrapper& input, const int minHue,
+			const int maxHue, const int minSat, const int maxSat, const int minValue,
+			const int maxValue);
 };
 
 }}

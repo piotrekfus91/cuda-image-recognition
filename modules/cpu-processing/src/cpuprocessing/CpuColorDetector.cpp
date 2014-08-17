@@ -1,6 +1,7 @@
 #include "cir/cpuprocessing/CpuColorDetector.h"
 #include <vector>
-#include <iostream>
+
+using namespace cir::common;
 
 namespace cir { namespace cpuprocessing {
 
@@ -12,12 +13,13 @@ CpuColorDetector::~CpuColorDetector() {
 
 }
 
-cv::Mat CpuColorDetector::detectColor(cv::Mat& input, const int minHue, const int maxHue,
-			const int minSat, const int maxSat, const int minValue, const int maxValue) {
-	cv::Mat output(input);
+MatWrapper CpuColorDetector::doDetectColor(MatWrapper& input,
+		const int minHue, const int maxHue,	const int minSat, const int maxSat,
+		const int minValue, const int maxValue) {
+	cv::Mat output(input.getMat());
 
-	int cols = input.cols;
-	int rows = input.rows;
+	int cols = output.cols;
+	int rows = output.rows;
 
 	for(int x = 0; x < cols; x++) {
 		for(int y = 0; y < rows; y++) {
