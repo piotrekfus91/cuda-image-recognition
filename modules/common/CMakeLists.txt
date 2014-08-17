@@ -11,6 +11,8 @@ add_library(common
 )
 
 if(test)
+	enable_testing()
+	
 	add_executable(CommonTests
 		${test_common_files}
 	)

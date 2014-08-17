@@ -7,5 +7,5 @@ add_library(cpu-processing
 target_link_libraries(cpu-processing common)
 
 if(test)
-	
+	enable_testing()
 endif()

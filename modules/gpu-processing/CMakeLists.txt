@@ -7,5 +7,5 @@ add_library(gpu-processing
 target_link_libraries(gpu-processing common)
 
 if(test)
-	
+	enable_testing()
 endif()

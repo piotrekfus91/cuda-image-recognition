@@ -18,6 +18,8 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(nn jsoncpp)
 
 if(test)
+	enable_testing()
+	
 	add_executable(CudaNeuronNetworkTests
 		${test_cnn_files}
 		${test_cnn_neuron_files}
