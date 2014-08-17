@@ -28,6 +28,7 @@ void printAllProps(DeviceProps& deviceProps) {
 	printProp("Thread size", deviceProps.getMaxThreadsSize());
 	printProp("Multi processors", deviceProps.getMultiProcessors());
 	printProp("Threads per processor", deviceProps.getThreadsPerProcessor());
+	printProp("Threads per block", deviceProps.getThreadsPerBlock());
 	printProp("Concurrent kernels", deviceProps.getConcurrentKernels());
 	printProp("Clock rate", deviceProps.getClockRate());
 	std::cout << "=====================CUDA DEVICE PROPERTIES====================" << std::endl;

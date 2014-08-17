@@ -19,6 +19,7 @@ public:
 	std::string getConcurrentKernels();
 	std::string getClockRate();
 	std::string getThreadsPerProcessor();
+	std::string getThreadsPerBlock();
 
 private:
 	int _device;

@@ -67,4 +67,10 @@ std::string DeviceProps::getThreadsPerProcessor() {
 	return str.str();
 }
 
+std::string DeviceProps::getThreadsPerBlock() {
+	std::ostringstream str;
+	str << _deviceProp.maxThreadsPerBlock;
+	return str.str();
+}
+
 }}
