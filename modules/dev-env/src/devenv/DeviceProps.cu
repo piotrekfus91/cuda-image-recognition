@@ -73,4 +73,10 @@ std::string DeviceProps::getThreadsPerBlock() {
 	return str.str();
 }
 
+std::string DeviceProps::getWarpSize() {
+	std::ostringstream str;
+	str << _deviceProp.warpSize;
+	return str.str();
+}
+
 }}

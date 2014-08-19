@@ -20,6 +20,7 @@ public:
 	std::string getClockRate();
 	std::string getThreadsPerProcessor();
 	std::string getThreadsPerBlock();
+	std::string getWarpSize();
 
 private:
 	int _device;
