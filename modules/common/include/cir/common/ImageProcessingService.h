@@ -2,6 +2,7 @@
 #define IMAGEPROCESSINGSERVICE_H_
 
 #include "cir/common/MatWrapper.h"
+#include "cir/common/SegmentArray.h"
 
 namespace cir { namespace common {
 
@@ -22,6 +23,8 @@ public:
 	virtual MatWrapper detectColorHsv(const MatWrapper& input, const double minHue,
 			const double maxHue, const double minSaturation, const double maxSaturation,
 			const double minValue, const double maxValue) = 0;
+	virtual SegmentArray* segmentate(const MatWrapper& input) = 0;
+	virtual MatWrapper mark(MatWrapper& input, SegmentArray* segmentArray) = 0;
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;

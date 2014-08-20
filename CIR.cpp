@@ -29,9 +29,11 @@ int main(int argc, char** argv) {
 		cir::common::MatWrapper matWrapper(frame);
 		matWrapper = service.bgrToHsv(matWrapper);
 		matWrapper = service.detectColorHsv(matWrapper,
-				30, 90,
+				45, 75,
 				0, 1,
 				0, 1);
+		cir::common::SegmentArray* segmentArray = service.segmentate(matWrapper);
+		matWrapper = service.mark(matWrapper, segmentArray);
 		matWrapper = service.hsvToBgr(matWrapper);
 
 		cir::common::MatWrapper gpuMatWrapper(gpuFrame);

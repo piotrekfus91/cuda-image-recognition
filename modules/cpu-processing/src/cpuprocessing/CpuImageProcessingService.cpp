@@ -59,3 +59,11 @@ MatWrapper CpuImageProcessingService::detectColorHsv(const MatWrapper& input, co
 	return _cpuColorDetector.detectColorHsv(input, minHue, maxHue, minSaturation, maxSaturation,
 			minValue, maxValue);
 }
+
+SegmentArray* CpuImageProcessingService::segmentate(const MatWrapper& input) {
+	return _segmentator.segmentate(input);
+}
+
+MatWrapper CpuImageProcessingService::mark(MatWrapper& input, SegmentArray* segmentArray) {
+	return _marker.markSegments(input, segmentArray);
+}

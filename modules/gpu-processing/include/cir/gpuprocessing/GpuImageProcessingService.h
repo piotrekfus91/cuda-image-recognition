@@ -20,6 +20,8 @@ public:
 	virtual cir::common::MatWrapper detectColorHsv(const cir::common::MatWrapper& input, const double minHue,
 				const double maxHue, const double minSaturation, const double maxSaturation,
 				const double minValue, const double maxValue);
+	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
+	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
 
 private:
 	GpuColorDetector _gpuColorDetector;

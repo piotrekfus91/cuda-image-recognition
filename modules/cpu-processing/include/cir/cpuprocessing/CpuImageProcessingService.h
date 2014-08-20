@@ -3,6 +3,8 @@
 
 #include "cir/common/ImageProcessingService.h"
 #include "cir/cpuprocessing/CpuColorDetector.h"
+#include "cir/cpuprocessing/CpuRegionGrowingSegmentator.h"
+#include "cir/cpuprocessing/CpuRedMarker.h"
 
 namespace cir { namespace cpuprocessing {
 
@@ -19,9 +21,13 @@ public:
 	virtual cir::common::MatWrapper detectColorHsv(const cir::common::MatWrapper& input, const double minHue,
 				const double maxHue, const double minSaturation, const double maxSaturation,
 				const double minValue, const double maxValue);
+	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
+	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
 
 private:
 	CpuColorDetector _cpuColorDetector;
+	CpuRegionGrowingSegmentator _segmentator;
+	CpuRedMarker _marker;
 };
 
 }}
