@@ -1,24 +1,36 @@
 #include "cir/gpuprocessing/detect_color.cuh"
-#include <iostream>
 
 // function is applicable only for HSV model
 #define channels 3
 
 namespace cir { namespace gpuprocessing {
 
-void detect_color(uchar* src, const int minHue, const int maxHue, const int minSat,
-		const int maxSat, const int minValue, const int maxValue, const int width,
-		const int height, const int step, uchar* dst) {
+void detect_color(uchar* src, const int hueNumber, const int* minHues, const int* maxHues,
+		const int minSat, const int maxSat, const int minValue, const int maxValue,
+		const int width, const int height, const int step, uchar* dst) {
+	int size = hueNumber * sizeof(int);
+	int* d_minHues;
+	int* d_maxHues;
+
+	cudaMalloc((void**)&d_minHues, size);
+	cudaMalloc((void**)&d_maxHues, size);
+
+	cudaMemcpy(d_minHues, minHues, size, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_maxHues, maxHues, size, cudaMemcpyHostToDevice);
+
 	dim3 block(32, 32);
 	dim3 thread(width/32, height/32);
-	k_detect_color<<<block, thread>>>(src, minHue, maxHue, minSat, maxSat,
+	k_detect_color<<<block, thread>>>(src, hueNumber, d_minHues, d_maxHues, minSat, maxSat,
 			minValue, maxValue, width, height, step, dst);
+
+	cudaFree(d_minHues);
+	cudaFree(d_maxHues);
 }
 
 __global__
-void k_detect_color(uchar* src, const int minHue, const int maxHue, const int minSat,
-		const int maxSat, const int minValue, const int maxValue, const int width,
-		const int height, const int step, uchar* dst) {
+void k_detect_color(uchar* src, const int hueNumber, const int* minHues, const int* maxHues,
+		const int minSat, const int maxSat, const int minValue, const int maxValue,
+		const int width, const int height, const int step, uchar* dst) {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -31,9 +43,31 @@ void k_detect_color(uchar* src, const int minHue, const int maxHue, const int mi
 	int sat = dst[pos+1];
 	int value = dst[pos+2];
 
-	if(hue < minHue || hue > maxHue
-			|| sat < minSat || hue > maxSat
-			|| value < minValue || value > maxValue) {
+	bool clear = true;
+
+	if(sat >= minSat && sat <= maxSat
+			&& value >= minValue && value <= maxValue) {
+
+		for(int i = 0; i < hueNumber; i++) {
+			int minHue = minHues[i];
+			int maxHue = maxHues[i];
+
+			if(minHue <= maxHue) {
+				if(hue >= minHue && hue <= maxHue) {
+					clear = false;
+					break;
+				}
+			} else {
+				if(hue >= minHue || hue <= maxHue) {
+					clear = false;
+					break;
+				}
+			}
+		}
+
+	}
+
+	if(clear) {
 		dst[pos] = 0;
 		dst[pos+1] = 0;
 		dst[pos+2] = 0;

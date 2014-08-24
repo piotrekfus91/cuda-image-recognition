@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream>
 #include <cstdlib>
 #include <json/json.h>
 #include "cnn/file/CnnFileLoader.h"
@@ -44,14 +43,12 @@ NeuralNetwork* CnnFileLoader::load(std::string filePath) {
 
 	for(int i = 0; i < layersNumber; i++) {
 		Value layerValue = layersValue[i];
-//		int layerIndex = layerValue.get("layer_index", -1).asInt();
 		int neuronNumber = layerValue.get("neuron_number", -1).asInt();
 
 		Value neuronsValue(arrayValue);
 		neuronsValue = layerValue["neurons"];
 		for(int j = 0; j < neuronNumber; j++) {
 			Value neuronValue = neuronsValue[j];
-//			int neuronIndex = neuronValue.get("neuron_index", -1).asInt();
 			int inputNumber = neuronValue.get("input_number", -1).asInt();
 
 			Value weightsValue(arrayValue);

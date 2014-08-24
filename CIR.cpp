@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cstdlib>
 
 #include "opencv2/opencv.hpp"
@@ -26,10 +25,13 @@ int main(int argc, char** argv) {
 		capture >> frame;
 		gpuFrame.upload(frame);
 
+		double minHues[2] = {45, 345};
+		double maxHues[2] = {75, 15};
+
 		cir::common::MatWrapper matWrapper(frame);
 		matWrapper = service.bgrToHsv(matWrapper);
-		matWrapper = service.detectColorHsv(matWrapper,
-				45, 75,
+		matWrapper = service.detectColorHsv(matWrapper, 2,
+				minHues, maxHues,
 				0, 1,
 				0, 1);
 		cir::common::SegmentArray* segmentArray = service.segmentate(matWrapper);
@@ -38,8 +40,8 @@ int main(int argc, char** argv) {
 
 		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
 		gpuMatWrapper = gpuService.bgrToHsv(gpuMatWrapper);
-		gpuMatWrapper = gpuService.detectColorHsv(gpuMatWrapper,
-				30, 90,
+		gpuMatWrapper = gpuService.detectColorHsv(gpuMatWrapper, 2,
+				minHues, maxHues,
 				0, 1,
 				0, 1);
 		gpuMatWrapper = gpuService.hsvToBgr(gpuMatWrapper);

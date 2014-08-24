@@ -1,5 +1,4 @@
 #include <list>
-#include <iostream>
 #include "cir/cpuprocessing/CpuRegionGrowingSegmentator.h"
 #include "cir/common/Point.h"
 #include "cir/common/SegmentArray.h"
@@ -48,7 +47,6 @@ SegmentArray* CpuRegionGrowingSegmentator::segmentate(const MatWrapper& input) {
 	SegmentArray* segmentArray = (SegmentArray*)malloc(sizeof(SegmentArray));
 	segmentArray->segments = list;
 	segmentArray->size = segments.size();
-	std::cout << segmentArray->size << std::endl;
 	return segmentArray;
 }
 

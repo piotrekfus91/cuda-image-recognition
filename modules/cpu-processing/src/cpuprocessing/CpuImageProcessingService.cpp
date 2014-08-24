@@ -53,10 +53,10 @@ MatWrapper CpuImageProcessingService::hsvToBgr(const MatWrapper& input) {
 	return output;
 }
 
-MatWrapper CpuImageProcessingService::detectColorHsv(const MatWrapper& input, const double minHue,
-			const double maxHue, const double minSaturation, const double maxSaturation,
-			const double minValue, const double maxValue) {
-	return _cpuColorDetector.detectColorHsv(input, minHue, maxHue, minSaturation, maxSaturation,
+MatWrapper CpuImageProcessingService::detectColorHsv(const MatWrapper& input, const int hueNumber,
+		const double* minHues, const double* maxHues, const double minSaturation, const double maxSaturation,
+		const double minValue, const double maxValue) {
+	return _cpuColorDetector.detectColorHsv(input, hueNumber, minHues, maxHues, minSaturation, maxSaturation,
 			minValue, maxValue);
 }
 

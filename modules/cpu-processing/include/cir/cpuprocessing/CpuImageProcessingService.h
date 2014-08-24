@@ -18,9 +18,10 @@ public:
 	virtual cir::common::MatWrapper highPass(const cir::common::MatWrapper& input, int size = 1);
 	virtual cir::common::MatWrapper bgrToHsv(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper hsvToBgr(const cir::common::MatWrapper& input);
-	virtual cir::common::MatWrapper detectColorHsv(const cir::common::MatWrapper& input, const double minHue,
-				const double maxHue, const double minSaturation, const double maxSaturation,
-				const double minValue, const double maxValue);
+	virtual cir::common::MatWrapper detectColorHsv(const cir::common::MatWrapper& input,
+			const int hueNumber, const double* minHues,	const double* maxHues,
+			const double minSaturation, const double maxSaturation,
+			const double minValue, const double maxValue);
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
 

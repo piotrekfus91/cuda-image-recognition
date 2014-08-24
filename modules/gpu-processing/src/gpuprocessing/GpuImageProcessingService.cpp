@@ -54,11 +54,11 @@ MatWrapper GpuImageProcessingService::hsvToBgr(const MatWrapper& input) {
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::detectColorHsv(const MatWrapper& input, const double minHue,
-		const double maxHue, const double minSaturation, const double maxSaturation,
-		const double minValue, const double maxValue) {
-	return _gpuColorDetector.detectColorHsv(input, minHue, maxHue, minSaturation, maxSaturation,
-			minValue, maxValue);
+MatWrapper GpuImageProcessingService::detectColorHsv(const MatWrapper& input, const int hueNumber,
+		const double* minHues, const double* maxHues, const double minSaturation,
+		const double maxSaturation,	const double minValue, const double maxValue) {
+	return _gpuColorDetector.detectColorHsv(input, hueNumber, minHues, maxHues, minSaturation,
+			maxSaturation, minValue, maxValue);
 }
 
 SegmentArray* GpuImageProcessingService::segmentate(const cir::common::MatWrapper& input) {

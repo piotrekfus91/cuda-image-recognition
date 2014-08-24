@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <iostream>
 #include "cnn/NeuralNetwork.h"
 
 using namespace cnn::neuron;

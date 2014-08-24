@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <iostream>
 #include "cnn/Layer.h"
 #include "cnn/neuron/NeuronUtil.h"
 

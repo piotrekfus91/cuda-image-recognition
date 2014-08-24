@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <iostream>
 #include "cnn/neuron/Neuron.h"
 
 namespace cnn { namespace neuron {
