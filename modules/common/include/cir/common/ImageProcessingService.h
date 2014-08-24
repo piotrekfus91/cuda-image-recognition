@@ -25,6 +25,7 @@ public:
 			const double maxSaturation,	const double minValue, const double maxValue) = 0;
 	virtual SegmentArray* segmentate(const MatWrapper& input) = 0;
 	virtual MatWrapper mark(MatWrapper& input, SegmentArray* segmentArray) = 0;
+	virtual MatWrapper crop(MatWrapper& input, Segment* segment) = 0;
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;

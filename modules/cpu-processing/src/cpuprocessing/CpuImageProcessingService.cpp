@@ -67,3 +67,12 @@ SegmentArray* CpuImageProcessingService::segmentate(const MatWrapper& input) {
 MatWrapper CpuImageProcessingService::mark(MatWrapper& input, SegmentArray* segmentArray) {
 	return _marker.markSegments(input, segmentArray);
 }
+
+MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
+	cv::Mat inputMat = input.getMat();
+	cv::Mat outputMat;
+	cv::Rect rect = cv::Rect(segment->leftX, segment->bottomY,
+			segment->rightX - segment->leftX + 1, segment->topY - segment->bottomY + 1);
+	inputMat(rect).copyTo(outputMat);
+	return outputMat;
+}

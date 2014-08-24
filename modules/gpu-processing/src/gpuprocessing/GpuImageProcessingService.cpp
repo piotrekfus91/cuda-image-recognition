@@ -68,3 +68,12 @@ SegmentArray* GpuImageProcessingService::segmentate(const cir::common::MatWrappe
 MatWrapper GpuImageProcessingService::mark(MatWrapper& input, cir::common::SegmentArray* segmentArray) {
 	return input;
 }
+
+MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
+	cv::gpu::GpuMat inputMat = input.getGpuMat();
+	cv::gpu::GpuMat outputMat;
+	cv::Rect rect = cv::Rect(segment->leftX, segment->bottomY,
+			segment->rightX - segment->leftX + 1, segment->topY - segment->bottomY + 1);
+	inputMat(rect).copyTo(outputMat);
+	return outputMat;
+}

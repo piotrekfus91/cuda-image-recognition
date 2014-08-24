@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
 		cir::common::SegmentArray* segmentArray = service.segmentate(matWrapper);
 		matWrapper = service.mark(matWrapper, segmentArray);
 		matWrapper = service.hsvToBgr(matWrapper);
+		matWrapper = service.crop(matWrapper, segmentArray->segments[0]);
 
 		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
 		gpuMatWrapper = gpuService.bgrToHsv(gpuMatWrapper);

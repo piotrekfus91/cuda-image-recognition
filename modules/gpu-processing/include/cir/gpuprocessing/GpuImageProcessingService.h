@@ -22,6 +22,7 @@ public:
 			const double maxSaturation,	const double minValue, const double maxValue);
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
+	virtual cir::common::MatWrapper crop(cir::common::MatWrapper& input, cir::common::Segment* segment);
 
 private:
 	GpuColorDetector _gpuColorDetector;
