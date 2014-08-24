@@ -10,13 +10,13 @@
 			[
 				
 				{
-					"inpu_number" : 1,
+					"input_number" : 1,
 					"neuron_index" : 0,
 					"weights" : [ 2 ]
 				},
 				
 				{
-					"inpu_number" : 1,
+					"input_number" : 1,
 					"neuron_index" : 1,
 					"weights" : [ 3 ]
 				}
@@ -30,7 +30,7 @@
 			[
 				
 				{
-					"inpu_number" : 2,
+					"input_number" : 2,
 					"neuron_index" : 0,
 					"weights" : [ 4, 4 ]
 				}

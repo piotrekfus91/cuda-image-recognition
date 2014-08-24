@@ -8,6 +8,13 @@ set(CMAKE_CXX_FLAGS "-Wall -g")
 
 find_package(OpenCV REQUIRED)
 
+set(TEST_FILES_DIR "${PROJECT_SOURCE_DIR}/test_files")
+
+configure_file (
+	"${PROJECT_SOURCE_DIR}/modules/common/include/cir/common/config.h.in"
+	"${PROJECT_SOURCE_DIR}/modules/common/include/cir/common/config.h"
+)
+
 include_directories("${PROJECT_SOURCE_DIR}/modules/common/include")
 include_directories("${PROJECT_SOURCE_DIR}/modules/cpu-processing/include")
 include_directories("${PROJECT_SOURCE_DIR}/modules/gpu-processing/include")

@@ -1,0 +1,12 @@
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#if defined(WIN32) || defined(_WIN32) 
+	#define PATH_SEPARATOR "\\" 
+#else 
+	#define PATH_SEPARATOR "/" 
+#endif 
+
+#define TEST_FILES_DIR "@TEST_FILES_DIR@"
+
+#endif

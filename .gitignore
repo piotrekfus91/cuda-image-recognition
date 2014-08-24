@@ -1,4 +1,5 @@
 build/
+modules/common/include/cir/common/config.h
 
 .project
 .cproject
