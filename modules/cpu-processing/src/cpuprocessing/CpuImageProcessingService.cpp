@@ -80,3 +80,8 @@ MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 	inputMat(rect).copyTo(outputMat);
 	return outputMat;
 }
+
+double* CpuImageProcessingService::countHuMoments(const MatWrapper& matWrapper) {
+	MatWrapper input = matWrapper;
+	return _cpuMomentCounter.countHuMoments(input);
+}

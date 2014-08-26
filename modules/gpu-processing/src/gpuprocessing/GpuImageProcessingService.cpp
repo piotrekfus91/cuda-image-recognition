@@ -82,3 +82,8 @@ MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 	inputMat(rect).copyTo(outputMat);
 	return outputMat;
 }
+
+double* GpuImageProcessingService::countHuMoments(const MatWrapper& matWrapper) {
+	MatWrapper input = matWrapper;
+	return _gpuMomentCounter.countHuMoments(input);
+}

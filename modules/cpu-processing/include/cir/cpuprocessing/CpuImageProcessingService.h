@@ -6,6 +6,7 @@
 #include "cir/cpuprocessing/CpuRegionGrowingSegmentator.h"
 #include "cir/cpuprocessing/CpuRegionSplittingSegmentator.h"
 #include "cir/cpuprocessing/CpuRedMarker.h"
+#include "cir/cpuprocessing/CpuMomentCounter.h"
 
 namespace cir { namespace cpuprocessing {
 
@@ -28,12 +29,14 @@ public:
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
 	virtual cir::common::MatWrapper crop(cir::common::MatWrapper& input, cir::common::Segment* segment);
+	virtual double* countHuMoments(const cir::common::MatWrapper& matWrapper);
 
 private:
 	CpuColorDetector _cpuColorDetector;
 //	CpuRegionGrowingSegmentator _segmentator;
 	CpuRegionSplittingSegmentator _segmentator;
 	CpuRedMarker _marker;
+	CpuMomentCounter _cpuMomentCounter;
 };
 
 }}

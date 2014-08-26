@@ -4,6 +4,7 @@
 #include "cir/common/ImageProcessingService.h"
 #include "cir/gpuprocessing/GpuColorDetector.h"
 #include "cir/gpuprocessing/GpuRegionSplittingSegmentator.h"
+#include "cir/gpuprocessing/GpuMomentCounter.h"
 
 namespace cir { namespace gpuprocessing {
 
@@ -25,10 +26,12 @@ public:
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
 	virtual cir::common::MatWrapper crop(cir::common::MatWrapper& input, cir::common::Segment* segment);
+	virtual double* countHuMoments(const cir::common::MatWrapper& matWrapper);
 
 private:
 	GpuColorDetector _gpuColorDetector;
 	GpuRegionSplittingSegmentator _segmentator;
+	GpuMomentCounter _gpuMomentCounter;
 };
 
 }}

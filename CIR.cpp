@@ -1,5 +1,5 @@
 #include <cstdlib>
-
+#include <iostream>
 #include "opencv2/opencv.hpp"
 #include "opencv2/gpu/gpu.hpp"
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
@@ -13,9 +13,9 @@ void imgGpu(const char*);
 void cam();
 
 int main(int argc, char** argv) {
-//	imgCpu("sample.bmp");
+	imgCpu("sample.bmp");
 //	imgGpu("sample.bmp");
-	cam();
+//	cam();
 
     return EXIT_SUCCESS;
 }
@@ -29,7 +29,12 @@ void imgCpu(const char* fileName) {
 
 	cpuService.init(img.cols, img.rows);
 
-	cpuService.segmentate(mw);
+	mw = cpuService.toGrey(mw);
+
+	double* hu = cpuService.countHuMoments(mw);
+	for(int i = 0; i < 7; i++) {
+		cout << i << ": " << hu[i] << endl;
+	}
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("CPU");
@@ -92,7 +97,6 @@ void cam() {
 		double maxHues[2] = {75, 15};
 
 		cir::common::MatWrapper matWrapper(frame);
-		cir::common::Segment segment;
 		matWrapper = service.bgrToHsv(matWrapper);
 		matWrapper = service.detectColorHsv(matWrapper, 2,
 				minHues, maxHues,
