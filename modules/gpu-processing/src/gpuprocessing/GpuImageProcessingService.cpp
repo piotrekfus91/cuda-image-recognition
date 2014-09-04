@@ -62,7 +62,8 @@ MatWrapper GpuImageProcessingService::detectColorHsv(const MatWrapper& input, co
 }
 
 SegmentArray* GpuImageProcessingService::segmentate(const cir::common::MatWrapper& input) {
-	return NULL;
+	cir::common::MatWrapper matWrapper = input;
+	return _segmentator.segmentate(matWrapper);
 }
 
 MatWrapper GpuImageProcessingService::mark(MatWrapper& input, cir::common::SegmentArray* segmentArray) {

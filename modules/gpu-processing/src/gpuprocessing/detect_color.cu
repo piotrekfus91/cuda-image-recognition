@@ -18,8 +18,8 @@ void detect_color(uchar* src, const int hueNumber, const int* minHues, const int
 	cudaMemcpy(d_minHues, minHues, size, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_maxHues, maxHues, size, cudaMemcpyHostToDevice);
 
-	dim3 block(32, 32);
-	dim3 thread(width/32, height/32);
+	dim3 block(8, 8);
+	dim3 thread(width/8, height/8);
 	k_detect_color<<<block, thread>>>(src, hueNumber, d_minHues, d_maxHues, minSat, maxSat,
 			minValue, maxValue, width, height, step, dst);
 

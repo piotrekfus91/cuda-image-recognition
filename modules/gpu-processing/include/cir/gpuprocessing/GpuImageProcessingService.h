@@ -3,6 +3,7 @@
 
 #include "cir/common/ImageProcessingService.h"
 #include "cir/gpuprocessing/GpuColorDetector.h"
+#include "cir/gpuprocessing/GpuRegionSplittingSegmentator.h"
 
 namespace cir { namespace gpuprocessing {
 
@@ -26,6 +27,7 @@ public:
 
 private:
 	GpuColorDetector _gpuColorDetector;
+	GpuRegionSplittingSegmentator _segmentator;
 };
 
 }}

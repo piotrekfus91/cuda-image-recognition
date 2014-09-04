@@ -4,7 +4,8 @@ option(test "Builds tests" ON)
 
 project(CIR)
 
-set(CMAKE_CXX_FLAGS "-Wall -g")
+set(CMAKE_CXX_FLAGS "-Wall -g -ansi")
+set(CUDA_NVCC_FLAGS "-G;-g")
 
 find_package(OpenCV REQUIRED)
 
