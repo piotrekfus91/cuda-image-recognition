@@ -12,7 +12,7 @@ void img(const char*);
 void cam();
 
 int main(int argc, char** argv) {
-	img("sample.bmp");
+	cam();
 
     return EXIT_SUCCESS;
 }
@@ -56,6 +56,9 @@ void cam() {
 	cv::namedWindow("Test CPU", CV_WINDOW_AUTOSIZE);
 	cv::namedWindow("Test GPU", CV_WINDOW_AUTOSIZE);
 
+	capture >> frame;
+	gpuService.init(frame.cols, frame.rows);
+
 	while(true) {
 		capture >> frame;
 		gpuFrame.upload(frame);
@@ -64,15 +67,15 @@ void cam() {
 		double maxHues[2] = {75, 15};
 
 		cir::common::MatWrapper matWrapper(frame);
-		matWrapper = service.bgrToHsv(matWrapper);
-		matWrapper = service.detectColorHsv(matWrapper, 2,
-				minHues, maxHues,
-				0, 1,
-				0, 1);
-		cir::common::SegmentArray* segmentArray = service.segmentate(matWrapper);
-		matWrapper = service.mark(matWrapper, segmentArray);
-		matWrapper = service.hsvToBgr(matWrapper);
-		matWrapper = service.crop(matWrapper, segmentArray->segments[0]);
+//		matWrapper = service.bgrToHsv(matWrapper);
+//		matWrapper = service.detectColorHsv(matWrapper, 2,
+//				minHues, maxHues,
+//				0, 1,
+//				0, 1);
+//		cir::common::SegmentArray* segmentArray = service.segmentate(matWrapper);
+//		matWrapper = service.mark(matWrapper, segmentArray);
+//		matWrapper = service.hsvToBgr(matWrapper);
+//		matWrapper = service.crop(matWrapper, segmentArray->segments[0]);
 
 		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
 		gpuMatWrapper = gpuService.bgrToHsv(gpuMatWrapper);

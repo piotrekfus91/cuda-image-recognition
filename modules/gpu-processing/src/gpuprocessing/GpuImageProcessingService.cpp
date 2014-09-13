@@ -13,6 +13,10 @@ GpuImageProcessingService::~GpuImageProcessingService() {
 
 }
 
+void GpuImageProcessingService::init(int width, int height) {
+	_segmentator.init(width, height);
+}
+
 MatWrapper GpuImageProcessingService::toGrey(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
 	cv::gpu::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);

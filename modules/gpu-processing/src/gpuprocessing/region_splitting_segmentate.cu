@@ -6,8 +6,20 @@ using namespace cir::common;
 
 namespace cir { namespace gpuprocessing {
 
-void region_splitting_segmentate(uchar* data, int step, int channels, int width, int height) {
-	element* elements = (element*)malloc(sizeof(element) * width * height);
+element* elements;
+elements_pair* merged_y;
+elements_pair* merged_x;
+
+element* d_elements;
+elements_pair* d_merged_y;
+elements_pair* d_merged_x;
+
+void region_splitting_segmentate_init(int width, int height) {
+	elements = (element*) malloc(sizeof(element) * width * height);
+
+	merged_y = (elements_pair*) malloc(sizeof(elements_pair) * width * height);
+	merged_x = (elements_pair*) malloc(sizeof(elements_pair) * width * height);
+
 	for(int i = 0; i < width*height; i++) {
 		elements[i].id = i;
 		elements[i].next = i;
@@ -15,50 +27,44 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 		elements[i].point.x = i % width;
 		elements[i].point.y = i / width;
 		elements[i].v = i;
-	}
 
-	elements_pair* merged_y = (elements_pair*) malloc(sizeof(elements_pair) * width * height);
-	elements_pair* merged_x = (elements_pair*) malloc(sizeof(elements_pair) * width * height);
-	for(int i = 0; i < width*height; i++) {
 		merged_x[i].id1 = -1;
 		merged_y[i].id2 = -1;
 	}
 
-	element* d_elements;
-	elements_pair* d_merged_y;
-	elements_pair* d_merged_x;
-
 	cudaMalloc((void**) &d_elements, sizeof(element) * width * height);
 	cudaMalloc((void**) &d_merged_y, sizeof(elements_pair) * width * height);
 	cudaMalloc((void**) &d_merged_x, sizeof(elements_pair) * width * height);
+}
 
+void region_splitting_segmentate(uchar* data, int step, int channels, int width, int height) {
 	cudaMemcpy(d_elements, elements, sizeof(element) * width * height, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_merged_y, merged_y, sizeof(elements_pair) * width * height, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_merged_x, merged_x, sizeof(elements_pair) * width * height, cudaMemcpyHostToDevice);
-
-	dim3 init_blocks(width, height);
 
 	int greaterDim = width > height ? width : height;
 
 	for(int i = 1; i < greaterDim; i = 2 * i) {
 		dim3 blocks((width+i-1)/i, (height+i-1)/i);
 		dim3 threads(1, 1);
-		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x, d_elements,
-				step, channels, width, height);
-		cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost);
-		cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-		cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-		for(int x = 0; x < width; x++) {
-			for(int y = 0; y < height; y++) {
-				std::cerr << elements[x*height + y].id << " ";
-			}
-
-			std::cerr << std::endl;
-		}
-		std::cerr << "-----------" << std::endl;
+		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x,
+				d_elements, step, channels, width, height);
+//		cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost);
+//		cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+//		cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+//		for(int x = 0; x < width; x++) {
+//			for(int y = 0; y < height; y++) {
+//				std::cerr << elements[x*height + y].id << " ";
+//			}
+//
+//			std::cerr << std::endl;
+//		}
+//		std::cerr << "-----------" << std::endl;
 		cudaDeviceSynchronize();
 	}
+}
 
+void region_splitting_segmentate_shutdown() {
 	cudaFree(d_elements);
 	cudaFree(d_merged_y);
 	cudaFree(d_merged_x);
@@ -73,8 +79,8 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 // di_ - data index
 // ai - array index
 __global__
-void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y, elements_pair* merged_x,
-		element* elements, int step, int channels, int width, int height) {
+void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
+		elements_pair* merged_x, element* elements, int step, int channels, int width, int height) {
 	int ai_x = blockIdx.x * blockDim.x + threadIdx.x;
 	int ai_y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -111,7 +117,7 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y, element
 
 	// top left/right and bottom left/right
 	int di_tb_bottom_left_y = ai_x * channels + (ai_y + block_height - 1) * step;
-	d_merge_blocks_vertically(di_tb_bottom_left_y, step, channels, ai_x, width, ai_y + block_height - 1,
+	d_merge_blocks_vertically(di_tb_bottom_left_y, step, channels, ai_x, width, height, ai_y + block_height - 1,
 			merged_x_start_idx, &merged_x_current_idx, data, elements, merged_x);
 }
 
@@ -128,6 +134,10 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 		int di_trb_left = di_tlb_right + channels;
 		int ai_tlb = ai_x + width * (i + ai_y);
 		int ai_trb = ai_tlb + 1;
+
+		if(ai_trb > width)
+			return;
+
 		if (!d_is_empty(data, di_tlb_right) && !d_is_empty(data, di_trb_left)) {
 			element* left_elem = &(elements[ai_tlb]);
 			element* right_elem = &(elements[ai_trb]);
@@ -144,17 +154,21 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 
 __device__
 void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
-		int ai_x, int width, int ai_y, int merged_x_start_idx,
+		int ai_x, int width, int height, int ai_y, int merged_x_start_idx,
 		int *merged_x_current_idx, uchar* data, element* elements,
 		elements_pair* merged_x) {
 
-	int block_width = width / gridDim.x; // TODO
+	int block_width = height / gridDim.x; // TODO
 
 	for (int i = 0; i < 2*block_width; i++) {
 		int di_tlb_bottom = di_lb_bottom_left_y + i * channels;
 		int di_blb_top = di_tlb_bottom + step;
 		int ai_tb = ai_x + i + width * ai_y;
 		int ai_bb = ai_tb + width;
+
+		if(ai_bb > height)
+			return;
+
 		if (!d_is_empty(data, di_tlb_bottom) && !d_is_empty(data, di_blb_top)) {
 			element* top_elem = &(elements[ai_tb]);
 			element* bottom_elem = &(elements[ai_bb]);

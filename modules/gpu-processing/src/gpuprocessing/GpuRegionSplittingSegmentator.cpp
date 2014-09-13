@@ -10,7 +10,11 @@ GpuRegionSplittingSegmentator::GpuRegionSplittingSegmentator() {
 }
 
 GpuRegionSplittingSegmentator::~GpuRegionSplittingSegmentator() {
+	region_splitting_segmentate_shutdown();
+}
 
+void GpuRegionSplittingSegmentator::init(int width, int height) {
+	region_splitting_segmentate_init(width, height);
 }
 
 SegmentArray* GpuRegionSplittingSegmentator::segmentate(const MatWrapper& matWrapper) {

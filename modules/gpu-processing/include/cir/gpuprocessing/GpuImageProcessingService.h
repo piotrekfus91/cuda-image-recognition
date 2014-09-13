@@ -11,6 +11,7 @@ class GpuImageProcessingService : public cir::common::ImageProcessingService {
 public:
 	GpuImageProcessingService();
 	virtual ~GpuImageProcessingService();
+	void init(int width, int height);
 
 	virtual cir::common::MatWrapper toGrey(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper threshold(const cir::common::MatWrapper& input, double thresholdValue);

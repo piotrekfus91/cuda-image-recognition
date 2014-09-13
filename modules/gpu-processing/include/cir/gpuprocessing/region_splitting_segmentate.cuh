@@ -25,11 +25,15 @@ struct elements_pair {
 	int id2;
 };
 
+void region_splitting_segmentate_init(int width, int height);
+
 void region_splitting_segmentate(uchar* data, int step, int channels, int width, int height);
 
+void region_splitting_segmentate_shutdown();
+
 __global__
-void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y, elements_pair* merged_x,
-		element* elements, int step, int channels, int width, int height);
+void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
+		elements_pair* merged_x, element* elements, int step, int channels, int width, int height);
 
 __device__
 void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
@@ -39,7 +43,7 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 
 __device__
 void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
-		int ai_x, int width, int ai_y, int merged_x_start_idx,
+		int ai_x, int width, int height, int ai_y, int merged_x_start_idx,
 		int *merged_x_current_idx, uchar* data, element* elements,
 		elements_pair* merged_x);
 

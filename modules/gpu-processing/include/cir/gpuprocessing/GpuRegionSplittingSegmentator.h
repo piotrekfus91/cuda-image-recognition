@@ -11,6 +11,7 @@ class GpuRegionSplittingSegmentator : public cir::common::Segmentator {
 public:
 	GpuRegionSplittingSegmentator();
 	virtual ~GpuRegionSplittingSegmentator();
+	void init(int width, int height);
 
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 };
