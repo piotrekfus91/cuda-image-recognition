@@ -12,7 +12,7 @@ void img(const char*);
 void cam();
 
 int main(int argc, char** argv) {
-	img("sample2.bmp");
+	img("sample.bmp");
 
     return EXIT_SUCCESS;
 }
