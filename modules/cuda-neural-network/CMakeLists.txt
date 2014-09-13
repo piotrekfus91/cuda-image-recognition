@@ -26,6 +26,6 @@ if(test)
 		${test_cnn_file_files}
 	)
 	
-	target_link_libraries(CudaNeuronNetworkTests gtest gtest_main pthread nn)
+	target_link_libraries(CudaNeuronNetworkTests gtest gtest_main pthread nn common)
 	add_test(Tests CudaNeuronNetworkTests)
 endif()
