@@ -37,7 +37,7 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 
 __device__
 void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
-		int ai_x, int width, int ai_y, int merged_y_start_idx,
+		int ai_x, int width, int height, int ai_y, int merged_y_start_idx,
 		int* merged_y_current_idx, uchar* data, element* elements,
 		elements_pair* merged_y);
 

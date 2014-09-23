@@ -29,6 +29,8 @@ void region_splitting_segmentate_init(int width, int height) {
 		elements[i].v = i;
 
 		merged_x[i].id1 = -1;
+		merged_x[i].id2 = -1;
+		merged_y[i].id1 = -1;
 		merged_y[i].id2 = -1;
 	}
 
@@ -49,17 +51,17 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 		dim3 threads(1, 1);
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x,
 				d_elements, step, channels, width, height);
-//		cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost);
-//		cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-//		cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-//		for(int x = 0; x < width; x++) {
-//			for(int y = 0; y < height; y++) {
-//				std::cerr << elements[x*height + y].id << " ";
-//			}
-//
-//			std::cerr << std::endl;
-//		}
-//		std::cerr << "-----------" << std::endl;
+		cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost);
+		cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+		cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+		for(int x = 0; x < width; x++) {
+			for(int y = 0; y < height; y++) {
+				std::cerr << elements[x*height + y].id << " ";
+			}
+
+			std::cerr << std::endl;
+		}
+		std::cerr << "-----------" << std::endl;
 		cudaDeviceSynchronize();
 	}
 }
@@ -103,7 +105,7 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 	int di_tlb_top_right_x = (ai_x + block_width - 1) * channels + ai_y * step;
 	int ai_lb_top_right_x = ai_x + block_width - 1;
 
-	d_merge_blocks_horizontally(di_tlb_top_right_x, step, channels, ai_lb_top_right_x, width,
+	d_merge_blocks_horizontally(di_tlb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
 			ai_y, merged_y_start_idx, &merged_y_current_idx, data, elements,
 			merged_y);
 
@@ -111,7 +113,7 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 	int di_blb_top_right_x = di_tlb_top_right_x + block_height * step;
 	int blb_ai_y = ai_y + block_height;
 
-	d_merge_blocks_horizontally(di_blb_top_right_x, step, channels, ai_lb_top_right_x, width,
+	d_merge_blocks_horizontally(di_blb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
 			blb_ai_y, merged_y_start_idx, &merged_y_current_idx, data, elements,
 			merged_y);
 
@@ -123,7 +125,7 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 
 __device__
 void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
-		int ai_x, int width, int ai_y, int merged_y_start_idx,
+		int ai_x, int width, int height, int ai_y, int merged_y_start_idx,
 		int *merged_y_current_idx, uchar* data, element* elements,
 		elements_pair* merged_y) {
 
@@ -135,7 +137,7 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 		int ai_tlb = ai_x + width * (i + ai_y);
 		int ai_trb = ai_tlb + 1;
 
-		if(ai_trb > width)
+		if(ai_trb % height > width)
 			return;
 
 		if (!d_is_empty(data, di_tlb_right) && !d_is_empty(data, di_trb_left)) {
@@ -166,7 +168,7 @@ void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
 		int ai_tb = ai_x + i + width * ai_y;
 		int ai_bb = ai_tb + width;
 
-		if(ai_bb > height)
+		if(ai_bb / width > height)
 			return;
 
 		if (!d_is_empty(data, di_tlb_bottom) && !d_is_empty(data, di_blb_top)) {

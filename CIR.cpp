@@ -12,7 +12,7 @@ void img(const char*);
 void cam();
 
 int main(int argc, char** argv) {
-	cam();
+	img("sample.bmp");
 
     return EXIT_SUCCESS;
 }
@@ -27,6 +27,8 @@ void img(const char* fileName) {
 
 	double minHues[2] = {45, 345};
 	double maxHues[2] = {75, 15};
+
+	gpuService.init(img.cols, img.rows);
 
 	mw = gpuService.bgrToHsv(mw);
 //	mw = gpuService.detectColorHsv(mw, 2,
