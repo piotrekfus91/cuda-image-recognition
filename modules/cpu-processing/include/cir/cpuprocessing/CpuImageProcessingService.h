@@ -4,6 +4,7 @@
 #include "cir/common/ImageProcessingService.h"
 #include "cir/cpuprocessing/CpuColorDetector.h"
 #include "cir/cpuprocessing/CpuRegionGrowingSegmentator.h"
+#include "cir/cpuprocessing/CpuRegionSplittingSegmentator.h"
 #include "cir/cpuprocessing/CpuRedMarker.h"
 
 namespace cir { namespace cpuprocessing {
@@ -12,6 +13,8 @@ class CpuImageProcessingService : public cir::common::ImageProcessingService {
 public:
 	CpuImageProcessingService();
 	virtual ~CpuImageProcessingService();
+	void init(int width, int height);
+
 	virtual cir::common::MatWrapper toGrey(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper threshold(const cir::common::MatWrapper& input, double thresholdValue);
 	virtual cir::common::MatWrapper lowPass(const cir::common::MatWrapper& input, int size = DEFAULT_LOW_PASS_KERNEL_SIZE);
@@ -28,7 +31,8 @@ public:
 
 private:
 	CpuColorDetector _cpuColorDetector;
-	CpuRegionGrowingSegmentator _segmentator;
+//	CpuRegionGrowingSegmentator _segmentator;
+	CpuRegionSplittingSegmentator _segmentator;
 	CpuRedMarker _marker;
 };
 

@@ -18,5 +18,24 @@ protected:
 	bool isSegmentApplicable(Segment* segment);
 };
 
+// helper structures
+struct point {
+	int x;
+	int y;
+};
+
+struct element {
+	struct point point;
+	int next;
+	int prev;
+	int id;
+	int v; // TODO
+};
+
+struct elements_pair {
+	int id1;
+	int id2;
+};
+
 }}
 #endif

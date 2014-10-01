@@ -9,7 +9,11 @@ CpuImageProcessingService::CpuImageProcessingService() {
 }
 
 CpuImageProcessingService::~CpuImageProcessingService() {
+	_segmentator.shutdown();
+}
 
+void CpuImageProcessingService::init(int width, int height) {
+	_segmentator.init(width, height);
 }
 
 MatWrapper CpuImageProcessingService::toGrey(const MatWrapper& input) {
