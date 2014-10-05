@@ -47,6 +47,7 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 	int greaterDim = width > height ? width : height;
 
 	for(int i = 1; i < greaterDim; i = 2 * i) {
+		// TODO kernel dims
 		dim3 blocks((width+i-1)/i, (height+i-1)/i);
 		dim3 threads(1, 1);
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x,

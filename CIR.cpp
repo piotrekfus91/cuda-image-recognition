@@ -14,7 +14,7 @@ void cam();
 
 int main(int argc, char** argv) {
 	imgCpu("sample.bmp");
-//	imgGpu("sample.bmp");
+	imgGpu("sample.bmp");
 //	cam();
 
     return EXIT_SUCCESS;
@@ -51,18 +51,13 @@ void imgGpu(const char* fileName) {
 	cv::gpu::GpuMat gpuMat(img);
 	cir::common::MatWrapper mw(gpuMat);
 
-	double minHues[2] = {45, 345};
-	double maxHues[2] = {75, 15};
-
 	gpuService.init(img.cols, img.rows);
 
-	mw = gpuService.bgrToHsv(mw);
-//	mw = gpuService.detectColorHsv(mw, 2,
-//			minHues, maxHues,
-//			0, 1,
-//			0, 1);
-	gpuService.segmentate(mw);
-	mw = gpuService.hsvToBgr(mw);
+	mw = gpuService.toGrey(mw);
+	double* hu = gpuService.countHuMoments(mw);
+	for(int i = 0; i < 7; i++) {
+		cout << i << ": " << hu[i] << endl;
+	}
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("GPU");
