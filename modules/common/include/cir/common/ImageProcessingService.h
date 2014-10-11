@@ -3,6 +3,9 @@
 
 #include "cir/common/MatWrapper.h"
 #include "cir/common/SegmentArray.h"
+#include "cir/common/Pattern.h"
+#include <iostream>
+#include <map>
 
 namespace cir { namespace common {
 
@@ -27,9 +30,12 @@ public:
 	virtual MatWrapper mark(MatWrapper& input, SegmentArray* segmentArray) = 0;
 	virtual MatWrapper crop(MatWrapper& input, Segment* segment) = 0;
 	virtual double* countHuMoments(const MatWrapper& matWrapper) = 0;
+	virtual void loadPattern(std::string filePath);
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;
+
+	std::map<std::string, Pattern*> patterns;
 };
 
 }}

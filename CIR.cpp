@@ -83,7 +83,6 @@ void cam() {
 	service.init(frame.cols, frame.rows);
 	gpuService.init(frame.cols, frame.rows);
 
-	int i = 0;
 	while(true) {
 		capture >> frame;
 		gpuFrame.upload(frame);
