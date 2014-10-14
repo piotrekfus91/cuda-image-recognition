@@ -4,8 +4,9 @@
 
 using namespace cir::common;
 using namespace cir::gpuprocessing;
+using namespace cir::common::logger;
 
-GpuImageProcessingService::GpuImageProcessingService() {
+GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger) : ImageProcessingService(logger) {
 
 }
 
@@ -14,22 +15,27 @@ GpuImageProcessingService::~GpuImageProcessingService() {
 }
 
 void GpuImageProcessingService::init(int width, int height) {
+	_logger.setModule(getModule());
 	_segmentator.init(width, height);
 }
 
-MatWrapper GpuImageProcessingService::toGrey(const MatWrapper& input) {
+const char* GpuImageProcessingService::getModule() {
+	return "GPU";
+}
+
+MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
 	cv::gpu::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::threshold(const MatWrapper& input, double thresholdValue) {
+MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, double thresholdValue) {
 	cv::gpu::GpuMat output;
 	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, cv::THRESH_BINARY);
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::lowPass(const MatWrapper& input, int size) {
+MatWrapper GpuImageProcessingService::doLowPass(const MatWrapper& input, int size) {
 	cv::gpu::GpuMat output;
 	if(size == DEFAULT_LOW_PASS_KERNEL_SIZE) {
 		cv::gpu::filter2D(input.getGpuMat(), output, -1, DEFAULT_LOW_PASS_KERNEL);
@@ -40,32 +46,32 @@ MatWrapper GpuImageProcessingService::lowPass(const MatWrapper& input, int size)
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::highPass(const MatWrapper& input, int size) {
+MatWrapper GpuImageProcessingService::doHighPass(const MatWrapper& input, int size) {
 	cv::gpu::GpuMat output;
 	cv::gpu::Laplacian(input.getGpuMat(), output, -1, size);
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::bgrToHsv(const MatWrapper& input) {
+MatWrapper GpuImageProcessingService::doBgrToHsv(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
 	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_BGR2HSV);
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::hsvToBgr(const MatWrapper& input) {
+MatWrapper GpuImageProcessingService::doHsvToBgr(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
 	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR);
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::detectColorHsv(const MatWrapper& input, const int hueNumber,
+MatWrapper GpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, const int hueNumber,
 		const double* minHues, const double* maxHues, const double minSaturation,
 		const double maxSaturation,	const double minValue, const double maxValue) {
 	return _gpuColorDetector.detectColorHsv(input, hueNumber, minHues, maxHues, minSaturation,
 			maxSaturation, minValue, maxValue);
 }
 
-SegmentArray* GpuImageProcessingService::segmentate(const cir::common::MatWrapper& input) {
+SegmentArray* GpuImageProcessingService::doSegmentate(const cir::common::MatWrapper& input) {
 	cir::common::MatWrapper matWrapper = input;
 	return _segmentator.segmentate(matWrapper);
 }
@@ -83,7 +89,7 @@ MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 	return outputMat;
 }
 
-double* GpuImageProcessingService::countHuMoments(const MatWrapper& matWrapper) {
+double* GpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper) {
 	MatWrapper input = matWrapper;
 	return _gpuMomentCounter.countHuMoments(input);
 }

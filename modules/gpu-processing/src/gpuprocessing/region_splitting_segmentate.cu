@@ -1,7 +1,10 @@
 #include <vector_types.h>
 #include <iostream>
+#include <iomanip>
 #include "cir/gpuprocessing/region_splitting_segmentate.cuh"
 #include "cir/common/cuda_host_util.cuh"
+
+#define CHANNELS 3
 
 using namespace cir::common;
 
@@ -47,6 +50,12 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 
 	int greaterDim = width > height ? width : height;
 
+	// TODO kernel dims
+	dim3 blocks(width, height);
+	dim3 threads(1, 1);
+	k_remove_empty_segments<<<blocks, threads>>>(data, width, height, step, d_elements);
+	HANDLE_CUDA_ERROR(cudaGetLastError());
+
 	for(int i = 1; i < greaterDim; i = 2 * i) {
 		// TODO kernel dims
 		dim3 blocks((width+i-1)/i, (height+i-1)/i);
@@ -55,17 +64,17 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 				d_elements, step, channels, width, height);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
 
-		HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
-		HANDLE_CUDA_ERROR(cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost));
-		HANDLE_CUDA_ERROR(cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost));
-		for(int x = 0; x < width; x++) {
-			for(int y = 0; y < height; y++) {
-				std::cerr << elements[x*height + y].id << " ";
-			}
-
-			std::cerr << std::endl;
-		}
-		std::cerr << "-----------" << std::endl;
+//		HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
+//		HANDLE_CUDA_ERROR(cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost));
+//		HANDLE_CUDA_ERROR(cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost));
+//		for(int x = 0; x < width; x++) {
+//			for(int y = 0; y < height; y++) {
+//				std::cerr << std::setw(3) << elements[x*height + y].id << " ";
+//			}
+//
+//			std::cerr << std::endl;
+//		}
+//		std::cerr << "-----------" << std::endl;
 		HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
 	}
 }
@@ -78,6 +87,21 @@ void region_splitting_segmentate_shutdown() {
 	free(merged_y);
 	free(merged_x);
 	free(elements);
+}
+
+__global__
+void k_remove_empty_segments(uchar* data, int width, int height, int step, element* elements) {
+	int ai_x = blockDim.x * blockIdx.x + threadIdx.x;
+	int ai_y = blockDim.y * blockIdx.y + threadIdx.y;
+
+	int di = ai_x * CHANNELS + ai_y * step;
+	uchar saturation = data[di+1];
+	uchar value = data[di+2];
+
+	if(saturation == 0 && value == 0) {
+		element* elem = &(elements[ai_x + width * ai_y]);
+		elem->id = -1;
+	}
 }
 
 // tlb - top left block

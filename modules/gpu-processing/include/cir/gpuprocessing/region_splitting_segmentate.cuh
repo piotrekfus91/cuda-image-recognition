@@ -35,6 +35,9 @@ __global__
 void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 		elements_pair* merged_x, element* elements, int step, int channels, int width, int height);
 
+__global__
+void k_remove_empty_segments(uchar* data, int width, int height, int step, element* elements);
+
 __device__
 void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 		int ai_x, int width, int height, int ai_y, int merged_y_start_idx,

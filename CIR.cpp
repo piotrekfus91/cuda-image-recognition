@@ -5,23 +5,25 @@
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
 #include "cir/common/cuda_host_util.cuh"
+#include "cir/common/logger/ImmediateConsoleLogger.h"
 
 using namespace std;
 
-void imgCpu(const char*);
-void imgGpu(const char*);
-void cam();
+void imgCpu(const char*, cir::common::logger::Logger&);
+void imgGpu(const char*, cir::common::logger::Logger&);
+void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
-	imgCpu("sample.bmp");
-	imgGpu("sample.bmp");
+	cir::common::logger::ImmediateConsoleLogger logger;
+	imgCpu("screen.bmp", logger);
+	imgGpu("screen.bmp", logger);
 //	cam();
 
     return EXIT_SUCCESS;
 }
 
-void imgCpu(const char* fileName) {
-	cir::cpuprocessing::CpuImageProcessingService cpuService;
+void imgCpu(const char* fileName, cir::common::logger::Logger& logger) {
+	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
 	cv::Mat img = cv::imread(fileName, CV_LOAD_IMAGE_UNCHANGED);
 	cv::imshow("ORIG", img);
 
@@ -29,12 +31,9 @@ void imgCpu(const char* fileName) {
 
 	cpuService.init(img.cols, img.rows);
 
+	mw = cpuService.bgrToHsv(mw);
 	mw = cpuService.toGrey(mw);
-
-	double* hu = cpuService.countHuMoments(mw);
-	for(int i = 0; i < 7; i++) {
-		cout << i << ": " << hu[i] << endl;
-	}
+	cpuService.countHuMoments(mw);
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("CPU");
@@ -43,8 +42,8 @@ void imgCpu(const char* fileName) {
 	cv::waitKey(0);
 }
 
-void imgGpu(const char* fileName) {
-	cir::gpuprocessing::GpuImageProcessingService gpuService;
+void imgGpu(const char* fileName, cir::common::logger::Logger& logger) {
+	cir::gpuprocessing::GpuImageProcessingService gpuService(logger);
 	cv::Mat img = cv::imread(fileName, CV_LOAD_IMAGE_UNCHANGED);
 	cv::imshow("ORIG", img);
 
@@ -53,11 +52,9 @@ void imgGpu(const char* fileName) {
 
 	gpuService.init(img.cols, img.rows);
 
+	mw = gpuService.bgrToHsv(mw);
 	mw = gpuService.toGrey(mw);
-	double* hu = gpuService.countHuMoments(mw);
-	for(int i = 0; i < 7; i++) {
-		cout << i << ": " << hu[i] << endl;
-	}
+	gpuService.countHuMoments(mw);
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("GPU");
@@ -66,11 +63,11 @@ void imgGpu(const char* fileName) {
 	cv::waitKey(0);
 }
 
-void cam() {
+void cam(cir::common::logger::Logger& logger) {
 	cir::common::cuda_init();
 
-	cir::cpuprocessing::CpuImageProcessingService service;
-	cir::gpuprocessing::GpuImageProcessingService gpuService;
+	cir::cpuprocessing::CpuImageProcessingService service(logger);
+	cir::gpuprocessing::GpuImageProcessingService gpuService(logger);
 	cv::VideoCapture capture(0);
 	cv::Mat frame;
 
