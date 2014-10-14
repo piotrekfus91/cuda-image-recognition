@@ -1,4 +1,5 @@
 #include "cir/gpuprocessing/detect_color.cuh"
+#include "cir/common/cuda_host_util.cuh"
 
 // function is applicable only for HSV model
 #define channels 3
@@ -12,20 +13,21 @@ void detect_color(uchar* src, const int hueNumber, const int* minHues, const int
 	int* d_minHues;
 	int* d_maxHues;
 
-	cudaMalloc((void**)&d_minHues, size);
-	cudaMalloc((void**)&d_maxHues, size);
+	HANDLE_CUDA_ERROR(cudaMalloc((void**)&d_minHues, size));
+	HANDLE_CUDA_ERROR(cudaMalloc((void**)&d_maxHues, size));
 
-	cudaMemcpy(d_minHues, minHues, size, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_maxHues, maxHues, size, cudaMemcpyHostToDevice);
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_minHues, minHues, size, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_maxHues, maxHues, size, cudaMemcpyHostToDevice));
 
 	// TODO kernel dims
 	dim3 block((width+15)/16, (height+15)/16);
 	dim3 thread(16, 16);
 	k_detect_color<<<block, thread>>>(src, hueNumber, d_minHues, d_maxHues, minSat, maxSat,
 			minValue, maxValue, width, height, step, dst);
+	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	cudaFree(d_minHues);
-	cudaFree(d_maxHues);
+	HANDLE_CUDA_ERROR(cudaFree(d_minHues));
+	HANDLE_CUDA_ERROR(cudaFree(d_maxHues));
 }
 
 __global__

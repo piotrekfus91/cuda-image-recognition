@@ -1,4 +1,5 @@
 #include <iostream>
+#include "cir/common/cuda_host_util.cuh"
 #include "cir/gpuprocessing/count_moments.cuh"
 
 #define THREADS_IN_BLOCK 4
@@ -14,26 +15,27 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	double* blockSums = (double*) malloc(sizeof(double) * totalBlocks);
 	double* d_blockSums;
 
-	cudaMalloc((void**) &d_blockSums, sizeof(double) * totalBlocks);
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(double) * totalBlocks));
 
-	cudaMemcpy(d_blockSums, blockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice);
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_blockSums, blockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice));
 
 	uchar* d = (uchar*) malloc(sizeof(uchar) * step * height);
-	cudaMemcpy(d, data, sizeof(uchar) * step * height, cudaMemcpyDeviceToHost);
+	HANDLE_CUDA_ERROR(cudaMemcpy(d, data, sizeof(uchar) * step * height, cudaMemcpyDeviceToHost));
 
 	// TODO kernel dims
 	dim3 blocks(horizontalBlocks, verticalBlocks);
 	dim3 threads(THREADS_IN_BLOCK, THREADS_IN_BLOCK);
 	k_count_raw_moment<<<blocks, threads>>>(data, width, height, step, p, q, d_blockSums);
+	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	cudaMemcpy(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost);
+	HANDLE_CUDA_ERROR(cudaMemcpy(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost));
 
 	double ret = 0;
 	for(int i = 0; i < totalBlocks; i++) {
 		ret += blockSums[i];
 	}
 
-	cudaFree(d_blockSums);
+	HANDLE_CUDA_ERROR(cudaFree(d_blockSums));
 	free(blockSums);
 
 	return ret;

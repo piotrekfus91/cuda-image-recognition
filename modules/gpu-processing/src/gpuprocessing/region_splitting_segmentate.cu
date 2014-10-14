@@ -1,6 +1,7 @@
 #include <vector_types.h>
 #include <iostream>
 #include "cir/gpuprocessing/region_splitting_segmentate.cuh"
+#include "cir/common/cuda_host_util.cuh"
 
 using namespace cir::common;
 
@@ -34,15 +35,15 @@ void region_splitting_segmentate_init(int width, int height) {
 		merged_y[i].id2 = -1;
 	}
 
-	cudaMalloc((void**) &d_elements, sizeof(element) * width * height);
-	cudaMalloc((void**) &d_merged_y, sizeof(elements_pair) * width * height);
-	cudaMalloc((void**) &d_merged_x, sizeof(elements_pair) * width * height);
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_elements, sizeof(element) * width * height));
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_merged_y, sizeof(elements_pair) * width * height));
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_merged_x, sizeof(elements_pair) * width * height));
 }
 
 void region_splitting_segmentate(uchar* data, int step, int channels, int width, int height) {
-	cudaMemcpy(d_elements, elements, sizeof(element) * width * height, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_merged_y, merged_y, sizeof(elements_pair) * width * height, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_merged_x, merged_x, sizeof(elements_pair) * width * height, cudaMemcpyHostToDevice);
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_elements, elements, sizeof(element) * width * height, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_merged_y, merged_y, sizeof(elements_pair) * width * height, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_merged_x, merged_x, sizeof(elements_pair) * width * height, cudaMemcpyHostToDevice));
 
 	int greaterDim = width > height ? width : height;
 
@@ -52,9 +53,11 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 		dim3 threads(1, 1);
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x,
 				d_elements, step, channels, width, height);
-		cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost);
-		cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-		cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+		HANDLE_CUDA_ERROR(cudaGetLastError());
+
+		HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
+		HANDLE_CUDA_ERROR(cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost));
+		HANDLE_CUDA_ERROR(cudaMemcpy(merged_y, d_merged_y, sizeof(int) * width * height, cudaMemcpyDeviceToHost));
 		for(int x = 0; x < width; x++) {
 			for(int y = 0; y < height; y++) {
 				std::cerr << elements[x*height + y].id << " ";
@@ -63,14 +66,14 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 			std::cerr << std::endl;
 		}
 		std::cerr << "-----------" << std::endl;
-		cudaDeviceSynchronize();
+		HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
 	}
 }
 
 void region_splitting_segmentate_shutdown() {
-	cudaFree(d_elements);
-	cudaFree(d_merged_y);
-	cudaFree(d_merged_x);
+	HANDLE_CUDA_ERROR(cudaFree(d_elements));
+	HANDLE_CUDA_ERROR(cudaFree(d_merged_y));
+	HANDLE_CUDA_ERROR(cudaFree(d_merged_x));
 
 	free(merged_y);
 	free(merged_x);
