@@ -9,6 +9,7 @@ class GpuMomentCounter {
 public:
 	GpuMomentCounter();
 	virtual ~GpuMomentCounter();
+	virtual void init(int width, int height);
 
 	virtual double* countHuMoments(cir::common::MatWrapper& matWrapper);
 };

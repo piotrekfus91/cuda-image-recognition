@@ -2,6 +2,7 @@
 #include "cir/gpuprocessing/count_moments.cuh"
 #include "cir/common/config.h"
 #include "opencv2/opencv.hpp"
+#include <iostream>
 
 using namespace cir::common;
 
@@ -12,7 +13,11 @@ GpuMomentCounter::GpuMomentCounter() {
 }
 
 GpuMomentCounter::~GpuMomentCounter() {
+	count_raw_moment_shutdown();
+}
 
+void GpuMomentCounter::init(int width, int height) {
+	count_raw_moment_init(width, height);
 }
 
 double* GpuMomentCounter::countHuMoments(MatWrapper& matWrapper) {

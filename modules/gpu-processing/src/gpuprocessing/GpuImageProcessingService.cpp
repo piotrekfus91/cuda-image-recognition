@@ -17,6 +17,7 @@ GpuImageProcessingService::~GpuImageProcessingService() {
 void GpuImageProcessingService::init(int width, int height) {
 	_logger.setModule(getModule());
 	_segmentator.init(width, height);
+	_gpuMomentCounter.init(width, height);
 }
 
 const char* GpuImageProcessingService::getModule() {

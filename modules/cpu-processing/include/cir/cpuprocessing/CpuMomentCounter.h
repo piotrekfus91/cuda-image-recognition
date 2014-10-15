@@ -11,6 +11,10 @@ public:
 	virtual ~CpuMomentCounter();
 
 	virtual double* countHuMoments(cir::common::MatWrapper& matWrapper);
+
+private:
+	double countRawMoment(uchar* data, int width, int height, int step, int p, int q);
+	int pow(int p, int q);
 };
 
 }}

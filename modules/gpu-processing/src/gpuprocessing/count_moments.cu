@@ -2,31 +2,43 @@
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/gpuprocessing/count_moments.cuh"
 
-#define THREADS_IN_BLOCK 4
+#define THREADS_IN_BLOCK 16
 #define THREADS_PER_BLOCK THREADS_IN_BLOCK * THREADS_IN_BLOCK
 
 namespace cir { namespace gpuprocessing {
 
-double count_raw_moment(uchar* data, int width, int height, int step, int p, int q) {
-	int horizontalBlocks = (width + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
-	int verticalBlocks = (height + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
-	int totalBlocks = horizontalBlocks * verticalBlocks;
+int horizontalBlocks;
+int verticalBlocks;
+int totalBlocks;
 
-	double* blockSums = (double*) malloc(sizeof(double) * totalBlocks);
-	double* d_blockSums;
+double* zeroBlockSums;
+double* blockSums;
+double* d_blockSums;
+
+void count_raw_moment_init(int width, int height) {
+	horizontalBlocks = (width + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
+	verticalBlocks = (height + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
+	totalBlocks = horizontalBlocks * verticalBlocks;
+
+	zeroBlockSums = (double*) malloc(sizeof(double) * totalBlocks);
+	for(int i = 0; i < totalBlocks; i++) {
+		zeroBlockSums[i] = 0;
+	}
+	blockSums = (double*) malloc(sizeof(double) * totalBlocks);
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(double) * totalBlocks));
+}
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_blockSums, blockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice));
-
-	uchar* d = (uchar*) malloc(sizeof(uchar) * step * height);
-	HANDLE_CUDA_ERROR(cudaMemcpy(d, data, sizeof(uchar) * step * height, cudaMemcpyDeviceToHost));
+double count_raw_moment(uchar* data, int width, int height, int step, int p, int q) {
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_blockSums, zeroBlockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice));
 
 	// TODO kernel dims
 	dim3 blocks(horizontalBlocks, verticalBlocks);
 	dim3 threads(THREADS_IN_BLOCK, THREADS_IN_BLOCK);
 	k_count_raw_moment<<<blocks, threads>>>(data, width, height, step, p, q, d_blockSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
+
+	HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
 
 	HANDLE_CUDA_ERROR(cudaMemcpy(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost));
 
@@ -35,10 +47,12 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 		ret += blockSums[i];
 	}
 
+	return ret;
+}
+
+void count_raw_moment_shutdown() {
 	HANDLE_CUDA_ERROR(cudaFree(d_blockSums));
 	free(blockSums);
-
-	return ret;
 }
 
 __global__
@@ -49,18 +63,18 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
 
 	int idx = x + y * step;
-	int pixel = data[idx];
+	double pixel = data[idx];
 
 	int cacheIdx = threadIdx.x + blockDim.x * threadIdx.y;
 
 	if(p == 0 && q == 0)
 		cache[cacheIdx] = pixel;
 	else if(p == 0)
-		cache[cacheIdx] = pow(1.0 * y, 1.0 * q) * pixel;
+		cache[cacheIdx] = pow(y, q) * pixel;
 	else if(q == 0)
-		cache[cacheIdx] = pow(1.0 * x, 1.0 * p) * pixel;
+		cache[cacheIdx] = pow(x, p) * pixel;
 	else
-		cache[cacheIdx] = pow(1.0 * x, 1.0 * p) * pow(1.0 * y, 1.0 * q) * pixel;
+		cache[cacheIdx] = pow(x, p) * pow(y, q) * pixel;
 
 	__syncthreads();
 
@@ -73,6 +87,23 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 
 	if(cacheIdx == 0)
 		blockSums[blockIdx.x + blockIdx.y * gridDim.x] = cache[0];
+}
+
+__device__
+int pow(int p, int q) {
+	if(q == 0)
+		return 1;
+
+	if(q == 1)
+		return p;
+
+	if(q == 2)
+		return p * p;
+
+	if(q == 3)
+		return p * p * p;
+
+	return -1; // should never happen!
 }
 
 }}
