@@ -15,8 +15,8 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::ImmediateConsoleLogger logger;
-	imgCpu("screen.bmp", logger);
-	imgGpu("screen.bmp", logger);
+	imgCpu("screen_small.bmp", logger);
+	imgGpu("screen_small.bmp", logger);
 //	cam();
 
     return EXIT_SUCCESS;

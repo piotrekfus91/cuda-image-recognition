@@ -33,7 +33,8 @@ void region_splitting_segmentate_shutdown();
 
 __global__
 void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
-		elements_pair* merged_x, element* elements, int step, int channels, int width, int height);
+		elements_pair* merged_x, element* elements, int step, int channels, int width, int height,
+		int block_width, int block_height);
 
 __global__
 void k_remove_empty_segments(uchar* data, int width, int height, int step, element* elements);
@@ -42,13 +43,13 @@ __device__
 void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 		int ai_x, int width, int height, int ai_y, int merged_y_start_idx,
 		int* merged_y_current_idx, uchar* data, element* elements,
-		elements_pair* merged_y);
+		elements_pair* merged_y, int block_height);
 
 __device__
 void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
 		int ai_x, int width, int height, int ai_y, int merged_x_start_idx,
 		int *merged_x_current_idx, uchar* data, element* elements,
-		elements_pair* merged_x);
+		elements_pair* merged_x, int block_width);
 
 __device__
 void d_merge_elements(element* elements, element* e1, element* e2, int width);

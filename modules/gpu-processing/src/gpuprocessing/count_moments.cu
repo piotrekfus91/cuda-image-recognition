@@ -57,10 +57,15 @@ void count_raw_moment_shutdown() {
 
 __global__
 void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int q, double* blockSums) {
-	__shared__ double cache[THREADS_PER_BLOCK];
-
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
+	if(x >= width)
+		return;
+
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
+	if(y >= height)
+		return;
+
+	__shared__ double cache[THREADS_PER_BLOCK];
 
 	int idx = x + y * step;
 	double pixel = data[idx];

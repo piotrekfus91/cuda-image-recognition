@@ -53,9 +53,11 @@ void k_detect_color(uchar* src, const int hueNumber, const int* minHues, const i
 		const int minSat, const int maxSat, const int minValue, const int maxValue,
 		const int width, const int height, const int step, uchar* dst) {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
-	int y = blockIdx.y * blockDim.y + threadIdx.y;
+	if(x >= width)
+		return;
 
-	if(x > width || y > height)
+	int y = blockIdx.y * blockDim.y + threadIdx.y;
+	if(y >= height)
 		return;
 
 	int pos = x * channels + y * step;

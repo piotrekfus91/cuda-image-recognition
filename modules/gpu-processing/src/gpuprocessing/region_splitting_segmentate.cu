@@ -1,6 +1,7 @@
 #include <vector_types.h>
 #include <iostream>
 #include <iomanip>
+#include <cstdio>
 #include "cir/gpuprocessing/region_splitting_segmentate.cuh"
 #include "cir/common/cuda_host_util.cuh"
 
@@ -51,17 +52,20 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 	int greaterDim = width > height ? width : height;
 
 	// TODO kernel dims
-	dim3 blocks(width, height);
-	dim3 threads(1, 1);
+	dim3 blocks((width+15)/16, (height+15)/16);
+	dim3 threads(16, 16);
 	k_remove_empty_segments<<<blocks, threads>>>(data, width, height, step, d_elements);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
 	for(int i = 1; i < greaterDim; i = 2 * i) {
+		int block_width = width / ((width+i-1)/i);
+		int block_height = height / ((height+i-1)/i);
+
 		// TODO kernel dims
-		dim3 blocks((width+i-1)/i, (height+i-1)/i);
-		dim3 threads(1, 1);
+		dim3 blocks((width+i*16-1)/(i*16), (height+i*16-1)/(i*16));
+		dim3 threads(16, 16);
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x,
-				d_elements, step, channels, width, height);
+				d_elements, step, channels, width, height, block_width, block_height);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
 
 //		HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
@@ -75,7 +79,7 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 //			std::cerr << std::endl;
 //		}
 //		std::cerr << "-----------" << std::endl;
-		HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
+//		HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
 	}
 }
 
@@ -92,7 +96,12 @@ void region_splitting_segmentate_shutdown() {
 __global__
 void k_remove_empty_segments(uchar* data, int width, int height, int step, element* elements) {
 	int ai_x = blockDim.x * blockIdx.x + threadIdx.x;
+	if(ai_x >= width)
+		return;
+
 	int ai_y = blockDim.y * blockIdx.y + threadIdx.y;
+	if(ai_y >= height)
+		return;
 
 	int di = ai_x * CHANNELS + ai_y * step;
 	uchar saturation = data[di+1];
@@ -110,23 +119,28 @@ void k_remove_empty_segments(uchar* data, int width, int height, int step, eleme
 // ai - array index
 __global__
 void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
-		elements_pair* merged_x, element* elements, int step, int channels, int width, int height) {
+		elements_pair* merged_x, element* elements, int step, int channels, int width, int height,
+		int block_width, int block_height) {
 	int ai_x = blockIdx.x * blockDim.x + threadIdx.x;
-	int ai_y = blockIdx.y * blockDim.y + threadIdx.y;
-
-	if(ai_x % 2 != 0 || ai_y % 2 != 0)
+	if(ai_x % 2 != 0)
 		return;
 
-	int block_width = width / gridDim.x;
-	int block_height = height / gridDim.y;
+	int ai_y = blockIdx.y * blockDim.y + threadIdx.y;
+	if(ai_y % 2 != 0)
+		return;
 
 	ai_x = ai_x * block_width;
-	ai_y = ai_y * block_height;
+	if(ai_x >= width)
+		return;
 
-	int merged_y_start_idx = ai_x + ai_y * blockDim.x * gridDim.x;
+	ai_y = ai_y * block_height;
+	if(ai_y >= height)
+		return;
+
+	int merged_y_start_idx = ai_x + ai_y * width;
 	int merged_y_current_idx = merged_y_start_idx;
 
-	int merged_x_start_idx = ai_x + ai_y * blockDim.x * gridDim.x;
+	int merged_x_start_idx = ai_x + ai_y * width;
 	int merged_x_current_idx = merged_x_start_idx;
 
 	// top left and top right
@@ -135,7 +149,7 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 
 	d_merge_blocks_horizontally(di_tlb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
 			ai_y, merged_y_start_idx, &merged_y_current_idx, data, elements,
-			merged_y);
+			merged_y, block_height);
 
 	// bottom left and bottom right
 	int di_blb_top_right_x = di_tlb_top_right_x + block_height * step;
@@ -143,21 +157,19 @@ void k_region_splitting_segmentate(uchar* data, elements_pair* merged_y,
 
 	d_merge_blocks_horizontally(di_blb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
 			blb_ai_y, merged_y_start_idx, &merged_y_current_idx, data, elements,
-			merged_y);
+			merged_y, block_height);
 
 	// top left/right and bottom left/right
 	int di_tb_bottom_left_y = ai_x * channels + (ai_y + block_height - 1) * step;
 	d_merge_blocks_vertically(di_tb_bottom_left_y, step, channels, ai_x, width, height, ai_y + block_height - 1,
-			merged_x_start_idx, &merged_x_current_idx, data, elements, merged_x);
+			merged_x_start_idx, &merged_x_current_idx, data, elements, merged_x, block_width);
 }
 
 __device__
 void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 		int ai_x, int width, int height, int ai_y, int merged_y_start_idx,
 		int *merged_y_current_idx, uchar* data, element* elements,
-		elements_pair* merged_y) {
-
-	int block_height = width / gridDim.x; // TODO
+		elements_pair* merged_y, int block_height) {
 
 	for (int i = 0; i < block_height; i++) {
 		int di_tlb_right = di_lb_top_right_x + i * step;
@@ -165,7 +177,7 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
 		int ai_tlb = ai_x + width * (i + ai_y);
 		int ai_trb = ai_tlb + 1;
 
-		if(ai_trb % height > width)
+		if(ai_trb / height >= width)
 			return;
 
 		if (!d_is_empty(data, di_tlb_right) && !d_is_empty(data, di_trb_left)) {
@@ -186,9 +198,7 @@ __device__
 void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
 		int ai_x, int width, int height, int ai_y, int merged_x_start_idx,
 		int *merged_x_current_idx, uchar* data, element* elements,
-		elements_pair* merged_x) {
-
-	int block_width = height / gridDim.x; // TODO
+		elements_pair* merged_x, int block_width) {
 
 	for (int i = 0; i < 2*block_width; i++) {
 		int di_tlb_bottom = di_lb_bottom_left_y + i * channels;
@@ -196,7 +206,7 @@ void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
 		int ai_tb = ai_x + i + width * ai_y;
 		int ai_bb = ai_tb + width;
 
-		if(ai_bb / width > height)
+		if(ai_bb / width >= height)
 			return;
 
 		if (!d_is_empty(data, di_tlb_bottom) && !d_is_empty(data, di_blb_top)) {
@@ -229,7 +239,6 @@ void d_merge_elements(element* elements, element* e1, element* e2, int width) {
 		elem->id = e1->id;
 		i = elem->next;
 	}
-
 }
 
 __device__
