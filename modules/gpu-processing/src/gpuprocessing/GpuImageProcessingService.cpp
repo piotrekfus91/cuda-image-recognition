@@ -1,10 +1,12 @@
 #include "opencv2/gpu/gpu.hpp"
 #include "opencv2/gpu/gpumat.hpp"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
+#include "cir/common/exception/InvalidColorSchemeException.h"
 
 using namespace cir::common;
 using namespace cir::gpuprocessing;
 using namespace cir::common::logger;
+using namespace cir::common::exception;
 
 GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger) : ImageProcessingService(logger) {
 
@@ -26,14 +28,31 @@ const char* GpuImageProcessingService::getModule() {
 
 MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
-	cv::gpu::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);
-	return output;
+
+	if(input.getColorScheme() == MatWrapper::BGR) {
+		cv::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);
+		MatWrapper mw(output);
+		mw.setColorScheme(MatWrapper::GRAY);
+		return mw;
+	}
+
+	if(input.getColorScheme() == MatWrapper::HSV) {
+		cv::gpu::GpuMat hsvChannels[3];
+		cv::gpu::split(input.getGpuMat(), hsvChannels);
+		MatWrapper mw(hsvChannels[2]);
+		mw.setColorScheme(MatWrapper::GRAY);
+		return mw;
+	}
+
+	return input;
 }
 
 MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, double thresholdValue) {
 	cv::gpu::GpuMat output;
 	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, cv::THRESH_BINARY);
-	return output;
+	MatWrapper mw(output);
+	mw.setColorScheme(MatWrapper::GRAY);
+	return mw;
 }
 
 MatWrapper GpuImageProcessingService::doLowPass(const MatWrapper& input, int size) {
@@ -54,14 +73,24 @@ MatWrapper GpuImageProcessingService::doHighPass(const MatWrapper& input, int si
 }
 
 MatWrapper GpuImageProcessingService::doBgrToHsv(const MatWrapper& input) {
+	if(input.getColorScheme() != MatWrapper::BGR)
+		throw InvalidColorSchemeException();
+
 	cv::gpu::GpuMat output;
 	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_BGR2HSV);
-	return output;
+	MatWrapper mw(output);
+	mw.setColorScheme(MatWrapper::HSV);
+	return mw;
 }
 
 MatWrapper GpuImageProcessingService::doHsvToBgr(const MatWrapper& input) {
+	if(input.getColorScheme() != MatWrapper::HSV)
+		throw InvalidColorSchemeException();
+
 	cv::gpu::GpuMat output;
-	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR);
+	cv::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR);
+	MatWrapper mw(output);
+	mw.setColorScheme(MatWrapper::BGR);
 	return output;
 }
 

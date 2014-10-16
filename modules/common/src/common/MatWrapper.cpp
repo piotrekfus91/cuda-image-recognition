@@ -6,11 +6,11 @@ using namespace cv::gpu;
 using namespace cir::common;
 using namespace cir::common::exception;
 
-MatWrapper::MatWrapper(const Mat& mat) : _mat(mat), _matType(MAT) {
+MatWrapper::MatWrapper(const Mat& mat) : _mat(mat), _matType(MAT), _colorScheme(BGR) {
 
 }
 
-MatWrapper::MatWrapper(const GpuMat& gpuMat) : _gpuMat(gpuMat), _matType(GPU_MAT) {
+MatWrapper::MatWrapper(const GpuMat& gpuMat) : _gpuMat(gpuMat), _matType(GPU_MAT), _colorScheme(BGR) {
 
 }
 
@@ -40,4 +40,12 @@ GpuMat MatWrapper::getGpuMat() const {
 
 MatWrapper::MAT_TYPE MatWrapper::getType() const {
 	return _matType;
+}
+
+MatWrapper::COLOR_SCHEME MatWrapper::getColorScheme() const {
+	return _colorScheme;
+}
+
+void MatWrapper::setColorScheme(const COLOR_SCHEME colorScheme) {
+	_colorScheme = colorScheme;
 }

@@ -21,12 +21,22 @@ public:
 		GPU_MAT
 	};
 
+	enum COLOR_SCHEME {
+		BGR,
+		HSV,
+		GRAY,
+		UNKNOWN
+	};
+
 	MAT_TYPE getType() const;
+	COLOR_SCHEME getColorScheme() const;
+	void setColorScheme(const COLOR_SCHEME colorScheme);
 
 private:
 	cv::Mat _mat;
 	cv::gpu::GpuMat _gpuMat;
 	MAT_TYPE _matType;
+	COLOR_SCHEME _colorScheme;
 };
 
 }}
