@@ -10,6 +10,8 @@ public:
 	ImmediateConsoleLogger();
 	virtual ~ImmediateConsoleLogger();
 
+	virtual Logger* clone();
+
 	virtual void log(const char* str);
 	virtual void log(const char* str, double d);
 	virtual void flushBuffer();

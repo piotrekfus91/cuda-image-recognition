@@ -11,6 +11,12 @@ ImmediateConsoleLogger::~ImmediateConsoleLogger() {
 
 }
 
+Logger* ImmediateConsoleLogger::clone() {
+	ImmediateConsoleLogger* logger = new ImmediateConsoleLogger();
+	logger->setModule(_module.c_str());
+	return logger;
+}
+
 void ImmediateConsoleLogger::log(const char* str) {
 	std::cout << _module << ": " << str << std::endl;
 }

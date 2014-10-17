@@ -1,9 +1,13 @@
 #include <iostream>
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/gpuprocessing/count_moments.cuh"
+#include "cir/common/logger/Logger.h"
 
 #define THREADS_IN_BLOCK 16
 #define THREADS_PER_BLOCK THREADS_IN_BLOCK * THREADS_IN_BLOCK
+
+using namespace cir::common;
+using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
@@ -35,10 +39,13 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	// TODO kernel dims
 	dim3 blocks(horizontalBlocks, verticalBlocks);
 	dim3 threads(THREADS_IN_BLOCK, THREADS_IN_BLOCK);
+
+	KERNEL_MEASURE_START
+
 	k_count_raw_moment<<<blocks, threads>>>(data, width, height, step, p, q, d_blockSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
+	KERNEL_MEASURE_END("Count Hu moments")
 
 	HANDLE_CUDA_ERROR(cudaMemcpy(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost));
 

@@ -2,6 +2,7 @@
 #include "opencv2/gpu/gpumat.hpp"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
 #include "cir/common/exception/InvalidColorSchemeException.h"
+#include "cir/common/cuda_host_util.cuh"
 
 using namespace cir::common;
 using namespace cir::gpuprocessing;
@@ -20,6 +21,9 @@ void GpuImageProcessingService::init(int width, int height) {
 	_logger.setModule(getModule());
 	_segmentator.init(width, height);
 	_gpuMomentCounter.init(width, height);
+	Logger* kernelLogger = _logger.clone();
+	kernelLogger->setModule("Kernel");
+	set_default_logger(kernelLogger);
 }
 
 const char* GpuImageProcessingService::getModule() {

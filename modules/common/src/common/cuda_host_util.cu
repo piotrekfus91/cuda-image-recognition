@@ -3,6 +3,8 @@
 
 namespace cir { namespace common {
 
+cir::common::logger::Logger* default_logger;
+
 void cuda_init() {
 
 }
@@ -18,6 +20,14 @@ void cuda_handle_error(cudaError_t err, const char *file, int line) {
     	std::cerr << err << ": " << cudaGetErrorString(err) << std::endl;
         exit(EXIT_FAILURE);
     }
+}
+
+void set_default_logger(cir::common::logger::Logger* logger) {
+	default_logger = logger;
+}
+
+cir::common::logger::Logger* get_default_logger() {
+	return default_logger;
 }
 
 }}

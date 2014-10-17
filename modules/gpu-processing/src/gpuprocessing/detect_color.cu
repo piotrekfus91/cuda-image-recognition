@@ -2,6 +2,9 @@
 #include "cir/common/cuda_host_util.cuh"
 #include <iostream>
 
+using namespace cir::common;
+using namespace cir::common::logger;
+
 // function is applicable only for HSV model
 #define channels 3
 
@@ -24,25 +27,13 @@ void detect_color(uchar* src, const int hueNumber, const int* minHues, const int
 	dim3 block((width+15)/16, (height+15)/16);
 	dim3 thread(16, 16);
 
-	cudaEvent_t start;
-	cudaEvent_t stop;
-	HANDLE_CUDA_ERROR(cudaEventCreate(&start));
-	HANDLE_CUDA_ERROR(cudaEventCreate(&stop));
-	HANDLE_CUDA_ERROR(cudaEventRecord(start, 0)); // TODO stream
+	KERNEL_MEASURE_START
 
 	k_detect_color<<<block, thread>>>(src, hueNumber, d_minHues, d_maxHues, minSat, maxSat,
 			minValue, maxValue, width, height, step, dst);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	HANDLE_CUDA_ERROR(cudaEventRecord(stop, 0));
-	HANDLE_CUDA_ERROR(cudaEventSynchronize(stop));
-
-	float time;
-	HANDLE_CUDA_ERROR(cudaEventElapsedTime(&time, start, stop));
-	HANDLE_CUDA_ERROR(cudaEventDestroy(start));
-	HANDLE_CUDA_ERROR(cudaEventDestroy(stop));
-
-	std::cout << "time: " << time << std::endl;
+	KERNEL_MEASURE_END("Detect color")
 
 	HANDLE_CUDA_ERROR(cudaFree(d_minHues));
 	HANDLE_CUDA_ERROR(cudaFree(d_maxHues));

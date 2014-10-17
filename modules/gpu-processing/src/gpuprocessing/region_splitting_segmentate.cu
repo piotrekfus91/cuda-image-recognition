@@ -8,6 +8,7 @@
 #define CHANNELS 3
 
 using namespace cir::common;
+using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
@@ -64,9 +65,14 @@ void region_splitting_segmentate(uchar* data, int step, int channels, int width,
 		// TODO kernel dims
 		dim3 blocks((width+i*16-1)/(i*16), (height+i*16-1)/(i*16));
 		dim3 threads(16, 16);
+
+		KERNEL_MEASURE_START
+
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_merged_y, d_merged_x,
 				d_elements, step, channels, width, height, block_width, block_height);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
+
+		KERNEL_MEASURE_END("Segmentate")
 
 //		HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
 //		HANDLE_CUDA_ERROR(cudaMemcpy(merged_x, d_merged_x, sizeof(int) * width * height, cudaMemcpyDeviceToHost));

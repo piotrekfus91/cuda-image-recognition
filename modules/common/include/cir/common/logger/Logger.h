@@ -10,6 +10,8 @@ public:
 	Logger();
 	virtual ~Logger();
 
+	virtual Logger* clone() = 0;
+
 	virtual void log(const char* str) = 0;
 	virtual void log(const char* str, double d) = 0;
 	virtual void flushBuffer() = 0;
