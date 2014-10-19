@@ -1,5 +1,6 @@
 #include "cir/common/MatWrapper.h"
 #include "cir/common/exception/InvalidMatTypeException.h"
+#include "cir/common/exception/UnsupportedDataTypeException.h"
 
 using namespace cv;
 using namespace cv::gpu;
@@ -7,11 +8,11 @@ using namespace cir::common;
 using namespace cir::common::exception;
 
 MatWrapper::MatWrapper(const Mat& mat) : _mat(mat), _matType(MAT), _colorScheme(BGR) {
-
+	validateType();
 }
 
 MatWrapper::MatWrapper(const GpuMat& gpuMat) : _gpuMat(gpuMat), _matType(GPU_MAT), _colorScheme(BGR) {
-
+	validateType();
 }
 
 MatWrapper MatWrapper::clone() const {
@@ -48,4 +49,16 @@ MatWrapper::COLOR_SCHEME MatWrapper::getColorScheme() const {
 
 void MatWrapper::setColorScheme(const COLOR_SCHEME colorScheme) {
 	_colorScheme = colorScheme;
+}
+
+void MatWrapper::validateType() {
+	int type = -1;
+	if(_matType == MAT)
+		type = _mat.type();
+	else if(_matType == GPU_MAT)
+		type = _gpuMat.type();
+
+	int dataType = type % 8;
+	if(dataType != 0)
+		throw new UnsupportedDataTypeException();
 }

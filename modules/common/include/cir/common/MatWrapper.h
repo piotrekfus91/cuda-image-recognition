@@ -37,6 +37,8 @@ private:
 	cv::gpu::GpuMat _gpuMat;
 	MAT_TYPE _matType;
 	COLOR_SCHEME _colorScheme;
+
+	void validateType();
 };
 
 }}
