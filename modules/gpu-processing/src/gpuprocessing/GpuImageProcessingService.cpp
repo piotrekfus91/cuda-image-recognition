@@ -1,3 +1,4 @@
+#include <iostream>
 #include "opencv2/gpu/gpu.hpp"
 #include "opencv2/gpu/gpumat.hpp"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
@@ -67,12 +68,17 @@ MatWrapper GpuImageProcessingService::doLowPass(const MatWrapper& input, int siz
 		cv::Mat kernel = cv::Mat::ones(size, size, CV_32F) / (float)(size*size);
 		cv::gpu::filter2D(input.getGpuMat(), output, -1, kernel);
 	}
-	return output;
+
+	MatWrapper mw(output);
+	mw.setColorScheme(input.getColorScheme());
+	return mw;
 }
 
 MatWrapper GpuImageProcessingService::doHighPass(const MatWrapper& input, int size) {
 	cv::gpu::GpuMat output;
 	cv::gpu::Laplacian(input.getGpuMat(), output, -1, size);
+	MatWrapper mw(output);
+	mw.setColorScheme(input.getColorScheme());
 	return output;
 }
 
@@ -92,17 +98,15 @@ MatWrapper GpuImageProcessingService::doHsvToBgr(const MatWrapper& input) {
 		throw InvalidColorSchemeException();
 
 	cv::gpu::GpuMat output;
-	cv::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR);
+	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR);
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::BGR);
 	return output;
 }
 
-MatWrapper GpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, const int hueNumber,
-		const double* minHues, const double* maxHues, const double minSaturation,
-		const double maxSaturation,	const double minValue, const double maxValue) {
-	return _gpuColorDetector.detectColorHsv(input, hueNumber, minHues, maxHues, minSaturation,
-			maxSaturation, minValue, maxValue);
+MatWrapper GpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, const int hsvRangesNumber,
+		const HsvRange* hsvRanges) {
+	return _gpuColorDetector.detectColorHsv(input, hsvRangesNumber, hsvRanges);
 }
 
 SegmentArray* GpuImageProcessingService::doSegmentate(const cir::common::MatWrapper& input) {
@@ -111,7 +115,7 @@ SegmentArray* GpuImageProcessingService::doSegmentate(const cir::common::MatWrap
 }
 
 MatWrapper GpuImageProcessingService::mark(MatWrapper& input, cir::common::SegmentArray* segmentArray) {
-	return input;
+	return input; // TODO
 }
 
 MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
@@ -120,7 +124,9 @@ MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 	cv::Rect rect = cv::Rect(segment->leftX, segment->bottomY,
 			segment->rightX - segment->leftX + 1, segment->topY - segment->bottomY + 1);
 	inputMat(rect).copyTo(outputMat);
-	return outputMat;
+	MatWrapper mw(outputMat);
+	mw.setColorScheme(input.getColorScheme());
+	return mw;
 }
 
 double* GpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper) {

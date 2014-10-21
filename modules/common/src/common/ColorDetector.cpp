@@ -10,25 +10,21 @@ ColorDetector::~ColorDetector() {
 
 }
 
-MatWrapper ColorDetector::detectColorHsv(const MatWrapper& input, const int hueNumber,
-		const double* minHues, const double* maxHues, const double minSaturation,
-		const double maxSaturation,	const double minValue, const double maxValue) {
-	int* iMinHues = (int*) malloc(sizeof(int) * hueNumber);
-	int* iMaxHues = (int*) malloc(sizeof(int) * hueNumber);
-	for(int i = 0; i < hueNumber; i++) {
-		iMinHues[i] = minHues[i] / 2;
-		iMaxHues[i] = maxHues[i] / 2;
-	}
+MatWrapper ColorDetector::detectColorHsv(const MatWrapper& input, const int hsvRangesNumber, const HsvRange* hsvRanges) {
+	OpenCvHsvRange* openCvHsvRanges = (OpenCvHsvRange*) malloc(sizeof(OpenCvHsvRange) * hsvRangesNumber);
+	for(int i = 0; i < hsvRangesNumber; i++) {
+		openCvHsvRanges[i].less.hue = hsvRanges[i].less.hue / 2;
+		openCvHsvRanges[i].less.saturation = hsvRanges[i].less.saturation * 255;
+		openCvHsvRanges[i].less.value = hsvRanges[i].less.value * 255;
 
-	const int iMinSaturation = 255 * minSaturation;
-	const int iMaxSaturation = 255 * maxSaturation;
-	const int iMinValue = 255 * minValue;
-	const int iMaxValue = 255 * maxValue;
+		openCvHsvRanges[i].greater.hue = hsvRanges[i].greater.hue / 2;
+		openCvHsvRanges[i].greater.saturation = hsvRanges[i].greater.saturation * 255;
+		openCvHsvRanges[i].greater.value = hsvRanges[i].greater.value * 255;
+	}
 
 	MatWrapper inputMatWrapper = input;
 
-	return doDetectColor(inputMatWrapper, hueNumber, iMinHues, iMaxHues, iMinSaturation, iMaxSaturation,
-			iMinValue, iMaxValue);
+	return doDetectColor(inputMatWrapper, hsvRangesNumber, openCvHsvRanges);
 }
 
 }}

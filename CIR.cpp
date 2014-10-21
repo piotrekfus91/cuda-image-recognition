@@ -15,8 +15,8 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::ImmediateConsoleLogger logger;
-	imgCpu("screen_small.bmp", logger);
-	imgGpu("screen_small.bmp", logger);
+	imgCpu("metro.jpeg", logger);
+	imgGpu("metro.jpeg", logger);
 //	cam();
 
     return EXIT_SUCCESS;
@@ -32,8 +32,34 @@ void imgCpu(const char* fileName, cir::common::logger::Logger& logger) {
 	cpuService.init(img.cols, img.rows);
 
 	mw = cpuService.bgrToHsv(mw);
-	mw = cpuService.toGrey(mw);
-	cpuService.countHuMoments(mw);
+	cir::common::Hsv lessRed;
+	lessRed.hue = 345;
+	lessRed.saturation = 0.2;
+	lessRed.value = 0.2;
+	cir::common::Hsv greaterRed;
+	greaterRed.hue = 15;
+	greaterRed.saturation = 1;
+	greaterRed.value = 1;
+	cir::common::HsvRange rangeRed;
+	rangeRed.less = lessRed;
+	rangeRed.greater = greaterRed;
+
+	cir::common::Hsv lessYellow;
+	lessYellow.hue = 45;
+	lessYellow.saturation = 0.2;
+	lessYellow.value = 0.2;
+	cir::common::Hsv greaterYellow;
+	greaterYellow.hue = 75;
+	greaterYellow.saturation = 1;
+	greaterYellow.value = 1;
+	cir::common::HsvRange rangeYellow;
+	rangeYellow.less = lessYellow;
+	rangeYellow.greater = greaterYellow;
+
+	cir::common::HsvRange hsvRanges[2] = {rangeRed, rangeYellow};
+
+	mw = cpuService.detectColorHsv(mw, 2, hsvRanges);
+	mw = cpuService.hsvToBgr(mw);
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("CPU");
@@ -53,8 +79,35 @@ void imgGpu(const char* fileName, cir::common::logger::Logger& logger) {
 	gpuService.init(img.cols, img.rows);
 
 	mw = gpuService.bgrToHsv(mw);
-	mw = gpuService.toGrey(mw);
-	gpuService.countHuMoments(mw);
+
+	cir::common::Hsv lessRed;
+	lessRed.hue = 345;
+	lessRed.saturation = 0.2;
+	lessRed.value = 0.2;
+	cir::common::Hsv greaterRed;
+	greaterRed.hue = 15;
+	greaterRed.saturation = 1;
+	greaterRed.value = 1;
+	cir::common::HsvRange rangeRed;
+	rangeRed.less = lessRed;
+	rangeRed.greater = greaterRed;
+
+	cir::common::Hsv lessYellow;
+	lessYellow.hue = 45;
+	lessYellow.saturation = 0.2;
+	lessYellow.value = 0.2;
+	cir::common::Hsv greaterYellow;
+	greaterYellow.hue = 75;
+	greaterYellow.saturation = 1;
+	greaterYellow.value = 1;
+	cir::common::HsvRange rangeYellow;
+	rangeYellow.less = lessYellow;
+	rangeYellow.greater = greaterYellow;
+
+	cir::common::HsvRange hsvRanges[2] = {rangeRed, rangeYellow};
+
+	mw = gpuService.detectColorHsv(mw, 2, hsvRanges);
+	mw = gpuService.hsvToBgr(mw);
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("GPU");
@@ -84,32 +137,11 @@ void cam(cir::common::logger::Logger& logger) {
 		capture >> frame;
 		gpuFrame.upload(frame);
 
-		double minHues[2] = {45, 345};
-		double maxHues[2] = {75, 15};
 
-		cir::common::MatWrapper matWrapper(frame);
-		matWrapper = service.bgrToHsv(matWrapper);
-		matWrapper = service.detectColorHsv(matWrapper, 2,
-				minHues, maxHues,
-				0, 1,
-				0, 1);
-		service.segmentate(matWrapper);
-//		matWrapper = service.mark(matWrapper, segmentArray);
-		matWrapper = service.hsvToBgr(matWrapper);
-//		matWrapper = service.crop(matWrapper, segmentArray->segments[0]);
-
-		cir::common::MatWrapper gpuMatWrapper(gpuFrame);
-//		gpuMatWrapper = gpuService.bgrToHsv(gpuMatWrapper);
-//		gpuMatWrapper = gpuService.detectColorHsv(gpuMatWrapper, 2,
-//				minHues, maxHues,
-//				0, 1,
-//				0, 1);
-//		gpuService.segmentate(gpuMatWrapper);
-//		gpuMatWrapper = gpuService.hsvToBgr(gpuMatWrapper);
 
 		imshow("Orig", frame);
-		imshow("Test CPU", matWrapper.getMat());
-		imshow("Test GPU", cv::Mat(gpuMatWrapper.getGpuMat()));
+//		imshow("Test CPU", matWrapper.getMat());
+//		imshow("Test GPU", cv::Mat(gpuMatWrapper.getGpuMat()));
 
 		char c = (char)cv::waitKey(30);
 		if (c == 27) break;

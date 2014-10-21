@@ -73,12 +73,10 @@ cir::common::MatWrapper ImageProcessingService::hsvToBgr(const cir::common::MatW
 	return mw;
 }
 
-cir::common::MatWrapper ImageProcessingService::detectColorHsv(const MatWrapper& input, const int hueNumber,
-			const double* minHues, const double* maxHues, const double minSaturation,
-			const double maxSaturation,	const double minValue, const double maxValue) {
+cir::common::MatWrapper ImageProcessingService::detectColorHsv(const MatWrapper& input,
+		const int hsvRangesNumber, const HsvRange* hsvRanges) {
 	clock_t start = clock();
-	cir::common::MatWrapper mw = doDetectColorHsv(input, hueNumber, minHues, maxHues,
-			minSaturation, maxSaturation, minValue, maxValue);
+	cir::common::MatWrapper mw = doDetectColorHsv(input, hsvRangesNumber, hsvRanges);
 	clock_t stop = clock();
 	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
 	_logger.log("Detect color HSV", elapsed_secs);

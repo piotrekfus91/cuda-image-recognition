@@ -18,10 +18,14 @@ MatWrapper::MatWrapper(const GpuMat& gpuMat) : _gpuMat(gpuMat), _matType(GPU_MAT
 MatWrapper MatWrapper::clone() const {
 	if(_matType == MAT) {
 		cv::Mat mat(_mat.clone());
-		return MatWrapper(mat);
+		MatWrapper mw(mat);
+		mw.setColorScheme(_colorScheme);
+		return mw;
 	} else if(_matType == GPU_MAT) {
 		cv::gpu::GpuMat gpuMat(_gpuMat.clone());
-		return MatWrapper(gpuMat);
+		MatWrapper mw(gpuMat);
+		mw.setColorScheme(_colorScheme);
+		return mw;
 	} else {
 		throw InvalidMatTypeException();
 	}

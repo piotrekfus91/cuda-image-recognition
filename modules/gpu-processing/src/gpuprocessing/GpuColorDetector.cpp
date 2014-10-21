@@ -13,14 +13,15 @@ GpuColorDetector::~GpuColorDetector() {
 
 }
 
-MatWrapper GpuColorDetector::doDetectColor(MatWrapper& input, const int hueNumber,
-		const int* minHues,	const int* maxHues, const int minSat, const int maxSat,
-		const int minValue,	const int maxValue) {
-	cv::gpu::GpuMat output(input.getGpuMat());
+MatWrapper GpuColorDetector::doDetectColor(const MatWrapper& input, const int hsvRangesNumber,
+		const OpenCvHsvRange* hsvRanges) {
+	cv::gpu::GpuMat output = input.clone().getGpuMat();
 
-	detect_color(input.getGpuMat().ptr<uchar>(), hueNumber, minHues, maxHues, minSat, maxSat,
-			minValue, maxValue, output.cols, output.rows, output.step, output.ptr<uchar>());
-	return output;
+	detect_color(output.data, hsvRangesNumber, hsvRanges, output.cols, output.rows, output.step, output.data);
+
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
 }
 
 }}

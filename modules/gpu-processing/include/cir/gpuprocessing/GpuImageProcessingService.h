@@ -27,9 +27,7 @@ protected:
 	virtual cir::common::MatWrapper doBgrToHsv(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper doHsvToBgr(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper doDetectColorHsv(const cir::common::MatWrapper& input,
-			const int hueNumber, const double* minHues,	const double* maxHues,
-			const double minSaturation, const double maxSaturation,
-			const double minValue, const double maxValue);
+			const int hsvRangesNumber, const cir::common::HsvRange* hsvRanges);
 	virtual cir::common::SegmentArray* doSegmentate(const cir::common::MatWrapper& input);
 	virtual double* doCountHuMoments(const cir::common::MatWrapper& matWrapper);
 

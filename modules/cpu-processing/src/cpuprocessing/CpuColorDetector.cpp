@@ -13,42 +13,44 @@ CpuColorDetector::~CpuColorDetector() {
 
 }
 
-MatWrapper CpuColorDetector::doDetectColor(MatWrapper& input, const int hueNumber,
-		const int* minHues, const int* maxHues,	const int minSat, const int maxSat,
-		const int minValue, const int maxValue) {
-	cv::Mat output(input.getMat());
+MatWrapper CpuColorDetector::doDetectColor(const MatWrapper& input, const int hsvRangesNumber,
+		const OpenCvHsvRange* hsvRanges) {
+	cv::Mat outputMat = input.getMat().clone();
 
-	int cols = output.cols;
-	int rows = output.rows;
+	int cols = outputMat.cols;
+	int rows = outputMat.rows;
 
 	bool clear;
 
 	for(int x = 0; x < cols; x++) {
 		for(int y = 0; y < rows; y++) {
-			cv::Vec3b& hsv = output.at<cv::Vec3b>(y, x);
+			cv::Vec3b& hsv = outputMat.at<cv::Vec3b>(y, x);
 			clear = true;
 
-			if(hsv[1] >= minSat && hsv[1] <= maxSat
-					&& hsv[2] >= minValue && hsv[2] <= maxValue) {
+			int hue = hsv[0];
+			int saturation = hsv[1];
+			int value = hsv[2];
 
-				for(int hueIndex = 0; hueIndex < hueNumber; hueIndex++) {
-					int hue = hsv[0];
-					int minHue = minHues[hueIndex];
-					int maxHue = maxHues[hueIndex];
+			for(int i = 0; i < hsvRangesNumber; i++) {
+				OpenCvHsvRange hsvRange = hsvRanges[i];
+				OpenCvHsv less = hsvRange.less;
+				OpenCvHsv greater = hsvRange.greater;
 
-					if(minHue <= maxHue) {
-						if(hue >= minHue && hue <= maxHue) {
+				if(saturation >= less.saturation && saturation <= greater.saturation
+						&& value >= less.value && value <= greater.value) {
+					if(less.hue <= greater.hue) {
+						if(hue >= less.hue && hue <= greater.hue) {
 							clear = false;
 							break;
 						}
 					} else {
-						if(hue >= minHue || hue <= maxHue) {
+						if(hue >= less.hue || hue <= greater.hue) {
 							clear = false;
 							break;
 						}
 					}
-				}
 
+				}
 			}
 
 			if(clear) {
@@ -59,7 +61,9 @@ MatWrapper CpuColorDetector::doDetectColor(MatWrapper& input, const int hueNumbe
 		}
 	}
 
-	return output;
+	MatWrapper outputMw(outputMat);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
 }
 
 }}

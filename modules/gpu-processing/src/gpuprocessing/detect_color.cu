@@ -10,18 +10,14 @@ using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
-void detect_color(uchar* src, const int hueNumber, const int* minHues, const int* maxHues,
-		const int minSat, const int maxSat, const int minValue, const int maxValue,
+void detect_color(uchar* src, const int hsvRangesNumber, const OpenCvHsvRange* hsvRanges,
 		const int width, const int height, const int step, uchar* dst) {
-	int size = hueNumber * sizeof(int);
-	int* d_minHues;
-	int* d_maxHues;
+	int size = hsvRangesNumber * sizeof(OpenCvHsvRange);
+	OpenCvHsvRange* d_hsvRanges;
 
-	HANDLE_CUDA_ERROR(cudaMalloc((void**)&d_minHues, size));
-	HANDLE_CUDA_ERROR(cudaMalloc((void**)&d_maxHues, size));
+	HANDLE_CUDA_ERROR(cudaMalloc((void**)&d_hsvRanges, size));
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_minHues, minHues, size, cudaMemcpyHostToDevice));
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_maxHues, maxHues, size, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpy(d_hsvRanges, hsvRanges, size, cudaMemcpyHostToDevice));
 
 	// TODO kernel dims
 	dim3 block((width+15)/16, (height+15)/16);
@@ -29,19 +25,16 @@ void detect_color(uchar* src, const int hueNumber, const int* minHues, const int
 
 	KERNEL_MEASURE_START
 
-	k_detect_color<<<block, thread>>>(src, hueNumber, d_minHues, d_maxHues, minSat, maxSat,
-			minValue, maxValue, width, height, step, dst);
+	k_detect_color<<<block, thread>>>(src, hsvRangesNumber, d_hsvRanges, width, height, step, dst);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
 	KERNEL_MEASURE_END("Detect color")
 
-	HANDLE_CUDA_ERROR(cudaFree(d_minHues));
-	HANDLE_CUDA_ERROR(cudaFree(d_maxHues));
+	HANDLE_CUDA_ERROR(cudaFree(d_hsvRanges));
 }
 
 __global__
-void k_detect_color(uchar* src, const int hueNumber, const int* minHues, const int* maxHues,
-		const int minSat, const int maxSat, const int minValue, const int maxValue,
+void k_detect_color(uchar* src, const int hsvRangesNumber, const OpenCvHsvRange* hsvRanges,
 		const int width, const int height, const int step, uchar* dst) {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	if(x >= width)
@@ -54,31 +47,31 @@ void k_detect_color(uchar* src, const int hueNumber, const int* minHues, const i
 	int pos = x * channels + y * step;
 
 	int hue = dst[pos];
-	int sat = dst[pos+1];
+	int saturation = dst[pos+1];
 	int value = dst[pos+2];
 
 	bool clear = true;
 
-	if(sat >= minSat && sat <= maxSat
-			&& value >= minValue && value <= maxValue) {
+	for(int i = 0; i < hsvRangesNumber; i++) {
+		OpenCvHsvRange hsvRange = hsvRanges[i];
+		OpenCvHsv less = hsvRange.less;
+		OpenCvHsv greater = hsvRange.greater;
 
-		for(int i = 0; i < hueNumber; i++) {
-			int minHue = minHues[i];
-			int maxHue = maxHues[i];
-
-			if(minHue <= maxHue) {
-				if(hue >= minHue && hue <= maxHue) {
+		if(saturation >= less.saturation && saturation <= greater.saturation
+				&& value >= less.value && value <= greater.value) {
+			if(less.hue <= greater.hue) {
+				if(hue >= less.hue && hue <= greater.hue) {
 					clear = false;
 					break;
 				}
 			} else {
-				if(hue >= minHue || hue <= maxHue) {
+				if(hue >= less.hue || hue <= greater.hue) {
 					clear = false;
 					break;
 				}
 			}
-		}
 
+		}
 	}
 
 	if(clear) {

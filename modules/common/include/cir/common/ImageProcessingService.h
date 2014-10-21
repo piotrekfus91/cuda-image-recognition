@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include "cir/common/logger/Logger.h"
+#include "cir/common/Hsv.h"
 
 namespace cir { namespace common {
 
@@ -26,9 +27,7 @@ public:
 	virtual MatWrapper highPass(const MatWrapper& input, int size = 1);
 	virtual MatWrapper bgrToHsv(const MatWrapper& input);
 	virtual MatWrapper hsvToBgr(const MatWrapper& input);
-	virtual MatWrapper detectColorHsv(const MatWrapper& input, const int hueNumber,
-			const double* minHues, const double* maxHues, const double minSaturation,
-			const double maxSaturation,	const double minValue, const double maxValue);
+	virtual MatWrapper detectColorHsv(const MatWrapper& input, const int hsvRangesNumber, const HsvRange* hsvRanges);
 	virtual SegmentArray* segmentate(const MatWrapper& input);
 	virtual MatWrapper mark(MatWrapper& input, SegmentArray* segmentArray) = 0;
 	virtual MatWrapper crop(MatWrapper& input, Segment* segment) = 0;
@@ -47,9 +46,7 @@ protected:
 	virtual MatWrapper doHighPass(const MatWrapper& input, int size = 1) = 0;
 	virtual MatWrapper doBgrToHsv(const MatWrapper& input) = 0;
 	virtual MatWrapper doHsvToBgr(const MatWrapper& input) = 0;
-	virtual MatWrapper doDetectColorHsv(const MatWrapper& input, const int hueNumber,
-			const double* minHues, const double* maxHues, const double minSaturation,
-			const double maxSaturation,	const double minValue, const double maxValue) = 0;
+	virtual MatWrapper doDetectColorHsv(const MatWrapper& input, const int hsvRangesNumber, const HsvRange* hsvRanges) = 0;
 	virtual SegmentArray* doSegmentate(const MatWrapper& input) = 0;
 	virtual double* doCountHuMoments(const MatWrapper& matWrapper) = 0;
 };

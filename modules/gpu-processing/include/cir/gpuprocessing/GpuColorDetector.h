@@ -11,9 +11,8 @@ public:
 	virtual ~GpuColorDetector();
 
 protected:
-	virtual cir::common::MatWrapper doDetectColor(cir::common::MatWrapper& input, const int hueNumber,
-			const int* minHues,	const int* maxHues, const int minSat, const int maxSat,
-			const int minValue,	const int maxValue);
+	virtual cir::common::MatWrapper doDetectColor(const cir::common::MatWrapper& input, const int hsvRangesNumber,
+			const cir::common::OpenCvHsvRange* hsvRanges);
 };
 
 }}

@@ -54,20 +54,24 @@ MatWrapper CpuImageProcessingService::doThreshold(const MatWrapper& input, doubl
 }
 
 MatWrapper CpuImageProcessingService::doLowPass(const MatWrapper& input, int size) {
-	cv::Mat output;
+	cv::Mat outputMat;
 	if(size == DEFAULT_LOW_PASS_KERNEL_SIZE) {
-		cv::filter2D(input.getMat(), output, -1, DEFAULT_LOW_PASS_KERNEL);
+		cv::filter2D(input.getMat(), outputMat, -1, DEFAULT_LOW_PASS_KERNEL);
 	} else {
 		cv::Mat kernel = cv::Mat::ones(size, size, CV_32F) / (float)(size*size);
-		cv::filter2D(input.getMat(), output, -1, kernel);
+		cv::filter2D(input.getMat(), outputMat, -1, kernel);
 	}
-	return output;
+	MatWrapper outputMw(outputMat);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
 }
 
 MatWrapper CpuImageProcessingService::doHighPass(const MatWrapper& input, int size) {
-	cv::Mat output;
-	cv::Laplacian(input.getMat(), output, -1, size);
-	return output;
+	cv::Mat outputMat;
+	cv::Laplacian(input.getMat(), outputMat, -1, size);
+	MatWrapper outputMw(outputMat);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
 }
 
 MatWrapper CpuImageProcessingService::doBgrToHsv(const MatWrapper& input) {
@@ -87,16 +91,14 @@ MatWrapper CpuImageProcessingService::doHsvToBgr(const MatWrapper& input) {
 
 	cv::Mat output;
 	cv::cvtColor(input.getMat(), output, cv::COLOR_HSV2BGR);
-	MatWrapper mw(output);
-	mw.setColorScheme(MatWrapper::BGR);
-	return output;
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(MatWrapper::BGR);
+	return outputMw;
 }
 
-MatWrapper CpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, const int hueNumber,
-		const double* minHues, const double* maxHues, const double minSaturation, const double maxSaturation,
-		const double minValue, const double maxValue) {
-	return _cpuColorDetector.detectColorHsv(input, hueNumber, minHues, maxHues, minSaturation, maxSaturation,
-			minValue, maxValue);
+MatWrapper CpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, const int hsvRangesNumber,
+		const HsvRange* hsvRanges) {
+	return _cpuColorDetector.detectColorHsv(input, hsvRangesNumber, hsvRanges);
 }
 
 SegmentArray* CpuImageProcessingService::doSegmentate(const MatWrapper& input) {
@@ -113,7 +115,9 @@ MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 	cv::Rect rect = cv::Rect(segment->leftX, segment->bottomY,
 			segment->rightX - segment->leftX + 1, segment->topY - segment->bottomY + 1);
 	inputMat(rect).copyTo(outputMat);
-	return outputMat;
+	MatWrapper outputMw(outputMat);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
 }
 
 double* CpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper) {

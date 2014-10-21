@@ -13,8 +13,7 @@ CpuRedMarker::~CpuRedMarker() {
 }
 
 MatWrapper CpuRedMarker::markSegments(MatWrapper& input, SegmentArray* segmentArray) {
-	MatWrapper output = input.clone();
-	cv::Mat mat = output.getMat();
+	cv::Mat outputMat = input.getMat().clone();
 
 	cv::Scalar color;
 	color.val[0] = 0; // hue
@@ -32,9 +31,12 @@ MatWrapper CpuRedMarker::markSegments(MatWrapper& input, SegmentArray* segmentAr
 		p2.x = segment->rightX;
 		p2.y = segment->topY;
 
-		cv::rectangle(mat, p1, p2, color);
+		cv::rectangle(outputMat, p1, p2, color);
 	}
-	return mat;
+
+	MatWrapper outputMw(outputMat);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
 }
 
 }}
