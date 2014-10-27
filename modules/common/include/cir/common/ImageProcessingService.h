@@ -3,7 +3,6 @@
 
 #include "cir/common/MatWrapper.h"
 #include "cir/common/SegmentArray.h"
-#include "cir/common/Pattern.h"
 #include <iostream>
 #include <map>
 #include "cir/common/logger/Logger.h"
@@ -32,17 +31,17 @@ public:
 	virtual MatWrapper erode(const MatWrapper& input, int times = 1);
 	virtual MatWrapper dilate(const MatWrapper& input, int times = 1);
 	virtual SegmentArray* segmentate(const MatWrapper& input);
-	virtual MatWrapper mark(MatWrapper& input, SegmentArray* segmentArray) = 0;
+	virtual MatWrapper mark(MatWrapper& input, const SegmentArray* segmentArray) = 0;
 	virtual MatWrapper crop(MatWrapper& input, Segment* segment) = 0;
 	virtual double* countHuMoments(const MatWrapper& matWrapper);
-	virtual void loadPattern(std::string filePath);
+
+	virtual MatWrapper getMatWrapper(const cv::Mat& mat) const = 0;
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;
 	static cv::Mat DEFAULT_ERODE_KERNEL;
 	static cv::Mat DEFAULT_DILATE_KERNEL;
 
-	std::map<std::string, Pattern*> _patterns;
 	cir::common::logger::Logger& _logger;
 
 	virtual MatWrapper doToGrey(const MatWrapper& input) = 0;

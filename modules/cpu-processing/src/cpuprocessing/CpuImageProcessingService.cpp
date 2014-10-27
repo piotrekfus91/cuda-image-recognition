@@ -114,7 +114,7 @@ SegmentArray* CpuImageProcessingService::doSegmentate(const MatWrapper& input) {
 	return _segmentator->segmentate(input);
 }
 
-MatWrapper CpuImageProcessingService::mark(MatWrapper& input, SegmentArray* segmentArray) {
+MatWrapper CpuImageProcessingService::mark(MatWrapper& input, const SegmentArray* segmentArray) {
 	return _marker.markSegments(input, segmentArray);
 }
 
@@ -148,4 +148,8 @@ MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 double* CpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper) {
 	MatWrapper input = matWrapper;
 	return _cpuMomentCounter.countHuMoments(input);
+}
+
+MatWrapper CpuImageProcessingService::getMatWrapper(const cv::Mat& mat) const {
+	return mat;
 }

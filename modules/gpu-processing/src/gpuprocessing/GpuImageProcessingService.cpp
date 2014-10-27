@@ -134,7 +134,7 @@ MatWrapper GpuImageProcessingService::doDilate(const MatWrapper& input, int time
 	return outputMw;
 }
 
-MatWrapper GpuImageProcessingService::mark(MatWrapper& input, cir::common::SegmentArray* segmentArray) {
+MatWrapper GpuImageProcessingService::mark(MatWrapper& input, const cir::common::SegmentArray* segmentArray) {
 	return input; // TODO
 }
 
@@ -152,4 +152,9 @@ MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 double* GpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper) {
 	MatWrapper input = matWrapper;
 	return _gpuMomentCounter.countHuMoments(input);
+}
+
+MatWrapper GpuImageProcessingService::getMatWrapper(const cv::Mat& mat) const {
+	cv::gpu::GpuMat gpuMat(mat);
+	return MatWrapper(gpuMat);
 }

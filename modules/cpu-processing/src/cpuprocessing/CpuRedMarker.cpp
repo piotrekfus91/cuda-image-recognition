@@ -12,13 +12,13 @@ CpuRedMarker::~CpuRedMarker() {
 
 }
 
-MatWrapper CpuRedMarker::markSegments(MatWrapper& input, SegmentArray* segmentArray) {
+MatWrapper CpuRedMarker::markSegments(MatWrapper& input, const SegmentArray* segmentArray) {
 	cv::Mat outputMat = input.getMat().clone();
 
 	cv::Scalar color;
-	color.val[0] = 0; // hue
-	color.val[1] = 255; // sat
-	color.val[2] = 255; // value
+	color.val[0] = 0;
+	color.val[1] = 0;
+	color.val[2] = 255;
 
 	for(int i = 0; i < segmentArray->size; i++) {
 		Segment* segment = segmentArray->segments[i];

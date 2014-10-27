@@ -25,6 +25,8 @@ struct OpenCvHsvRange {
 	OpenCvHsv greater;
 };
 
+HsvRange getRedRange();
+
 }}
 
 #endif /* HSV_H_ */

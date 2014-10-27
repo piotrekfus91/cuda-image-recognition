@@ -55,6 +55,24 @@ void MatWrapper::setColorScheme(const COLOR_SCHEME colorScheme) {
 	_colorScheme = colorScheme;
 }
 
+int MatWrapper::getWidth() const {
+	if(_matType == MAT)
+		return _mat.cols;
+	else if(_matType == GPU_MAT)
+		return _gpuMat.cols;
+
+	return 0;
+}
+
+int MatWrapper::getHeight() const {
+	if(_matType == MAT)
+		return _mat.rows;
+	else if(_matType == GPU_MAT)
+		return _gpuMat.cols;
+
+	return 0;
+}
+
 void MatWrapper::validateType() {
 	int type = -1;
 	if(_matType == MAT)

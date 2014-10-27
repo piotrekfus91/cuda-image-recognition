@@ -11,7 +11,7 @@ public:
 	virtual ~CpuRedMarker();
 
 	cir::common::MatWrapper markSegments(cir::common::MatWrapper& input,
-			cir::common::SegmentArray* segmentArray);
+			const cir::common::SegmentArray* segmentArray);
 };
 
 }}

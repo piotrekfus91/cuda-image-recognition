@@ -29,11 +29,17 @@ add_subdirectory(modules/cuda-neural-network)
 add_subdirectory(modules/dev-env)
 
 add_executable(CIR CIR.cpp)
+add_executable(speed-limit-recognition speed-limit-recognition.cpp)
 
 target_link_libraries(CIR ${OpenCV_LIBS})
 target_link_libraries(CIR opencv_gpu)
 target_link_libraries(CIR cpu-processing)
 target_link_libraries(CIR gpu-processing)
+
+target_link_libraries(speed-limit-recognition ${OpenCV_LIBS})
+target_link_libraries(speed-limit-recognition opencv_gpu)
+target_link_libraries(speed-limit-recognition cpu-processing)
+target_link_libraries(speed-limit-recognition gpu-processing)
 
 if(test)
 	find_package(GTest REQUIRED)

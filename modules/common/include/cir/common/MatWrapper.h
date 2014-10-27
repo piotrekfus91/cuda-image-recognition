@@ -31,6 +31,8 @@ public:
 	MAT_TYPE getType() const;
 	COLOR_SCHEME getColorScheme() const;
 	void setColorScheme(const COLOR_SCHEME colorScheme);
+	int getWidth() const;
+	int getHeight() const;
 
 private:
 	cv::Mat _mat;

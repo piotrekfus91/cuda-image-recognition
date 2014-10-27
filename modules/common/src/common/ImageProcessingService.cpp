@@ -122,20 +122,3 @@ double* ImageProcessingService::countHuMoments(const cir::common::MatWrapper& in
 	_logger.log("Count Hu moments", elapsed_secs);
 	return huMoments;
 }
-
-void ImageProcessingService::loadPattern(std::string filePath) {
-	cv::Mat mat = cv::imread(filePath, CV_LOAD_IMAGE_UNCHANGED);
-	MatWrapper mw(mat);
-
-	// TODO fileName
-	std::string fileName;
-	unsigned int fileNameStart = filePath.find_last_of('/');
-	if(fileNameStart == std::string::npos)
-		fileName = filePath;
-	else
-		fileName = fileName.substr(fileNameStart + 1);
-
-	double* huMoments = countHuMoments(mw);
-	Pattern* pattern = new Pattern(fileName, 1, &huMoments);
-	_patterns[filePath] = pattern;
-}

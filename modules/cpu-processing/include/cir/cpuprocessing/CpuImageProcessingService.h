@@ -20,7 +20,7 @@ public:
 	virtual void setSegmentator(cir::common::Segmentator* segmentator);
 	virtual void setSegmentatorMinSize(int minSize);
 
-	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
+	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, const cir::common::SegmentArray* segmentArray);
 	virtual cir::common::MatWrapper crop(cir::common::MatWrapper& input, cir::common::Segment* segment);
 
 protected:
@@ -36,6 +36,8 @@ protected:
 	virtual cir::common::MatWrapper doDilate(const cir::common::MatWrapper& input, int times);
 	virtual cir::common::SegmentArray* doSegmentate(const cir::common::MatWrapper& input);
 	virtual double* doCountHuMoments(const cir::common::MatWrapper& matWrapper);
+
+	virtual cir::common::MatWrapper getMatWrapper(const cv::Mat& mat) const;
 
 private:
 	CpuColorDetector _cpuColorDetector;
