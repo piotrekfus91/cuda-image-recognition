@@ -109,6 +109,22 @@ MatWrapper CpuImageProcessingService::mark(MatWrapper& input, SegmentArray* segm
 	return _marker.markSegments(input, segmentArray);
 }
 
+MatWrapper CpuImageProcessingService::doErode(const MatWrapper& input, int times) {
+	cv::Mat output;
+	cv::erode(input.getMat(), output, DEFAULT_ERODE_KERNEL, cv::Point(1, 1), times);
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
+}
+
+MatWrapper CpuImageProcessingService::doDilate(const MatWrapper& input, int times) {
+	cv::Mat output;
+	cv::dilate(input.getMat(), output, DEFAULT_DILATE_KERNEL, cv::Point(1, 1), times);
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
+}
+
 MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::Mat inputMat = input.getMat();
 	cv::Mat outputMat;

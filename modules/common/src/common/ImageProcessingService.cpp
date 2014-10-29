@@ -11,6 +11,10 @@ cv::Mat ImageProcessingService::DEFAULT_LOW_PASS_KERNEL =
 		cv::Mat::ones(DEFAULT_LOW_PASS_KERNEL_SIZE, DEFAULT_LOW_PASS_KERNEL_SIZE, CV_32F)
 				/ (float)(DEFAULT_LOW_PASS_KERNEL_SIZE*DEFAULT_LOW_PASS_KERNEL_SIZE);
 
+cv::Mat ImageProcessingService::DEFAULT_ERODE_KERNEL = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
+
+cv::Mat ImageProcessingService::DEFAULT_DILATE_KERNEL = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
+
 ImageProcessingService::ImageProcessingService(Logger& logger) : _logger(logger) {
 
 }
@@ -80,6 +84,24 @@ cir::common::MatWrapper ImageProcessingService::detectColorHsv(const MatWrapper&
 	clock_t stop = clock();
 	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
 	_logger.log("Detect color HSV", elapsed_secs);
+	return mw;
+}
+
+cir::common::MatWrapper ImageProcessingService::erode(const MatWrapper& input, int times) {
+	clock_t start = clock();
+	cir::common::MatWrapper mw = doErode(input, times);
+	clock_t stop = clock();
+	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
+	_logger.log("Erode", elapsed_secs);
+	return mw;
+}
+
+cir::common::MatWrapper ImageProcessingService::dilate(const MatWrapper& input, int times) {
+	clock_t start = clock();
+	cir::common::MatWrapper mw = doDilate(input, times);
+	clock_t stop = clock();
+	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
+	_logger.log("Erode", elapsed_secs);
 	return mw;
 }
 

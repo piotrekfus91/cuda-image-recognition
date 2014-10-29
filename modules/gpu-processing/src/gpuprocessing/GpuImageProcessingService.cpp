@@ -114,6 +114,22 @@ SegmentArray* GpuImageProcessingService::doSegmentate(const cir::common::MatWrap
 	return _segmentator.segmentate(matWrapper);
 }
 
+MatWrapper GpuImageProcessingService::doErode(const MatWrapper& input, int times) {
+	cv::gpu::GpuMat output;
+	cv::gpu::erode(input.getGpuMat(), output, DEFAULT_ERODE_KERNEL, cv::Point(1, 1), times);
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
+}
+
+MatWrapper GpuImageProcessingService::doDilate(const MatWrapper& input, int times) {
+	cv::gpu::GpuMat output;
+	cv::gpu::dilate(input.getGpuMat(), output, DEFAULT_DILATE_KERNEL, cv::Point(1, 1), times);
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
+}
+
 MatWrapper GpuImageProcessingService::mark(MatWrapper& input, cir::common::SegmentArray* segmentArray) {
 	return input; // TODO
 }
