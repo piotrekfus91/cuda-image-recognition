@@ -17,6 +17,8 @@ public:
 	void init(int width, int height);
 
 	virtual const char* getModule();
+	virtual void setSegmentator(cir::common::Segmentator* segmentator);
+	virtual void setSegmentatorMinSize(int minSize);
 
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, cir::common::SegmentArray* segmentArray);
 	virtual cir::common::MatWrapper crop(cir::common::MatWrapper& input, cir::common::Segment* segment);
@@ -37,8 +39,7 @@ protected:
 
 private:
 	CpuColorDetector _cpuColorDetector;
-//	CpuRegionGrowingSegmentator _segmentator;
-	CpuRegionSplittingSegmentator _segmentator;
+	cir::common::Segmentator* _segmentator;
 	CpuRedMarker _marker;
 	CpuMomentCounter _cpuMomentCounter;
 };

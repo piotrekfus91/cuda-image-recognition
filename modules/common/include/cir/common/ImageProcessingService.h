@@ -20,6 +20,7 @@ public:
 	virtual ~ImageProcessingService();
 
 	virtual const char* getModule() = 0;
+	virtual void setSegmentatorMinSize(int minSize) = 0;
 
 	virtual MatWrapper toGrey(const MatWrapper& input);
 	virtual MatWrapper threshold(const MatWrapper& input, double thresholdValue);

@@ -14,7 +14,13 @@ public:
 
 	virtual SegmentArray* segmentate(const MatWrapper& matWrapper) = 0;
 
+	virtual void init(int width, int height);
+	virtual void shutdown();
+
+	virtual void setMinSize(int size);
+
 protected:
+	int _minSize;
 	bool isSegmentApplicable(Segment* segment);
 };
 
@@ -29,6 +35,7 @@ struct element {
 	int next;
 	int prev;
 	int id;
+	bool valid;
 	int v; // TODO
 };
 

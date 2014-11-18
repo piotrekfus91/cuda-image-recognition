@@ -9,6 +9,8 @@
 
 #define HU_MOMENTS_NUMBER 7
 
+#define SEGMENTATOR_MIN_SIZE 15
+
 #define TEST_FILES_DIR "@TEST_FILES_DIR@"
 
 #endif

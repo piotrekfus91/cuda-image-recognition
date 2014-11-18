@@ -19,31 +19,27 @@ public:
 
 private:
 	cir::common::element* _elements;
-	cir::common::elements_pair* _merged_x;
-	cir::common::elements_pair* _merged_y;
+	cir::common::Segment* _segments;
 
 
-	void region_splitting_segmentate(uchar* data, cir::common::elements_pair* merged_y,
-			cir::common::elements_pair* merged_x, cir::common::element* elements, int step,
+	void region_splitting_segmentate(uchar* data, cir::common::element* elements, cir::common::Segment* segments, int step,
 			int channels, int width, int height, int ai_x, int ai_y, int block_width, int block_height);
 
+	void remove_empty_segments(uchar* data, int width, int height, int step, cir::common::element* elements);
+
 	void merge_blocks_horizontally(int di_lb_top_right_x, int step,
-			int channels, int ai_x, int width, int height, int ai_y, int merged_y_start_idx,
-			int *merged_y_current_idx, uchar* data, cir::common::element* elements,
-			cir::common::elements_pair* merged_y, int block_height);
+			int channels, int ai_x, int width, int height, int ai_y, uchar* data,
+			cir::common::element* elements, cir::common::Segment* segments, int block_width, int block_height);
 
 	void merge_blocks_vertically(int di_lb_bottom_left_y, int step,
-			int channels, int ai_x, int width, int height, int ai_y, int merged_x_start_idx,
-			int *merged_x_current_idx, uchar* data, cir::common::element* elements,
-			cir::common::elements_pair* merged_x, int block_width);
+			int channels, int ai_x, int width, int height, int ai_y, uchar* data,
+			cir::common::element* elements, cir::common::Segment* segments, int block_width, int block_height);
 
-	void merge_elements(cir::common::element* elements, cir::common::element* e1,
-			cir::common::element* e2, int width);
+	void try_merge(int idx, int current_elem_id, int id_to_set, int width, int height, bool invalidate_all = true);
 
 	bool is_empty(uchar* data, int addr);
 
-	bool already_merged(cir::common::elements_pair* merged, int merged_start_idx,
-			int merged_last_idx, cir::common::element* e1, cir::common::element* e2);
+	void merge_segments(cir::common::Segment* segm1, cir::common::Segment* segm2);
 };
 
 }}

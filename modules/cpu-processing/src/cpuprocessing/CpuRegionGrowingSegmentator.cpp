@@ -60,25 +60,17 @@ Segment* CpuRegionGrowingSegmentator::performNonRecursiveSegmentation(uchar* dat
 		Point current = points.front();
 		points.pop_front();
 		if(isApplicable(data, channels, step, current.x, current.y)) {
-			if(current.x > 0) {
-				points.push_back(createPoint(current.x - 1, current.y));
-				if(current.x < segment->leftX) expandLeft(segment);
-			}
+			if(current.x > 0) points.push_back(createPoint(current.x - 1, current.y));
+			if(current.x < segment->leftX) expandLeft(segment);
 
-			if(current.y < width - 1) {
-				points.push_back(createPoint(current.x + 1, current.y));
-				if(current.x > segment->rightX) expandRight(segment);
-			}
+			if(current.y < width - 1) points.push_back(createPoint(current.x + 1, current.y));
+			if(current.x > segment->rightX) expandRight(segment);
 
-			if(current.y > 0) {
-				points.push_back(createPoint(current.x, current.y - 1));
-				if(current.y < segment->bottomY) expandBottom(segment);
-			}
+			if(current.y > 0) points.push_back(createPoint(current.x, current.y - 1));
+			if(current.y < segment->bottomY) expandBottom(segment);
 
-			if(current.y < height - 1) {
-				points.push_back(createPoint(current.x, current.y + 1));
-				if(current.y > segment->topY) expandTop(segment);
-			}
+			if(current.y < height - 1) points.push_back(createPoint(current.x, current.y + 1));
+			if(current.y > segment->topY) expandTop(segment);
 
 			setNotApplicable(data, channels, step, current.x, current.y);
 		}
@@ -102,7 +94,7 @@ bool CpuRegionGrowingSegmentator::isApplicable(uchar* data, int channels, int st
 	int sat = data[pos+1];
 	int value = data[pos+2];
 
-	if(hue > 0 || sat > 0 || value > 0) {
+	if(sat != 0 && value != 0) {
 		return true;
 	}
 

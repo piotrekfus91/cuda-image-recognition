@@ -6,6 +6,7 @@
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/common/logger/ImmediateConsoleLogger.h"
+#include "cir/common/test_file_loader.h"
 
 using namespace std;
 
@@ -15,8 +16,7 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::ImmediateConsoleLogger logger;
-	imgCpu("metro.jpeg", logger);
-	imgGpu("metro.jpeg", logger);
+	imgCpu(cir::common::getTestFile("cpu-processing", "dashes.bmp").c_str(), logger);
 //	cam();
 
     return EXIT_SUCCESS;
@@ -31,7 +31,6 @@ void imgCpu(const char* fileName, cir::common::logger::Logger& logger) {
 
 	cpuService.init(img.cols, img.rows);
 
-	mw = cpuService.bgrToHsv(mw);
 	cir::common::Hsv lessRed;
 	lessRed.hue = 345;
 	lessRed.saturation = 0.2;
@@ -58,8 +57,13 @@ void imgCpu(const char* fileName, cir::common::logger::Logger& logger) {
 
 	cir::common::HsvRange hsvRanges[2] = {rangeRed, rangeYellow};
 
+	mw = cpuService.bgrToHsv(mw);
 	mw = cpuService.detectColorHsv(mw, 2, hsvRanges);
+	cir::common::SegmentArray* segmentArray = cpuService.segmentate(mw);
 	mw = cpuService.hsvToBgr(mw);
+	std::cerr << "total: " << segmentArray->size << std::endl;
+	cv::imwrite("metro_red_yellow.bmp", mw.getMat());
+	mw = cpuService.mark(mw, segmentArray);
 
 	cv::namedWindow("ORIG");
 	cv::namedWindow("CPU");

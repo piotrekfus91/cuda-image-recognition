@@ -10,7 +10,9 @@ struct Segment {
 	int bottomY;
 };
 
+Segment createSimpleSegment(int x, int y);
 Segment* createSegment(int x, int y);
+Segment* copySegment(Segment* segment);
 void expandLeft(Segment* segment);
 void expandRight(Segment* segment);
 void expandTop(Segment* segment);

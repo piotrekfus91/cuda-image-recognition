@@ -31,11 +31,15 @@ const char* GpuImageProcessingService::getModule() {
 	return "GPU";
 }
 
+void GpuImageProcessingService::setSegmentatorMinSize(int minSize) {
+	_segmentator.setMinSize(minSize);
+}
+
 MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
 
 	if(input.getColorScheme() == MatWrapper::BGR) {
-		cv::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);
+		cv::gpu::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);
 		MatWrapper mw(output);
 		mw.setColorScheme(MatWrapper::GRAY);
 		return mw;

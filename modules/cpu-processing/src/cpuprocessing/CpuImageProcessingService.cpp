@@ -7,21 +7,30 @@ using namespace cir::cpuprocessing;
 using namespace cir::common::logger;
 using namespace cir::common::exception;
 
-CpuImageProcessingService::CpuImageProcessingService(Logger& logger) : ImageProcessingService(logger) {
+CpuImageProcessingService::CpuImageProcessingService(Logger& logger) : ImageProcessingService(logger),
+		_segmentator(new CpuRegionSplittingSegmentator) {
 
 }
 
 CpuImageProcessingService::~CpuImageProcessingService() {
-	_segmentator.shutdown();
+	_segmentator->shutdown();
 }
 
 void CpuImageProcessingService::init(int width, int height) {
 	_logger.setModule(getModule());
-	_segmentator.init(width, height);
+	_segmentator->init(width, height);
+}
+
+void CpuImageProcessingService::setSegmentator(Segmentator* segmentator) {
+	_segmentator = segmentator;
 }
 
 const char* CpuImageProcessingService::getModule() {
 	return "CPU";
+}
+
+void CpuImageProcessingService::setSegmentatorMinSize(int minSize) {
+	_segmentator->setMinSize(minSize);
 }
 
 MatWrapper CpuImageProcessingService::doToGrey(const MatWrapper& input) {
@@ -102,7 +111,7 @@ MatWrapper CpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, 
 }
 
 SegmentArray* CpuImageProcessingService::doSegmentate(const MatWrapper& input) {
-	return _segmentator.segmentate(input);
+	return _segmentator->segmentate(input);
 }
 
 MatWrapper CpuImageProcessingService::mark(MatWrapper& input, SegmentArray* segmentArray) {
