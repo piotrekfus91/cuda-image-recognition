@@ -12,6 +12,8 @@ public:
 	CpuRegionGrowingSegmentator();
 	virtual ~CpuRegionGrowingSegmentator();
 
+	virtual void setMinSize(int size);
+
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 
 private:

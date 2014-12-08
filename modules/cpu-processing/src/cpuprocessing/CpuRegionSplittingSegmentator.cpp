@@ -24,6 +24,10 @@ void CpuRegionSplittingSegmentator::init(int width, int height) {
 	_segments = (Segment*) malloc(sizeof(Segment) * width * height);
 }
 
+void CpuRegionSplittingSegmentator::setMinSize(int size) {
+	_minSize = size;
+}
+
 void CpuRegionSplittingSegmentator::remove_empty_segments(uchar* data, int width, int height, int step, element* elements) {
 	for(int x = 0; x < width; x++) {
 		for(int y = 0; y < height; y++) {

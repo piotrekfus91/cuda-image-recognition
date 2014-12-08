@@ -15,6 +15,8 @@ public:
 	void init(int width, int height);
 	void shutdown();
 
+	virtual void setMinSize(int size);
+
 	virtual cir::common::SegmentArray* segmentate(const cir::common::MatWrapper& input);
 
 private:

@@ -4,13 +4,19 @@
 #include <cstdio>
 #include "cir/gpuprocessing/region_splitting_segmentate.cuh"
 #include "cir/common/cuda_host_util.cuh"
+#include "cir/common/config.h"
 
 #define CHANNELS 3
+#define THREADS 16
 
 using namespace cir::common;
 using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
+
+int _min_size = SEGMENTATOR_MIN_SIZE;
+
+int sumBlocksNumber;
 
 element* elements;
 element* d_elements;
@@ -18,16 +24,23 @@ element* d_elements;
 Segment* segments;
 Segment* d_segments;
 
+int* partialSums;
+int* d_partialSums;
+
 void region_splitting_segmentate_init(int width, int height) {
+	sumBlocksNumber = (width*height+THREADS*THREADS-1)/(THREADS*THREADS);
 	elements = (element*) malloc(sizeof(element) * width * height);
 	segments = (Segment*) malloc(sizeof(Segment) * width * height);
+	partialSums = (int*) malloc(sizeof(int) * sumBlocksNumber);
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_elements, sizeof(element) * width * height));
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_segments, sizeof(Segment) * width * height));
+
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_partialSums, sizeof(int) * sumBlocksNumber));
 }
 
-bool is_segment_applicable(Segment* segment) {
-	return true;
+void set_min_segment_size(int minSize) {
+	_min_size = minSize;
 }
 
 SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height) {
@@ -40,8 +53,6 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 
 	HANDLE_CUDA_ERROR(cudaMemcpy(d_elements, elements, sizeof(element) * width * height, cudaMemcpyHostToDevice));
 	HANDLE_CUDA_ERROR(cudaMemcpy(d_segments, segments, sizeof(Segment) * width * height, cudaMemcpyHostToDevice));
-
-	int THREADS = 16;
 
 	dim3 blocks((width+THREADS-1)/THREADS, (height+THREADS-1)/THREADS);
 	dim3 threads(THREADS, THREADS);
@@ -78,14 +89,21 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 //		HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
 	}
 
+	dim3 blocksForSum(sumBlocksNumber);
+	dim3 threadsForSum(THREADS*THREADS);
+
+	KERNEL_MEASURE_START
+	k_count_applicable_segments<<<blocksForSum, threadsForSum>>>(d_elements, d_segments, width*height, _min_size, d_partialSums);
+	HANDLE_CUDA_ERROR(cudaGetLastError());
+	KERNEL_MEASURE_END("Segmentate sum")
+
 	HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
 	HANDLE_CUDA_ERROR(cudaMemcpy(segments, d_segments, sizeof(Segment) * width * height, cudaMemcpyDeviceToHost));
+	HANDLE_CUDA_ERROR(cudaMemcpy(partialSums, d_partialSums, sizeof(int) * sumBlocksNumber, cudaMemcpyDeviceToHost));
 
 	int foundSegmentsSize = 0;
-	for(int j = 0; j < width*height; j++) {
-		if(elements[j].valid && is_segment_applicable(&(segments[j]))) {
-			foundSegmentsSize++;
-		}
+	for(int j = 0; j < sumBlocksNumber; j++) {
+		foundSegmentsSize += partialSums[j];
 	}
 
 	SegmentArray* segmentArray = (SegmentArray*) malloc(sizeof(SegmentArray));
@@ -95,9 +113,13 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 		Segment** appliedSegments = (Segment**) malloc(sizeof(Segment*) * foundSegmentsSize);
 		int currentSegmentIndex = 0;
 		for(int j = 0; j < width*height; j++) {
-			if(elements[j].valid && is_segment_applicable(&(segments[j]))) {
-				Segment segment = segments[j];
-				appliedSegments[currentSegmentIndex++] = copySegment(&segment);
+			if(elements[j].valid) {
+				bool segment_applicable = false;
+				d_is_segment_applicable(&(segments[j]), &segment_applicable, _min_size);
+				if(segment_applicable) {
+					Segment segment = segments[j];
+					appliedSegments[currentSegmentIndex++] = copySegment(&segment);
+				}
 			}
 		}
 		segmentArray->segments = appliedSegments;
@@ -135,6 +157,37 @@ void k_remove_empty_segments(uchar* data, int width, int height, int step, eleme
 		elem->id = -1;
 		elem->valid = false;
 	}
+}
+
+__global__
+void k_count_applicable_segments(element* elements, Segment* segments,
+		int total_size, int min_size, int* partialSums) {
+	__shared__ int cache[THREADS*THREADS];
+	int tid = threadIdx.x + blockDim.x * blockIdx.x;
+	if(tid > total_size)
+		return;
+
+	bool is_segment_applicable = false;
+	d_is_segment_applicable(&(segments[tid]), &is_segment_applicable, min_size);
+
+	element* elem = &(elements[tid]);
+
+	if(is_segment_applicable && elem->valid) {
+		cache[threadIdx.x] = 1;
+	} else {
+		cache[threadIdx.x] = 0;
+	}
+	__syncthreads();
+
+	for(int i = blockDim.x / 2; i > 0; i /= 2) {
+		if(threadIdx.x < i) {
+			cache[threadIdx.x] += cache[threadIdx.x + i];
+		}
+		__syncthreads();
+	}
+
+	if(threadIdx.x == 0)
+		partialSums[blockIdx.x] = cache[0];
 }
 
 // tlb - top left block
@@ -362,148 +415,11 @@ void d_merge_segments(Segment* segm1, Segment* segm2) {
 	}
 }
 
-/*
-// tlb - top left block
-// brb - bottom right block
-// di_ - data index
-// ai - array index
-__global__
-void k_region_splitting_segmentate(uchar* data, element* elements, Segment* segments, int step,
-		int channels, int width, int height, int block_width, int block_height) {
-	int ai_x = blockIdx.x * blockDim.x + threadIdx.x;
-	if(ai_x % 2 != 0)
-		return;
-
-	int ai_y = blockIdx.y * blockDim.y + threadIdx.y;
-	if(ai_y % 2 != 0)
-		return;
-
-	ai_x = ai_x * block_width;
-	if(ai_x >= width)
-		return;
-
-	ai_y = ai_y * block_height;
-	if(ai_y >= height)
-		return;
-
-	int merged_y_start_idx = ai_x + ai_y * width;
-	int merged_y_current_idx = merged_y_start_idx;
-
-	int merged_x_start_idx = ai_x + ai_y * width;
-	int merged_x_current_idx = merged_x_start_idx;
-
-	// top left and top right
-	int di_tlb_top_right_x = (ai_x + block_width - 1) * channels + ai_y * step;
-	int ai_lb_top_right_x = ai_x + block_width - 1;
-
-	d_merge_blocks_horizontally(di_tlb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
-			ai_y, merged_y_start_idx, &merged_y_current_idx, data, elements,
-			merged_y, block_height);
-
-	// bottom left and bottom right
-	int di_blb_top_right_x = di_tlb_top_right_x + block_height * step;
-	int blb_ai_y = ai_y + block_height;
-
-	d_merge_blocks_horizontally(di_blb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
-			blb_ai_y, merged_y_start_idx, &merged_y_current_idx, data, elements,
-			merged_y, block_height);
-
-	// top left/right and bottom left/right
-	int di_tb_bottom_left_y = ai_x * channels + (ai_y + block_height - 1) * step;
-	d_merge_blocks_vertically(di_tb_bottom_left_y, step, channels, ai_x, width, height, ai_y + block_height - 1,
-			merged_x_start_idx, &merged_x_current_idx, data, elements, merged_x, block_width);
+__device__ __host__
+void d_is_segment_applicable(Segment* segment, bool* is_applicable, int min_size) {
+	int width = abs(segment->rightX - segment->leftX);
+	int height = abs(segment->topY - segment->bottomY);
+	*is_applicable = width >= min_size && height >= min_size;
 }
-
-__device__
-void d_merge_blocks_horizontally(int di_lb_top_right_x, int step, int channels,
-		int ai_x, int width, int height, int ai_y, int merged_y_start_idx,
-		int *merged_y_current_idx, uchar* data, element* elements,
-		elements_pair* merged_y, int block_height) {
-
-	for (int i = 0; i < block_height; i++) {
-		int di_tlb_right = di_lb_top_right_x + i * step;
-		int di_trb_left = di_tlb_right + channels;
-		int ai_tlb = ai_x + width * (i + ai_y);
-		int ai_trb = ai_tlb + 1;
-
-		if(ai_trb / height >= width)
-			return;
-
-		if (!d_is_empty(data, di_tlb_right) && !d_is_empty(data, di_trb_left)) {
-			element* left_elem = &(elements[ai_tlb]);
-			element* right_elem = &(elements[ai_trb]);
-			if (d_already_merged(merged_y, merged_y_start_idx, *merged_y_current_idx, left_elem, right_elem))
-				continue;
-
-			d_merge_elements(elements, left_elem, right_elem, width);
-			merged_y[*merged_y_current_idx].id1 = left_elem->id;
-			merged_y[*merged_y_current_idx].id2 = right_elem->id;
-			*merged_y_current_idx += 1;
-		}
-	}
-}
-
-__device__
-void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step, int channels,
-		int ai_x, int width, int height, int ai_y, int merged_x_start_idx,
-		int *merged_x_current_idx, uchar* data, element* elements,
-		elements_pair* merged_x, int block_width) {
-
-	for (int i = 0; i < 2*block_width; i++) {
-		int di_tlb_bottom = di_lb_bottom_left_y + i * channels;
-		int di_blb_top = di_tlb_bottom + step;
-		int ai_tb = ai_x + i + width * ai_y;
-		int ai_bb = ai_tb + width;
-
-		if(ai_bb / width >= height)
-			return;
-
-		if (!d_is_empty(data, di_tlb_bottom) && !d_is_empty(data, di_blb_top)) {
-			element* top_elem = &(elements[ai_tb]);
-			element* bottom_elem = &(elements[ai_bb]);
-			if (d_already_merged(merged_x, merged_x_start_idx, *merged_x_current_idx, top_elem, bottom_elem))
-				continue;
-
-			d_merge_elements(elements, top_elem, bottom_elem, width);
-			merged_x[*merged_x_current_idx].id1 = top_elem->id;
-			merged_x[*merged_x_current_idx].id2 = bottom_elem->id;
-			*merged_x_current_idx += 1;
-		}
-	}
-}
-
-__device__
-void d_merge_elements(element* elements, element* e1, element* e2, int width) {
-	(&(elements[e1->next]))->prev = e2->prev;
-	(&(elements[e2->prev]))->next = e1->next;
-	e1->next = width * e2->point.y + e2->point.x;
-	e2->prev = width * e1->point.y + e1->point.x;
-
-	e2->id = e1->id;
-
-	// TODO very ineffective
-	int end = elements[e2->next].prev; // converts element to its position
-	for(int i = e2->next; i != end;) {
-		element* elem = &(elements[i]);
-		elem->id = e1->id;
-		i = elem->next;
-	}
-}
-
-__device__
-bool d_is_empty(uchar* data, int addr) {
-	return data[addr+1] == 0 && data[addr+2] == 0; // TODO channels?
-}
-
-__device__
-bool d_already_merged(elements_pair* merged, int merged_start_idx, int merged_last_idx,
-		element* e1, element* e2) {
-	for(int i = merged_start_idx; i < merged_last_idx; i++) {
-		if(merged[i].id1 == e1->id && merged[i].id2 == e2->id)
-			return true;
-	}
-
-	return false;
-}*/
 
 }}

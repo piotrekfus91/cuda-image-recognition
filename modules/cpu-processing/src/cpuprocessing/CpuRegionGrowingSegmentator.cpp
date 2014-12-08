@@ -15,6 +15,10 @@ CpuRegionGrowingSegmentator::~CpuRegionGrowingSegmentator() {
 
 }
 
+void CpuRegionGrowingSegmentator::setMinSize(int size) {
+	_minSize = size;
+}
+
 SegmentArray* CpuRegionGrowingSegmentator::segmentate(const MatWrapper& input) {
 	MatWrapper copy = input.clone();
 	cv::Mat mat = copy.getMat();
