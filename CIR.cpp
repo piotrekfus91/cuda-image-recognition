@@ -16,7 +16,7 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::ImmediateConsoleLogger logger;
-	imgCpu(cir::common::getTestFile("cpu-processing", "dashes.bmp").c_str(), logger);
+	imgGpu(cir::common::getTestFile("cpu-processing", "dashes.bmp").c_str(), logger);
 //	cam();
 
     return EXIT_SUCCESS;
@@ -75,14 +75,12 @@ void imgCpu(const char* fileName, cir::common::logger::Logger& logger) {
 void imgGpu(const char* fileName, cir::common::logger::Logger& logger) {
 	cir::gpuprocessing::GpuImageProcessingService gpuService(logger);
 	cv::Mat img = cv::imread(fileName, CV_LOAD_IMAGE_UNCHANGED);
+	cv::gpu::GpuMat gpuImg(img);
 	cv::imshow("ORIG", img);
 
-	cv::gpu::GpuMat gpuMat(img);
-	cir::common::MatWrapper mw(gpuMat);
+	cir::common::MatWrapper mw(gpuImg);
 
 	gpuService.init(img.cols, img.rows);
-
-	mw = gpuService.bgrToHsv(mw);
 
 	cir::common::Hsv lessRed;
 	lessRed.hue = 345;
@@ -110,13 +108,23 @@ void imgGpu(const char* fileName, cir::common::logger::Logger& logger) {
 
 	cir::common::HsvRange hsvRanges[2] = {rangeRed, rangeYellow};
 
+	mw = gpuService.bgrToHsv(mw);
 	mw = gpuService.detectColorHsv(mw, 2, hsvRanges);
+	cir::common::SegmentArray* segmentArray = gpuService.segmentate(mw);
 	mw = gpuService.hsvToBgr(mw);
+//	cv::imwrite("metro_red_yellow.bmp", mw.getMat());
+
+	std::cerr << "totasdfl: " << segmentArray->size << std::endl;
+
+	gpuImg.download(img);
+	cir::common::MatWrapper mw2(img);
+	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
+	mw2 = cpuService.mark(mw2, segmentArray);
 
 	cv::namedWindow("ORIG");
-	cv::namedWindow("GPU");
+	cv::namedWindow("CPU");
 
-	cv::imshow("GPU", cv::Mat(mw.getGpuMat()));
+	cv::imshow("CPU", cv::Mat(mw2.getMat()));
 	cv::waitKey(0);
 }
 

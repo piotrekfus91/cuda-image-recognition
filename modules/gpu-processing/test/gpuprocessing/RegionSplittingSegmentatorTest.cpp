@@ -34,7 +34,8 @@ void GpuRegionSplittingSegmentatorTest::TearDown() {
 
 TEST_F(GpuRegionSplittingSegmentatorTest, Sample) {
 	cv::Mat mat = cv::imread(getTestFile("cpu-processing", "sample.bmp"));
-	MatWrapper mw(mat);
+	cv::gpu::GpuMat gpuMat(mat);
+	MatWrapper mw(gpuMat);
 
 	_service->init(mat.cols, mat.rows);
 
@@ -94,7 +95,8 @@ TEST_F(GpuRegionSplittingSegmentatorTest, Sample) {
 
 TEST_F(GpuRegionSplittingSegmentatorTest, Sample2) {
 	cv::Mat mat = cv::imread(getTestFile("cpu-processing", "sample2.bmp"));
-	MatWrapper mw(mat);
+	cv::gpu::GpuMat gpuMat(mat);
+	MatWrapper mw(gpuMat);
 
 	_service->init(mat.cols, mat.rows);
 
@@ -111,7 +113,8 @@ TEST_F(GpuRegionSplittingSegmentatorTest, Sample2) {
 
 TEST_F(GpuRegionSplittingSegmentatorTest, Sample9x11) {
 	cv::Mat mat = cv::imread(getTestFile("cpu-processing", "sample9x11.bmp"));
-	MatWrapper mw(mat);
+	cv::gpu::GpuMat gpuMat(mat);
+	MatWrapper mw(gpuMat);
 
 	_service->init(mat.cols, mat.rows);
 
@@ -177,7 +180,8 @@ TEST_F(GpuRegionSplittingSegmentatorTest, Sample9x11) {
 
 void compare_using_region_growing_and_splitting(const char* fileName, GpuImageProcessingService* _service, Logger* _logger) {
 	cv::Mat mat = cv::imread(getTestFile("cpu-processing", fileName));
-	MatWrapper mw(mat);
+	cv::gpu::GpuMat gpuMat(mat);
+	MatWrapper mw(gpuMat);
 
 	_service->init(mat.cols, mat.rows);
 
@@ -188,10 +192,7 @@ void compare_using_region_growing_and_splitting(const char* fileName, GpuImagePr
 	regionGrowingService.setSegmentator(new CpuRegionGrowingSegmentator);
 	regionGrowingService.setSegmentatorMinSize(0);
 
-	SegmentArray* correctSegmentArray = regionGrowingService.segmentate(mw);
-
-	std::cerr << segmentArray->size << ", " << correctSegmentArray->size << std::endl;
-	_ASSERT_EQ(segmentArray->size, correctSegmentArray->size);
+	SegmentArray* correctSegmentArray = regionGrowingService.segmentate(MatWrapper(mat));
 
 	for(int i = 0; i < segmentArray->size; i++) {
 		Segment* segmentToTest = segmentArray->segments[i];

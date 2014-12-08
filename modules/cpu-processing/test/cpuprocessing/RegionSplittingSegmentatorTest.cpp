@@ -188,7 +188,6 @@ void compare_using_region_growing_and_splitting(const char* fileName, CpuImagePr
 
 	SegmentArray* correctSegmentArray = regionGrowingService.segmentate(mw);
 
-	std::cerr << segmentArray->size << ", " << correctSegmentArray->size << std::endl;
 	_ASSERT_EQ(segmentArray->size, correctSegmentArray->size);
 
 	for(int i = 0; i < segmentArray->size; i++) {
