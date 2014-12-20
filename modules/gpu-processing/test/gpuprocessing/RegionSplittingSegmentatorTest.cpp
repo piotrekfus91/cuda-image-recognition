@@ -10,8 +10,6 @@ using namespace cir::common::logger;
 using namespace cir::cpuprocessing;
 using namespace cir::gpuprocessing;
 
-#define _ASSERT_EQ(a, b) ASSERT_LE(a, b); ASSERT_GE(a, b)
-
 class GpuRegionSplittingSegmentatorTest : public ::testing::Test {
 protected:
 	GpuImageProcessingService* _service;
@@ -42,55 +40,55 @@ TEST_F(GpuRegionSplittingSegmentatorTest, Sample) {
 	mw = _service->bgrToHsv(mw);
 
 	SegmentArray* segmentArray = _service->segmentate(mw);
-	_ASSERT_EQ(segmentArray->size, 8);
+	ASSERT_EQ(segmentArray->size, 8);
 
 	Segment* segment = segmentArray->segments[0];
-	_ASSERT_EQ(segment->leftX, 0);
-	_ASSERT_EQ(segment->rightX, 0);
-	_ASSERT_EQ(segment->topY, 0);
-	_ASSERT_EQ(segment->bottomY, 0);
+	ASSERT_EQ(segment->leftX, 0);
+	ASSERT_EQ(segment->rightX, 0);
+	ASSERT_EQ(segment->topY, 0);
+	ASSERT_EQ(segment->bottomY, 0);
 
 	segment = segmentArray->segments[1];
-	_ASSERT_EQ(segment->leftX, 2);
-	_ASSERT_EQ(segment->rightX, 6);
-	_ASSERT_EQ(segment->topY, 0);
-	_ASSERT_EQ(segment->bottomY, 1);
+	ASSERT_EQ(segment->leftX, 2);
+	ASSERT_EQ(segment->rightX, 6);
+	ASSERT_EQ(segment->topY, 0);
+	ASSERT_EQ(segment->bottomY, 1);
 
 	segment = segmentArray->segments[2];
-	_ASSERT_EQ(segment->leftX, 7);
-	_ASSERT_EQ(segment->rightX, 7);
-	_ASSERT_EQ(segment->topY, 1);
-	_ASSERT_EQ(segment->bottomY, 1);
+	ASSERT_EQ(segment->leftX, 7);
+	ASSERT_EQ(segment->rightX, 7);
+	ASSERT_EQ(segment->topY, 1);
+	ASSERT_EQ(segment->bottomY, 1);
 
 	segment = segmentArray->segments[3];
-	_ASSERT_EQ(segment->leftX, 0);
-	_ASSERT_EQ(segment->rightX, 4);
-	_ASSERT_EQ(segment->topY, 2);
-	_ASSERT_EQ(segment->bottomY, 7);
+	ASSERT_EQ(segment->leftX, 0);
+	ASSERT_EQ(segment->rightX, 4);
+	ASSERT_EQ(segment->topY, 2);
+	ASSERT_EQ(segment->bottomY, 7);
 
 	segment = segmentArray->segments[4];
-	_ASSERT_EQ(segment->leftX, 5);
-	_ASSERT_EQ(segment->rightX, 6);
-	_ASSERT_EQ(segment->topY, 3);
-	_ASSERT_EQ(segment->bottomY, 3);
+	ASSERT_EQ(segment->leftX, 5);
+	ASSERT_EQ(segment->rightX, 6);
+	ASSERT_EQ(segment->topY, 3);
+	ASSERT_EQ(segment->bottomY, 3);
 
 	segment = segmentArray->segments[5];
-	_ASSERT_EQ(segment->leftX, 7);
-	_ASSERT_EQ(segment->rightX, 7);
-	_ASSERT_EQ(segment->topY, 4);
-	_ASSERT_EQ(segment->bottomY, 4);
+	ASSERT_EQ(segment->leftX, 7);
+	ASSERT_EQ(segment->rightX, 7);
+	ASSERT_EQ(segment->topY, 4);
+	ASSERT_EQ(segment->bottomY, 4);
 
 	segment = segmentArray->segments[6];
-	_ASSERT_EQ(segment->leftX, 7);
-	_ASSERT_EQ(segment->rightX, 7);
-	_ASSERT_EQ(segment->topY, 6);
-	_ASSERT_EQ(segment->bottomY, 6);
+	ASSERT_EQ(segment->leftX, 7);
+	ASSERT_EQ(segment->rightX, 7);
+	ASSERT_EQ(segment->topY, 6);
+	ASSERT_EQ(segment->bottomY, 6);
 
 	segment = segmentArray->segments[7];
-	_ASSERT_EQ(segment->leftX, 5);
-	_ASSERT_EQ(segment->rightX, 5);
-	_ASSERT_EQ(segment->topY, 7);
-	_ASSERT_EQ(segment->bottomY, 7);
+	ASSERT_EQ(segment->leftX, 5);
+	ASSERT_EQ(segment->rightX, 5);
+	ASSERT_EQ(segment->topY, 7);
+	ASSERT_EQ(segment->bottomY, 7);
 }
 
 TEST_F(GpuRegionSplittingSegmentatorTest, Sample2) {
@@ -102,13 +100,13 @@ TEST_F(GpuRegionSplittingSegmentatorTest, Sample2) {
 
 	mw = _service->bgrToHsv(mw);
 	SegmentArray* segmentArray = _service->segmentate(mw);
-	_ASSERT_EQ(segmentArray->size, 1);
+	ASSERT_EQ(segmentArray->size, 1);
 
 	Segment* segment = segmentArray->segments[0];
-	_ASSERT_EQ(segment->leftX, 0);
-	_ASSERT_EQ(segment->rightX, 7);
-	_ASSERT_EQ(segment->topY, 0);
-	_ASSERT_EQ(segment->bottomY, 7);
+	ASSERT_EQ(segment->leftX, 0);
+	ASSERT_EQ(segment->rightX, 7);
+	ASSERT_EQ(segment->topY, 0);
+	ASSERT_EQ(segment->bottomY, 7);
 }
 
 TEST_F(GpuRegionSplittingSegmentatorTest, Sample9x11) {
@@ -121,61 +119,61 @@ TEST_F(GpuRegionSplittingSegmentatorTest, Sample9x11) {
 	mw = _service->bgrToHsv(mw);
 
 	SegmentArray* segmentArray = _service->segmentate(mw);
-	_ASSERT_EQ(segmentArray->size, 9);
+	ASSERT_EQ(segmentArray->size, 9);
 
 	Segment* segment = segmentArray->segments[0];
-	_ASSERT_EQ(segment->leftX, 0);
-	_ASSERT_EQ(segment->rightX, 0);
-	_ASSERT_EQ(segment->topY, 0);
-	_ASSERT_EQ(segment->bottomY, 0);
+	ASSERT_EQ(segment->leftX, 0);
+	ASSERT_EQ(segment->rightX, 0);
+	ASSERT_EQ(segment->topY, 0);
+	ASSERT_EQ(segment->bottomY, 0);
 
 	segment = segmentArray->segments[1];
-	_ASSERT_EQ(segment->leftX, 2);
-	_ASSERT_EQ(segment->rightX, 6);
-	_ASSERT_EQ(segment->topY, 0);
-	_ASSERT_EQ(segment->bottomY, 1);
+	ASSERT_EQ(segment->leftX, 2);
+	ASSERT_EQ(segment->rightX, 6);
+	ASSERT_EQ(segment->topY, 0);
+	ASSERT_EQ(segment->bottomY, 1);
 
 	segment = segmentArray->segments[2];
-	_ASSERT_EQ(segment->leftX, 7);
-	_ASSERT_EQ(segment->rightX, 7);
-	_ASSERT_EQ(segment->topY, 1);
-	_ASSERT_EQ(segment->bottomY, 1);
+	ASSERT_EQ(segment->leftX, 7);
+	ASSERT_EQ(segment->rightX, 7);
+	ASSERT_EQ(segment->topY, 1);
+	ASSERT_EQ(segment->bottomY, 1);
 
 	segment = segmentArray->segments[3];
-	_ASSERT_EQ(segment->leftX, 0);
-	_ASSERT_EQ(segment->rightX, 3);
-	_ASSERT_EQ(segment->topY, 2);
-	_ASSERT_EQ(segment->bottomY, 8);
+	ASSERT_EQ(segment->leftX, 0);
+	ASSERT_EQ(segment->rightX, 3);
+	ASSERT_EQ(segment->topY, 2);
+	ASSERT_EQ(segment->bottomY, 8);
 
 	segment = segmentArray->segments[4];
-	_ASSERT_EQ(segment->leftX, 5);
-	_ASSERT_EQ(segment->rightX, 6);
-	_ASSERT_EQ(segment->topY, 3);
-	_ASSERT_EQ(segment->bottomY, 3);
+	ASSERT_EQ(segment->leftX, 5);
+	ASSERT_EQ(segment->rightX, 6);
+	ASSERT_EQ(segment->topY, 3);
+	ASSERT_EQ(segment->bottomY, 3);
 
 	segment = segmentArray->segments[5];
-	_ASSERT_EQ(segment->leftX, 7);
-	_ASSERT_EQ(segment->rightX, 8);
-	_ASSERT_EQ(segment->topY, 4);
-	_ASSERT_EQ(segment->bottomY, 4);
+	ASSERT_EQ(segment->leftX, 7);
+	ASSERT_EQ(segment->rightX, 8);
+	ASSERT_EQ(segment->topY, 4);
+	ASSERT_EQ(segment->bottomY, 4);
 
 	segment = segmentArray->segments[6];
-	_ASSERT_EQ(segment->leftX, 7);
-	_ASSERT_EQ(segment->rightX, 8);
-	_ASSERT_EQ(segment->topY, 6);
-	_ASSERT_EQ(segment->bottomY, 6);
+	ASSERT_EQ(segment->leftX, 7);
+	ASSERT_EQ(segment->rightX, 8);
+	ASSERT_EQ(segment->topY, 6);
+	ASSERT_EQ(segment->bottomY, 6);
 
 	segment = segmentArray->segments[7];
-	_ASSERT_EQ(segment->leftX, 5);
-	_ASSERT_EQ(segment->rightX, 6);
-	_ASSERT_EQ(segment->topY, 7);
-	_ASSERT_EQ(segment->bottomY, 10);
+	ASSERT_EQ(segment->leftX, 5);
+	ASSERT_EQ(segment->rightX, 6);
+	ASSERT_EQ(segment->topY, 7);
+	ASSERT_EQ(segment->bottomY, 10);
 
 	segment = segmentArray->segments[8];
-	_ASSERT_EQ(segment->leftX, 0);
-	_ASSERT_EQ(segment->rightX, 0);
-	_ASSERT_EQ(segment->topY, 8);
-	_ASSERT_EQ(segment->bottomY, 8);
+	ASSERT_EQ(segment->leftX, 0);
+	ASSERT_EQ(segment->rightX, 0);
+	ASSERT_EQ(segment->topY, 8);
+	ASSERT_EQ(segment->bottomY, 8);
 }
 
 void compare_using_region_growing_and_splitting(const char* fileName, GpuImageProcessingService* _service, Logger* _logger) {
