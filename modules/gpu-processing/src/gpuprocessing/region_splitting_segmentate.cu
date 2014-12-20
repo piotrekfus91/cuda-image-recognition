@@ -180,7 +180,7 @@ void k_count_applicable_segments(element* elements, Segment* segments,
 	__syncthreads();
 
 	for(int i = blockDim.x / 2; i > 0; i /= 2) {
-		if(threadIdx.x < i) {
+		if(threadIdx.x < i && tid + i < total_size) {
 			cache[threadIdx.x] += cache[threadIdx.x + i];
 		}
 		__syncthreads();
