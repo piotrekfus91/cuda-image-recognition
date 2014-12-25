@@ -29,13 +29,13 @@ int* d_partialSums;
 
 void region_splitting_segmentate_init(int width, int height) {
 	sumBlocksNumber = (width*height+THREADS*THREADS-1)/(THREADS*THREADS);
+
 	elements = (element*) malloc(sizeof(element) * width * height);
 	segments = (Segment*) malloc(sizeof(Segment) * width * height);
 	partialSums = (int*) malloc(sizeof(int) * sumBlocksNumber);
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_elements, sizeof(element) * width * height));
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_segments, sizeof(Segment) * width * height));
-
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_partialSums, sizeof(int) * sumBlocksNumber));
 }
 
@@ -58,11 +58,13 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 	dim3 threads(THREADS, THREADS);
 
 	k_remove_empty_segments<<<blocks, threads>>>(data, width, height, step, d_elements);
-
-	int greaterDim = width > height ? width : height;
-
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
+	// loop must be repeated until greater dimension is reached
+	int greaterDim = width > height ? width : height;
+
+	// first blocks have dimensions 1x1
+	// every next step works on blocks two times greater, until it reaches greater image dimension
 	for(int i = 1; i < greaterDim; i = 2 * i) {
 		int block_width = i;
 		int block_height = i;
@@ -109,6 +111,7 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 	SegmentArray* segmentArray = (SegmentArray*) malloc(sizeof(SegmentArray));
 	segmentArray->size = foundSegmentsSize;
 
+	// copy all accepted segments as result
 	if(foundSegmentsSize > 0) {
 		Segment** appliedSegments = (Segment**) malloc(sizeof(Segment*) * foundSegmentsSize);
 		int currentSegmentIndex = 0;
@@ -116,6 +119,7 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 			if(elements[j].valid) {
 				bool segment_applicable = false;
 				d_is_segment_applicable(&(segments[j]), &segment_applicable, _min_size);
+
 				if(segment_applicable) {
 					Segment segment = segments[j];
 					appliedSegments[currentSegmentIndex++] = copySegment(&segment);
@@ -133,9 +137,12 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 void region_splitting_segmentate_shutdown() {
 	HANDLE_CUDA_ERROR(cudaFree(d_elements));
 	HANDLE_CUDA_ERROR(cudaFree(d_segments));
+	HANDLE_CUDA_ERROR(cudaFree(d_partialSums));
+
 
 	free(elements);
 	free(segments);
+	free(partialSums);
 }
 
 __global__
@@ -164,7 +171,7 @@ void k_count_applicable_segments(element* elements, Segment* segments,
 		int total_size, int min_size, int* partialSums) {
 	__shared__ int cache[THREADS*THREADS];
 	int tid = threadIdx.x + blockDim.x * blockIdx.x;
-	if(tid > total_size)
+	if(tid >= total_size)
 		return;
 
 	bool is_segment_applicable = false;
@@ -234,15 +241,17 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step,
 		int channels, int ai_x, int width, int height, int ai_y, uchar* data, element* elements,
 		Segment* segments, int block_width, int block_height) {
 
+	// iteration through left block right border and right block left border
 	for (int i = 0; i < block_height; i++) {
 		int di_tlb_right = di_lb_top_right_x + i * step;
 		int di_trb_left = di_tlb_right + channels;
 		int ai_tlb = ai_x + width * (i + ai_y);
 		int ai_trb = ai_tlb + 1;
 
-		if(ai_trb % width < ai_tlb % width || ai_trb > width * height)
+		if(ai_trb % width < ai_tlb % width || (block_width > 1 && ai_tlb % width == 0) || ai_trb > width * height)
 			return;
 
+		// if left and right pixel belongs to object...
 		if (!d_is_empty(data, di_tlb_right) && !d_is_empty(data, di_trb_left)) {
 			element* left_elem = &(elements[ai_tlb]);
 			element* right_elem = &(elements[ai_trb]);
@@ -250,11 +259,14 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step,
 			int left_elem_id = left_elem->id;
 			int right_elem_id = right_elem->id;
 
+			// update vertical boundary segments
 			for(int j = 0; j < block_height; j++) {
+				// left block right border
 				int ai_tlb_right = ai_x + width * j + ai_y * width;
 				d_try_merge(ai_tlb_right, right_elem_id, left_elem_id, width, height,
 						elements, segments, false);
 
+				// right block left border
 				int ai_trb_left = ai_tlb_right + 1;
 				d_try_merge(ai_trb_left, right_elem_id, left_elem_id, width, height,
 						elements, segments);
@@ -262,20 +274,25 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step,
 				int x_trb_left = ai_trb_left % width;
 				int normalized_width = x_trb_left + block_width - 1 > width ? width - x_trb_left + 1 : block_width;
 
+				// right block right border
 				int ai_trb_right = ai_trb_left + normalized_width - 1;
 				d_try_merge(ai_trb_right, right_elem_id, left_elem_id, width, height,
 						elements, segments);
 
+				// left block left border
 				int ai_tlb_left = ai_trb_left - block_width;
 				d_try_merge(ai_tlb_left, right_elem_id, left_elem_id, width, height,
 						elements, segments, false);
 			}
 
+			// update horizontal boundary segments
 			for(int j = 0; j < block_width; j++) {
+				// right block top border
 				int ai_trb_top = ai_x + j + 1 + ai_y * width;
 				d_try_merge(ai_trb_top, right_elem_id, left_elem_id, width, height,
 						elements, segments);
 
+				// left block top border
 				int ai_tlb_top = ai_trb_top - block_width;
 				d_try_merge(ai_tlb_top, right_elem_id, left_elem_id, width, height,
 						elements, segments, false);
@@ -283,10 +300,12 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step,
 				int y_trb_top = ai_trb_top / width;
 				int normalized_height = y_trb_top + block_height - 1 > height ? height - y_trb_top + 1 : block_height;
 
+				// right block bottom border
 				int ai_trb_bottom = (normalized_height - 1) * width + ai_trb_top;
 				d_try_merge(ai_trb_bottom, right_elem_id, left_elem_id, width, height,
 						elements, segments);
 
+				// left block bottom border
 				int ai_tlb_bottom = ai_trb_bottom - block_width;
 				d_try_merge(ai_tlb_bottom, right_elem_id, left_elem_id, width, height,
 						elements, segments, false);
@@ -300,15 +319,17 @@ void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step,
 		int channels, int ai_x, int width, int height, int ai_y, uchar* data, element* elements,
 		Segment* segments, int block_width, int block_height) {
 
+	// iteration through two top blocks bottom border and two bottom blocks top border
 	for (int i = 0; i < 2*block_width; i++) {
 		int di_tlb_bottom = di_lb_bottom_left_y + i * channels;
 		int di_blb_top = di_tlb_bottom + step;
 		int ai_tb = ai_x + i + width * ai_y;
 		int ai_bb = ai_tb + width;
 
-		if(ai_bb / width > height || ai_bb > width * height)
+		if(ai_bb / width > height || ai_bb > width * height || (block_height > 1 && ai_tb / width == 0))
 			return;
 
+		// if top and bottom pixel belongs to object...
 		if (!d_is_empty(data, di_tlb_bottom) && !d_is_empty(data, di_blb_top)) {
 			element* top_elem = &(elements[ai_tb]);
 			element* bottom_elem = &(elements[ai_bb]);
@@ -316,11 +337,14 @@ void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step,
 			int top_elem_id = top_elem->id;
 			int bottom_elem_id = bottom_elem->id;
 
+			// update horizontal boundary segments
 			for(int j = 0; j < 2*block_width; j++) {
+				// bottom block top border
 				int ai_bb_top = ai_x + width + j + ai_y * width;
 				d_try_merge(ai_bb_top, bottom_elem_id, top_elem_id, width, height,
 						elements, segments);
 
+				// top block top border
 				int ai_tb_top = ai_bb_top - block_height * width;
 				d_try_merge(ai_tb_top, bottom_elem_id, top_elem_id, width, height,
 						elements, segments, false);
@@ -328,20 +352,25 @@ void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step,
 				int y_bb_top = ai_bb_top / width;
 				int normalized_height = y_bb_top + block_height - 1 > height ? height - y_bb_top + 1 : block_height;
 
+				// bottom block bottom border
 				int ai_bb_bottom = ai_bb_top + (normalized_height-1) * width;
 				d_try_merge(ai_bb_bottom, bottom_elem_id, top_elem_id, width, height,
 						elements, segments);
 
+				// top block bottom border
 				int ai_tb_bottom = ai_bb_bottom - block_height * width;
 				d_try_merge(ai_tb_bottom, bottom_elem_id, top_elem_id, width, height,
 						elements, segments, false);
 			}
 
+			// update vertical boundary segments
 			for(int j = 0; j < block_height; j++) {
+				// bottom block left border
 				int ai_bb_left = ai_x + (j+1) * width + ai_y * width;
 				d_try_merge(ai_bb_left, bottom_elem_id, top_elem_id, width, height,
 						elements, segments);
 
+				// top block left border
 				int ai_tb_left = ai_bb_left - block_height * width;
 				d_try_merge(ai_tb_left, bottom_elem_id, top_elem_id, width, height,
 						elements, segments, false);
@@ -349,10 +378,12 @@ void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step,
 				int x_bb_left = ai_bb_left % width;
 				int normalized_width = x_bb_left + 2*block_width - 1 > width ? width - x_bb_left + 1 : 2 * block_width;
 
+				// bottom block right border
 				int ai_bb_right = ai_bb_left + normalized_width - 1;
 				d_try_merge(ai_bb_right, bottom_elem_id, top_elem_id, width, height,
 						elements, segments);
 
+				// top block right border
 				int ai_tb_right = ai_bb_right - block_height * width;
 				d_try_merge(ai_tb_right, bottom_elem_id, top_elem_id, width, height,
 						elements, segments, false);
@@ -390,29 +421,21 @@ bool d_is_empty(uchar* data, int addr) {
 
 __device__
 void d_merge_segments(Segment* segm1, Segment* segm2) {
-	if(segm1->leftX < segm2->leftX) {
-		segm2->leftX = segm1->leftX;
-	} else {
-		segm1->leftX = segm2->leftX;
-	}
+	int value = min(segm1->leftX, segm2->leftX);
+	segm1->leftX = value;
+	segm2->leftX = value;
 
-	if(segm1->rightX > segm2->rightX) {
-		segm2->rightX = segm1->rightX;
-	} else {
-		segm1->rightX = segm2->rightX;
-	}
+	value = max(segm1->rightX, segm2->rightX);
+	segm1->rightX = value;
+	segm2->rightX = value;
 
-	if(segm1->bottomY > segm2->bottomY) {
-		segm2->bottomY = segm1->bottomY;
-	} else {
-		segm1->bottomY = segm2->bottomY;
-	}
+	value = min(segm1->topY, segm2->topY);
+	segm1->topY = value;
+	segm2->topY = value;
 
-	if(segm1->topY < segm2->topY) {
-		segm2->topY = segm1->topY;
-	} else {
-		segm1->topY = segm2->topY;
-	}
+	value = max(segm1->bottomY, segm2->bottomY);
+	segm1->bottomY = value;
+	segm2->bottomY = value;
 }
 
 __device__ __host__
