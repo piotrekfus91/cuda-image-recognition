@@ -47,7 +47,7 @@ void region_splitting_segmentate_shutdown();
  * Kernel segmentation function.
  */
 __global__
-void k_region_splitting_segmentate(uchar* data, cir::common::element* elements, cir::common::Segment* segments, int step,
+void k_region_splitting_segmentate(cir::common::element* elements, cir::common::Segment* segments, int step,
 		int channels, int width, int height, int block_width, int block_height);
 
 /**
@@ -70,8 +70,7 @@ void k_count_applicable_segments(cir::common::element* elements, cir::common::Se
  * If both pixels meets condition, it merges its segment.
  */
 __device__
-void d_merge_blocks_horizontally(int di_lb_top_right_x, int step,
-		int channels, int ai_x, int width, int height, int ai_y, uchar* data,
+void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, int height, int ai_y,
 		cir::common::element* elements, cir::common::Segment* segments, int block_width, int block_height);
 
 /**
@@ -79,8 +78,7 @@ void d_merge_blocks_horizontally(int di_lb_top_right_x, int step,
  * Performs action like {@link d_merge_blocks_horizontally}, but goes from left to right.
  */
 __device__
-void d_merge_blocks_vertically(int di_lb_bottom_left_y, int step,
-		int channels, int ai_x, int width, int height, int ai_y, uchar* data,
+void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int height, int ai_y,
 		cir::common::element* elements, cir::common::Segment* segments, int block_width, int block_height);
 
 /**
