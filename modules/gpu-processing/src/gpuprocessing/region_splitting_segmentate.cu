@@ -70,7 +70,7 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 		int block_height = i;
 
 		dim3 blocks((width+i*THREADS-1)/(i*THREADS), (height+i*THREADS-1)/(i*THREADS));
-		dim3 threads(THREADS, THREADS);
+		dim3 threads(THREADS, THREADS, 2);
 		KERNEL_MEASURE_START
 
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_elements, d_segments, step,
@@ -220,15 +220,23 @@ void k_region_splitting_segmentate(uchar* data, element* elements, Segment* segm
 	int di_tlb_top_right_x = (ai_x + block_width - 1) * channels + ai_y * step;
 	int ai_lb_top_right_x = ai_x + block_width - 1;
 
-	d_merge_blocks_horizontally(di_tlb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
-			ai_y, data, elements, segments, block_width, block_height);
-
 	// bottom left and bottom right
 	int di_blb_top_right_x = di_tlb_top_right_x + block_height * step;
 	int blb_ai_y = ai_y + block_height;
 
-	d_merge_blocks_horizontally(di_blb_top_right_x, step, channels, ai_lb_top_right_x, width, height,
-			blb_ai_y, data, elements, segments, block_width, block_height);
+	int ai = -1;
+	int di = -1;
+	if(threadIdx.z == 0) {
+		ai = ai_y;
+		di = di_tlb_top_right_x;
+	} else if(threadIdx.z == 1) {
+		ai = blb_ai_y;
+		di = di_blb_top_right_x;
+	}
+
+	d_merge_blocks_horizontally(di, step, channels, ai_lb_top_right_x, width, height, ai, data, elements, segments, block_width, block_height);
+
+	__syncthreads();
 
 	// top left/right and bottom left/right
 	int di_tb_bottom_left_y = ai_x * channels + (ai_y + block_height - 1) * step;
