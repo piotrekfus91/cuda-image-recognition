@@ -70,7 +70,7 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 		int block_height = i;
 
 		dim3 blocks((width+i*THREADS-1)/(i*THREADS), (height+i*THREADS-1)/(i*THREADS));
-		dim3 threads(THREADS, THREADS, 2);
+		dim3 threads(THREADS/2, THREADS/2, 2);
 		KERNEL_MEASURE_START
 
 		k_region_splitting_segmentate<<<blocks, threads>>>(d_elements, d_segments, step,
@@ -207,11 +207,8 @@ void k_region_splitting_segmentate(element* elements, Segment* segments,
 	int ai_x = blockDim.x * blockIdx.x + threadIdx.x;
 	int ai_y = blockDim.y * blockIdx.y + threadIdx.y;
 
-	if(ai_x % 2 != 0 || ai_y % 2 != 0)
-		return;
-
-	ai_x = ai_x * block_width;
-	ai_y = ai_y * block_height;
+	ai_x = ai_x * block_width * 2;
+	ai_y = ai_y * block_height * 2;
 
 	if(ai_x >= width || ai_y >= height)
 		return;
