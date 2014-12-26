@@ -243,6 +243,9 @@ __device__
 void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, int height, int ai_y,
 		element* elements, Segment* segments, int block_width, int block_height) {
 
+	int last_left = -2;
+	int last_right = -2;
+	
 	// iteration through left block right border and right block left border
 	for (int i = 0; i < block_height; i++) {
 		int ai_tlb = ai_x + width * (i + ai_y);
@@ -258,6 +261,14 @@ void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, in
 		int right_elem_id = right_elem->id;
 
 		if (left_elem_id != -1 && right_elem_id != -1) {
+			// check if it was done in previous steps...
+			if(last_left == left_elem_id && last_right == right_elem_id)
+				continue;
+
+			if(left_elem_id != -1)
+				last_left = left_elem_id;
+			if(right_elem_id != -1)
+				last_right = right_elem_id;
 
 			// update vertical boundary segments
 			for(int j = 0; j < block_height; j++) {
@@ -318,6 +329,9 @@ __device__
 void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int height, int ai_y,
 		element* elements, Segment* segments, int block_width, int block_height) {
 
+	int last_top = -2;
+	int last_bottom = -2;
+
 	// iteration through two top blocks bottom border and two bottom blocks top border
 	for (int i = 0; i < 2*block_width; i++) {
 		int ai_tb = ai_x + i + width * ai_y;
@@ -334,6 +348,14 @@ void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int 
 
 		// if top and bottom pixel belongs to object...
 		if (top_elem_id != -1 && bottom_elem_id != -1) {
+			// check if it was done in previous steps...
+			if(last_top == top_elem_id && last_bottom == bottom_elem_id)
+				continue;
+
+			if(top_elem_id != -1)
+				last_top = top_elem_id;
+			if(bottom_elem_id != -1)
+				last_bottom = bottom_elem_id;
 
 			// update horizontal boundary segments
 			for(int j = 0; j < 2*block_width; j++) {
