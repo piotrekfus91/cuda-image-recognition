@@ -46,9 +46,10 @@ void region_splitting_segmentate_shutdown();
 /**
  * Kernel segmentation function.
  */
+template <int block_width, int block_height>
 __global__
 void k_region_splitting_segmentate(cir::common::element* elements, cir::common::Segment* segments, int step,
-		int channels, int width, int height, int block_width, int block_height);
+		int channels, int width, int height);
 
 /**
  * Removes empty segments.
@@ -69,17 +70,19 @@ void k_count_applicable_segments(cir::common::element* elements, cir::common::Se
  * Function goes from top to bottom pixels of neighbouring blocks and checks merge condition.
  * If both pixels meets condition, it merges its segment.
  */
+template <int block_width, int block_height>
 __device__
 void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, int height, int ai_y,
-		cir::common::element* elements, cir::common::Segment* segments, int block_width, int block_height);
+		cir::common::element* elements, cir::common::Segment* segments);
 
 /**
  * Merges two blocks vertically.
  * Performs action like {@link d_merge_blocks_horizontally}, but goes from left to right.
  */
+template <int block_width, int block_height>
 __device__
 void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int height, int ai_y,
-		cir::common::element* elements, cir::common::Segment* segments, int block_width, int block_height);
+		cir::common::element* elements, cir::common::Segment* segments);
 
 /**
  * Checks if two can be merged.

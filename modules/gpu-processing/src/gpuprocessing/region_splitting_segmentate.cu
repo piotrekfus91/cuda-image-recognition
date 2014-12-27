@@ -8,6 +8,7 @@
 
 #define CHANNELS 3
 #define THREADS 16
+#define UNROLL_LOOP
 
 using namespace cir::common;
 using namespace cir::common::logger;
@@ -66,15 +67,48 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 	// first blocks have dimensions 1x1
 	// every next step works on blocks two times greater, until it reaches greater image dimension
 	for(int i = 1; i < greaterDim; i = 2 * i) {
-		int block_width = i;
-		int block_height = i;
 
 		dim3 blocks((width+i*THREADS-1)/(i*THREADS), (height+i*THREADS-1)/(i*THREADS));
 		dim3 threads(THREADS, THREADS, 2);
 		KERNEL_MEASURE_START
 
-		k_region_splitting_segmentate<<<blocks, threads>>>(d_elements, d_segments, step,
-				channels, width, height, block_width, block_height);
+		if(i == 1)
+			k_region_splitting_segmentate<1, 1><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 2)
+			k_region_splitting_segmentate<2, 2><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 4)
+			k_region_splitting_segmentate<4, 4><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 8)
+			k_region_splitting_segmentate<8, 8><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 16)
+			k_region_splitting_segmentate<16, 16><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 32)
+			k_region_splitting_segmentate<32, 32><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 64)
+			k_region_splitting_segmentate<64, 64><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 128)
+			k_region_splitting_segmentate<128, 128><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 256)
+			k_region_splitting_segmentate<256, 256><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 512)
+			k_region_splitting_segmentate<512, 512><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 1024)
+			k_region_splitting_segmentate<1024, 1024><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+		else if(i == 2048)
+			k_region_splitting_segmentate<2048, 2048><<<blocks, threads>>>(d_elements, d_segments, step,
+					channels, width, height);
+
 		HANDLE_CUDA_ERROR(cudaGetLastError());
 
 		KERNEL_MEASURE_END("Segmentate")
@@ -201,9 +235,10 @@ void k_count_applicable_segments(element* elements, Segment* segments,
 // brb - bottom right block
 // di_ - data index
 // ai - array index
+template <int block_width, int block_height>
 __global__
 void k_region_splitting_segmentate(element* elements, Segment* segments,
-		int step, int channels, int width, int height, int block_width, int block_height) {
+		int step, int channels, int width, int height) {
 	int ai_x = blockDim.x * blockIdx.x + threadIdx.x;
 	int ai_y = blockDim.y * blockIdx.y + threadIdx.y;
 
@@ -229,24 +264,28 @@ void k_region_splitting_segmentate(element* elements, Segment* segments,
 		ai = blb_ai_y;
 	}
 
-	d_merge_blocks_horizontally(step, channels, ai_lb_top_right_x, width, height,
-			ai, elements, segments, block_width, block_height);
+	d_merge_blocks_horizontally<block_width, block_height>(step, channels, ai_lb_top_right_x, width, height,
+			ai, elements, segments);
 
 	__syncthreads();
 
 	// top left/right and bottom left/right
-	d_merge_blocks_vertically(step, channels, ai_x, width, height, ai_y + block_height - 1,
-			elements, segments, block_width, block_height);
+	d_merge_blocks_vertically<block_width, block_height>(step, channels, ai_x, width, height, ai_y + block_height - 1,
+			elements, segments);
 }
 
+template <int block_width, int block_height>
 __device__
 void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, int height, int ai_y,
-		element* elements, Segment* segments, int block_width, int block_height) {
+		element* elements, Segment* segments) {
 
 	int last_left = -2;
 	int last_right = -2;
-	
+
 	// iteration through left block right border and right block left border
+#ifdef UNROLL_LOOP
+#pragma unroll
+#endif
 	for (int i = 0; i < block_height; i++) {
 		int ai_tlb = ai_x + width * (i + ai_y);
 		int ai_trb = ai_tlb + 1;
@@ -271,6 +310,9 @@ void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, in
 				last_right = right_elem_id;
 
 			// update vertical boundary segments
+#ifdef UNROLL_LOOP
+#pragma unroll
+#endif
 			for(int j = 0; j < block_height; j++) {
 				// left block right border
 				int ai_tlb_right = ai_x + width * j + ai_y * width;
@@ -297,6 +339,9 @@ void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, in
 			}
 
 			// update horizontal boundary segments
+#ifdef UNROLL_LOOP
+#pragma unroll
+#endif
 			for(int j = 0; j < block_width; j++) {
 				// right block top border
 				int ai_trb_top = ai_x + j + 1 + ai_y * width;
@@ -325,14 +370,18 @@ void d_merge_blocks_horizontally(int step, int channels, int ai_x, int width, in
 	}
 }
 
+template <int block_width, int block_height>
 __device__
 void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int height, int ai_y,
-		element* elements, Segment* segments, int block_width, int block_height) {
+		element* elements, Segment* segments) {
 
 	int last_top = -2;
 	int last_bottom = -2;
 
 	// iteration through two top blocks bottom border and two bottom blocks top border
+#ifdef UNROLL_LOOP
+#pragma unroll
+#endif
 	for (int i = 0; i < 2*block_width; i++) {
 		int ai_tb = ai_x + i + width * ai_y;
 		int ai_bb = ai_tb + width;
@@ -358,6 +407,9 @@ void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int 
 				last_bottom = bottom_elem_id;
 
 			// update horizontal boundary segments
+#ifdef UNROLL_LOOP
+#pragma unroll
+#endif
 			for(int j = 0; j < 2*block_width; j++) {
 				// bottom block top border
 				int ai_bb_top = ai_x + width + j + ai_y * width;
@@ -384,6 +436,9 @@ void d_merge_blocks_vertically(int step, int channels, int ai_x, int width, int 
 			}
 
 			// update vertical boundary segments
+#ifdef UNROLL_LOOP
+#pragma unroll
+#endif
 			for(int j = 0; j < block_height; j++) {
 				// bottom block left border
 				int ai_bb_left = ai_x + (j+1) * width + ai_y * width;
