@@ -2,6 +2,21 @@
 
 namespace cir { namespace common {
 
+HsvRange getWhiteRange() {
+	Hsv lessWHite;
+	lessWHite.hue = 0;
+	lessWHite.saturation = 0.01;
+	lessWHite.value = 0.6;
+	Hsv greaterWhite;
+	greaterWhite.hue = 360;
+	greaterWhite.saturation = 0.3;
+	greaterWhite.value = 1.0;
+	HsvRange rangeWhite;
+	rangeWhite.less = lessWHite;
+	rangeWhite.greater = greaterWhite;
+	return rangeWhite;
+}
+
 HsvRange getRedRange() {
 	Hsv lessRed;
 	lessRed.hue = 330;
@@ -15,6 +30,21 @@ HsvRange getRedRange() {
 	rangeRed.less = lessRed;
 	rangeRed.greater = greaterRed;
 	return rangeRed;
+}
+
+HsvRange getBlueRange() {
+	Hsv lessBlue;
+	lessBlue.hue = 200;
+	lessBlue.saturation = 0.4;
+	lessBlue.value = 0.2;
+	Hsv greaterBlue;
+	greaterBlue.hue = 255;
+	greaterBlue.saturation = 1;
+	greaterBlue.value = 1;
+	HsvRange rangeBlue;
+	rangeBlue.less = lessBlue;
+	rangeBlue.greater = greaterBlue;
+	return rangeBlue;
 }
 
 }}

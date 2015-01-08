@@ -39,11 +39,11 @@ void expandRight(Segment* segment) {
 }
 
 void expandTop(Segment* segment) {
-	segment->topY++;
+	segment->topY--;
 }
 
 void expandBottom(Segment* segment) {
-	segment->bottomY--;
+	segment->bottomY++;
 }
 
 }}

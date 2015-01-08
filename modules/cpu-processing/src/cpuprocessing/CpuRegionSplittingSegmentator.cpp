@@ -151,12 +151,13 @@ void CpuRegionSplittingSegmentator::merge_blocks_horizontally(int di_lb_top_righ
 		if(ai_trb % width < ai_tlb % width || ai_trb > width * height)
 			return;
 
-		if (!is_empty(data, di_tlb_right) && !is_empty(data, di_trb_left)) {
-			element* left_elem = &(elements[ai_tlb]);
-			element* right_elem = &(elements[ai_trb]);
+		element* left_elem = &(elements[ai_tlb]);
+		element* right_elem = &(elements[ai_trb]);
 
-			int left_elem_id = left_elem->id;
-			int right_elem_id = right_elem->id;
+		int left_elem_id = left_elem->id;
+		int right_elem_id = right_elem->id;
+
+		if (left_elem_id != -1 && right_elem_id != -1) {
 
 			for(int j = 0; j < block_height; j++) {
 				int ai_tlb_right = ai_x + width * j + ai_y * width;
@@ -208,12 +209,13 @@ void CpuRegionSplittingSegmentator::merge_blocks_vertically(int di_lb_bottom_lef
 		if(ai_bb / width > height || ai_bb > width * height)
 			return;
 
-		if (!is_empty(data, di_tlb_bottom) && !is_empty(data, di_blb_top)) {
-			element* top_elem = &(elements[ai_tb]);
-			element* bottom_elem = &(elements[ai_bb]);
+		element* top_elem = &(elements[ai_tb]);
+		element* bottom_elem = &(elements[ai_bb]);
 
-			int top_elem_id = top_elem->id;
-			int bottom_elem_id = bottom_elem->id;
+		int top_elem_id = top_elem->id;
+		int bottom_elem_id = bottom_elem->id;
+
+		if (top_elem_id != -1 && bottom_elem_id != -1) {
 
 			for(int j = 0; j < 2*block_width; j++) {
 				int ai_bb_top = ai_x + width + j + ai_y * width;

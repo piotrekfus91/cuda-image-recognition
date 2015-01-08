@@ -18,6 +18,8 @@ public:
 	ImageProcessingService(cir::common::logger::Logger& logger);
 	virtual ~ImageProcessingService();
 
+	virtual void init(int width, int height) = 0;
+
 	virtual const char* getModule() = 0;
 	virtual void setSegmentatorMinSize(int minSize) = 0;
 

@@ -8,7 +8,7 @@ using namespace cir::common::logger;
 using namespace cir::common::exception;
 
 CpuImageProcessingService::CpuImageProcessingService(Logger& logger) : ImageProcessingService(logger),
-		_segmentator(new CpuRegionSplittingSegmentator) {
+		_segmentator(new CpuRegionGrowingSegmentator) {
 
 }
 
@@ -137,8 +137,15 @@ MatWrapper CpuImageProcessingService::doDilate(const MatWrapper& input, int time
 MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::Mat inputMat = input.getMat();
 	cv::Mat outputMat;
-	cv::Rect rect = cv::Rect(segment->leftX, segment->bottomY,
-			segment->rightX - segment->leftX + 1, segment->topY - segment->bottomY + 1);
+	int rectWidth = segment->rightX - segment->leftX + 1;
+	if(rectWidth > inputMat.cols)
+		rectWidth = inputMat.cols;
+
+	int rectHeight = segment->bottomY - segment->topY + 1;
+	if(rectHeight > inputMat.rows)
+		rectHeight = inputMat.rows;
+
+	cv::Rect rect = cv::Rect(segment->leftX, segment->topY, rectWidth, rectHeight);
 	inputMat(rect).copyTo(outputMat);
 	MatWrapper outputMw(outputMat);
 	outputMw.setColorScheme(input.getColorScheme());

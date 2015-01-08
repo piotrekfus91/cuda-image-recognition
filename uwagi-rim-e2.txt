@@ -1,0 +1,7 @@
++ Komentarze praktycznie nie istnieją, kod czyta się trudno pomimo niezłych nazw.
+- Czy zapętlernia jądra k_region_splitting_segmentate nie da się zrobić jądrem bezpętlowym?
+- Czy drugie __syncthreads w k_count_applicable_segments jest dobrze umieszczone?
+- Funkcja d_try_merge wewnątrz dwóch zagnieżdżonych pętli - czy prawidłowa ziarnistość?
++ Najbardziej zagnieżdżona funkcja d_merge_segments robi trywialne rzeczy mnóstwem "if"-ów - nie mozna zrobić tego lepiej?
+
+Ocena 9/10

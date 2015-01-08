@@ -25,7 +25,9 @@ struct OpenCvHsvRange {
 	OpenCvHsv greater;
 };
 
+HsvRange getWhiteRange();
 HsvRange getRedRange();
+HsvRange getBlueRange();
 
 }}
 
