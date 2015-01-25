@@ -87,19 +87,26 @@ void CpuRegionGrowingSegmentator::setNotApplicable(uchar* data, int channels, in
 	int pos = x * channels + y * step;
 
 	data[pos] = 0;
-	data[pos+1] = 0;
-	data[pos+2] = 0;
+	if(channels == 3) {
+		data[pos+1] = 0;
+		data[pos+2] = 0;
+	}
 }
 
 bool CpuRegionGrowingSegmentator::isApplicable(uchar* data, int channels, int step, int x, int y) {
 	int pos = x * channels + y * step;
 
-	int hue = data[pos];
-	int sat = data[pos+1];
-	int value = data[pos+2];
+	if(channels == 1) {
+		int val = data[pos];
+		return val > 0;
+	} else if(channels == 3) {
+		int hue = data[pos];
+		int sat = data[pos+1];
+		int value = data[pos+2];
 
-	if(sat != 0 && value != 0) {
-		return true;
+		if(sat != 0 && value != 0) {
+			return true;
+		}
 	}
 
 	return false;
