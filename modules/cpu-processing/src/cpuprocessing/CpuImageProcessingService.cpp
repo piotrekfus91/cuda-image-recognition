@@ -143,11 +143,11 @@ MatWrapper CpuImageProcessingService::doDilate(const MatWrapper& input, int time
 MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::Mat inputMat = input.getMat();
 	cv::Mat outputMat;
-	int rectWidth = segment->rightX - segment->leftX + 1;
+	int rectWidth = segment->rightX - segment->leftX;
 	if(rectWidth > inputMat.cols)
 		rectWidth = inputMat.cols;
 
-	int rectHeight = segment->bottomY - segment->topY + 1;
+	int rectHeight = segment->bottomY - segment->topY;
 	if(rectHeight > inputMat.rows)
 		rectHeight = inputMat.rows;
 

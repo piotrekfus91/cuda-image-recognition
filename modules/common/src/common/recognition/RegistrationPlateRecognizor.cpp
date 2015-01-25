@@ -29,7 +29,6 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 		MatWrapper segmentMw = _service.crop(mw, segment);
 		cv::namedWindow("seg");
 		cv::imshow("seg", segmentMw.getMat());
-		cv::waitKey(0);
 		segmentMw = _service.bgrToHsv(segmentMw);
 
 		MatWrapper blueMw = detectBlue(segmentMw);
@@ -37,16 +36,19 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 		Segment* blueSegment = NULL;
 		blueMw = _service.hsvToBgr(blueMw);
 		blueMw = _service.mark(blueMw, blueSegmentsArray);
+
+		int segmentWidth = segment->rightX - segment->leftX;
 		for(int j = 0; j < blueSegmentsArray->size; j++) {
 			Segment* candidate = blueSegmentsArray->segments[j];
-			if(candidate->leftX < 3) {
+
+			if(candidate->leftX <= 0.05 * segmentWidth + segment->leftX) {
 				blueSegment = candidate;
 				break;
 			}
 		}
 
 		if(blueSegment == NULL) {
-			return RecognitionInfo(false, NULL);
+			continue;
 		}
 
 		MatWrapper whiteMw = detectWhite(segmentMw);
@@ -55,18 +57,28 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 
 		for(int j = 0; j < whiteSegmentsArray->size; j++) {
 			Segment* candidate = whiteSegmentsArray->segments[j];
-			if(candidate->rightX > segmentMw.getWidth() - segmentMw.getWidth() * 0.05) {
+			if(candidate->rightX - candidate->leftX > 0.75 * (segment->rightX - segment->leftX)) {
 				MatWrapper whitePlate = _service.crop(whiteMw, candidate);
 				whitePlate = _service.toGrey(whitePlate);
 				whitePlate = _service.threshold(whitePlate, true);
 				cv::namedWindow("white");
 				cv::imshow("white", whitePlate.getMat());
-				cv::waitKey(0);
-				whitePlate = _service.median(whitePlate, 3);
+				whitePlate = _service.median(whitePlate);
 				cv::namedWindow("white2");
 				cv::imshow("white2", whitePlate.getMat());
-				cv::waitKey(0);
-				break;
+//				cv::waitKey(0);
+
+				SegmentArray* signsArray = _service.segmentate(whitePlate);
+				cv::namedWindow("sign");
+				if(signsArray->size > 3) {
+					for(int k = 0; k < signsArray->size; k++) {
+						Segment* signSegment = signsArray->segments[k];
+						MatWrapper signMw = _service.crop(whitePlate, signSegment);
+						cv::imshow("sign", signMw.getMat());
+						cv::waitKey(0);
+					}
+					break;
+				}
 			}
 		}
 	}
