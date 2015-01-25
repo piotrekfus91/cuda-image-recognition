@@ -32,9 +32,10 @@ cir::common::MatWrapper ImageProcessingService::toGrey(const cir::common::MatWra
 	return mw;
 }
 
-cir::common::MatWrapper ImageProcessingService::threshold(const cir::common::MatWrapper& input, double thresholdValue) {
+cir::common::MatWrapper ImageProcessingService::threshold(const cir::common::MatWrapper& input, bool invertColors,
+		double thresholdValue) {
 	clock_t start = clock();
-	cir::common::MatWrapper mw = doThreshold(input, thresholdValue);
+	cir::common::MatWrapper mw = doThreshold(input, invertColors, thresholdValue);
 	clock_t stop = clock();
 	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
 	_logger.log("Threshold", elapsed_secs);

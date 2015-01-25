@@ -54,9 +54,11 @@ MatWrapper CpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	return input;
 }
 
-MatWrapper CpuImageProcessingService::doThreshold(const MatWrapper& input, double thresholdValue) {
+MatWrapper CpuImageProcessingService::doThreshold(const MatWrapper& input, bool invertColors,
+		double thresholdValue) {
 	cv::Mat output;
-	cv::threshold(input.getMat(), output, thresholdValue, 255, cv::THRESH_BINARY);
+	int type = invertColors ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
+	cv::threshold(input.getMat(), output, thresholdValue, 255, type);
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::GRAY);
 	return mw;

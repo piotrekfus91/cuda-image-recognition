@@ -56,9 +56,11 @@ MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	return input;
 }
 
-MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, double thresholdValue) {
+MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, bool invertColors,
+		double thresholdValue) {
+	int type = invertColors ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 	cv::gpu::GpuMat output;
-	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, cv::THRESH_BINARY);
+	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, invertColors);
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::GRAY);
 	return mw;

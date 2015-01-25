@@ -22,7 +22,8 @@ public:
 
 protected:
 	virtual cir::common::MatWrapper doToGrey(const cir::common::MatWrapper& input);
-	virtual cir::common::MatWrapper doThreshold(const cir::common::MatWrapper& input, double thresholdValue);
+	virtual cir::common::MatWrapper doThreshold(const cir::common::MatWrapper& input, bool invertColors,
+			double thresholdValue);
 	virtual cir::common::MatWrapper doLowPass(const cir::common::MatWrapper& input, int size);
 	virtual cir::common::MatWrapper doHighPass(const cir::common::MatWrapper& input, int size);
 	virtual cir::common::MatWrapper doBgrToHsv(const cir::common::MatWrapper& input);
