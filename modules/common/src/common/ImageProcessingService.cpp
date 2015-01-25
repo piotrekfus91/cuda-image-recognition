@@ -51,6 +51,15 @@ cir::common::MatWrapper ImageProcessingService::lowPass(const cir::common::MatWr
 	return mw;
 }
 
+cir::common::MatWrapper ImageProcessingService::median(const cir::common::MatWrapper& input, int size) {
+	clock_t start = clock();
+	cir::common::MatWrapper mw = doMedian(input, size);
+	clock_t stop = clock();
+	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
+	_logger.log("Median", elapsed_secs);
+	return mw;
+}
+
 cir::common::MatWrapper ImageProcessingService::highPass(const cir::common::MatWrapper& input, int size) {
 	clock_t start = clock();
 	cir::common::MatWrapper mw = doHighPass(input, size);

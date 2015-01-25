@@ -57,10 +57,14 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 			Segment* candidate = whiteSegmentsArray->segments[j];
 			if(candidate->rightX > segmentMw.getWidth() - segmentMw.getWidth() * 0.05) {
 				MatWrapper whitePlate = _service.crop(whiteMw, candidate);
-				whitePlate = _service.hsvToBgr(whitePlate);
+				whitePlate = _service.toGrey(whitePlate);
 				whitePlate = _service.threshold(whitePlate, true);
 				cv::namedWindow("white");
 				cv::imshow("white", whitePlate.getMat());
+				cv::waitKey(0);
+				whitePlate = _service.median(whitePlate, 3);
+				cv::namedWindow("white2");
+				cv::imshow("white2", whitePlate.getMat());
 				cv::waitKey(0);
 				break;
 			}

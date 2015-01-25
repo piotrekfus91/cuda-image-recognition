@@ -7,6 +7,7 @@
 #include "cir/cpuprocessing/CpuRegionSplittingSegmentator.h"
 #include "cir/cpuprocessing/CpuRedMarker.h"
 #include "cir/cpuprocessing/CpuMomentCounter.h"
+#include "cir/cpuprocessing/CpuBlurer.h"
 
 namespace cir { namespace cpuprocessing {
 
@@ -28,6 +29,7 @@ protected:
 	virtual cir::common::MatWrapper doThreshold(const cir::common::MatWrapper& input, bool invertColors,
 			double thresholdValue);
 	virtual cir::common::MatWrapper doLowPass(const cir::common::MatWrapper& input, int size);
+	virtual cir::common::MatWrapper doMedian(const cir::common::MatWrapper& input, int size);
 	virtual cir::common::MatWrapper doHighPass(const cir::common::MatWrapper& input, int size);
 	virtual cir::common::MatWrapper doBgrToHsv(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper doHsvToBgr(const cir::common::MatWrapper& input);
@@ -45,6 +47,7 @@ private:
 	cir::common::Segmentator* _segmentator;
 	CpuRedMarker _marker;
 	CpuMomentCounter _cpuMomentCounter;
+	CpuBlurer _blurer;
 };
 
 }}

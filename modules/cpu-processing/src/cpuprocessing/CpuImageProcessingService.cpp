@@ -77,6 +77,10 @@ MatWrapper CpuImageProcessingService::doLowPass(const MatWrapper& input, int siz
 	return outputMw;
 }
 
+MatWrapper CpuImageProcessingService::doMedian(const MatWrapper& input, int size) {
+	return _blurer.median(input, size);
+}
+
 MatWrapper CpuImageProcessingService::doHighPass(const MatWrapper& input, int size) {
 	cv::Mat outputMat;
 	cv::Laplacian(input.getMat(), outputMat, -1, size);

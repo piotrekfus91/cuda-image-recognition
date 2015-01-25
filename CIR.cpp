@@ -124,6 +124,20 @@ void imgGpu(const char* fileName, cir::common::logger::Logger& logger) {
 	cv::namedWindow("ORIG");
 	cv::namedWindow("CPU");
 
+	cv::namedWindow("grey");
+	cv::namedWindow("median");
+
+	mw = gpuService.toGrey(mw);
+	gpuImg = mw.getGpuMat();
+	gpuImg.download(img);
+	cv::imshow("grey", img);
+
+	mw = gpuService.median(mw);
+	gpuImg = mw.getGpuMat();
+	gpuImg.download(img);
+	cv::imshow("median", img);
+
+
 	cv::imshow("CPU", cv::Mat(mw2.getMat()));
 	cv::waitKey(0);
 }

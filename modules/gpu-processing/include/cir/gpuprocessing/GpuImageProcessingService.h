@@ -5,6 +5,7 @@
 #include "cir/gpuprocessing/GpuColorDetector.h"
 #include "cir/gpuprocessing/GpuRegionSplittingSegmentator.h"
 #include "cir/gpuprocessing/GpuMomentCounter.h"
+#include "cir/gpuprocessing/GpuBlurer.h"
 
 namespace cir { namespace gpuprocessing {
 
@@ -25,6 +26,7 @@ protected:
 	virtual cir::common::MatWrapper doThreshold(const cir::common::MatWrapper& input, bool invertColors,
 			double thresholdValue);
 	virtual cir::common::MatWrapper doLowPass(const cir::common::MatWrapper& input, int size);
+	virtual cir::common::MatWrapper doMedian(const cir::common::MatWrapper& input, int size);
 	virtual cir::common::MatWrapper doHighPass(const cir::common::MatWrapper& input, int size);
 	virtual cir::common::MatWrapper doBgrToHsv(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper doHsvToBgr(const cir::common::MatWrapper& input);
@@ -41,6 +43,7 @@ private:
 	GpuColorDetector _gpuColorDetector;
 	GpuRegionSplittingSegmentator _segmentator;
 	GpuMomentCounter _gpuMomentCounter;
+	GpuBlurer _blurer;
 };
 
 }}

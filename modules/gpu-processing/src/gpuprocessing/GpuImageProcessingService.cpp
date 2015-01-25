@@ -60,7 +60,7 @@ MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, bool 
 		double thresholdValue) {
 	int type = invertColors ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 	cv::gpu::GpuMat output;
-	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, invertColors);
+	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, type);
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::GRAY);
 	return mw;
@@ -78,6 +78,10 @@ MatWrapper GpuImageProcessingService::doLowPass(const MatWrapper& input, int siz
 	MatWrapper mw(output);
 	mw.setColorScheme(input.getColorScheme());
 	return mw;
+}
+
+MatWrapper GpuImageProcessingService::doMedian(const MatWrapper& input, int size) {
+	return _blurer.median(input, size);
 }
 
 MatWrapper GpuImageProcessingService::doHighPass(const MatWrapper& input, int size) {

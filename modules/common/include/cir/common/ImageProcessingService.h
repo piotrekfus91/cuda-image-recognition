@@ -26,6 +26,7 @@ public:
 	virtual MatWrapper toGrey(const MatWrapper& input);
 	virtual MatWrapper threshold(const MatWrapper& input, bool invertColors = false, double thresholdValue = 1.f);
 	virtual MatWrapper lowPass(const MatWrapper& input, int size = 3);
+	virtual MatWrapper median(const MatWrapper& input, int size = 3);
 	virtual MatWrapper highPass(const MatWrapper& input, int size = 1);
 	virtual MatWrapper bgrToHsv(const MatWrapper& input);
 	virtual MatWrapper hsvToBgr(const MatWrapper& input);
@@ -49,6 +50,7 @@ protected:
 	virtual MatWrapper doToGrey(const MatWrapper& input) = 0;
 	virtual MatWrapper doThreshold(const MatWrapper& input, bool invertColors, double thresholdValue) = 0;
 	virtual MatWrapper doLowPass(const MatWrapper& input, int size = 3) = 0;
+	virtual MatWrapper doMedian(const MatWrapper& input, int size = 3) = 0;
 	virtual MatWrapper doHighPass(const MatWrapper& input, int size = 1) = 0;
 	virtual MatWrapper doBgrToHsv(const MatWrapper& input) = 0;
 	virtual MatWrapper doHsvToBgr(const MatWrapper& input) = 0;
