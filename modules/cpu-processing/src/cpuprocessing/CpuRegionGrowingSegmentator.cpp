@@ -67,7 +67,7 @@ Segment* CpuRegionGrowingSegmentator::performNonRecursiveSegmentation(uchar* dat
 			if(current.x > 0) points.push_back(createPoint(current.x - 1, current.y));
 			if(current.x < segment->leftX) expandLeft(segment);
 
-			if(current.y < width - 1) points.push_back(createPoint(current.x + 1, current.y));
+			if(current.x < width - 1) points.push_back(createPoint(current.x + 1, current.y));
 			if(current.x > segment->rightX) expandRight(segment);
 
 			if(current.y > 0) points.push_back(createPoint(current.x, current.y - 1));

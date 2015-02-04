@@ -19,13 +19,13 @@ configure_file (
 include_directories("${PROJECT_SOURCE_DIR}/modules/common/include")
 include_directories("${PROJECT_SOURCE_DIR}/modules/cpu-processing/include")
 include_directories("${PROJECT_SOURCE_DIR}/modules/gpu-processing/include")
-include_directories("${PROJECT_SOURCE_DIR}/modules/cuda-neural-network/include")
+#include_directories("${PROJECT_SOURCE_DIR}/modules/cuda-neural-network/include")
 include_directories("${PROJECT_SOURCE_DIR}/modules/dev-env/include")
 
 add_subdirectory(modules/common)
 add_subdirectory(modules/cpu-processing)
 add_subdirectory(modules/gpu-processing)
-add_subdirectory(modules/cuda-neural-network)
+#add_subdirectory(modules/cuda-neural-network)
 add_subdirectory(modules/dev-env)
 
 add_executable(CIR CIR.cpp)
