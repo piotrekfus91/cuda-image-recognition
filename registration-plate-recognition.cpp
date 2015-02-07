@@ -2,6 +2,7 @@
 #include "cir/common/logger/ImmediateConsoleLogger.h"
 #include "cir/common/test_file_loader.h"
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
+#include "cir/common/recognition/RegistrationPlateTeacher.h"
 #include "opencv2/opencv.hpp"
 #include "opencv2/gpu/gpu.hpp"
 
@@ -15,6 +16,8 @@ int main() {
 	CpuImageProcessingService service(logger);
 
 	RegistrationPlateRecognizor recognizor(service);
+	RegistrationPlateTeacher teacher(&recognizor);
+	teacher.teach(getTestFile("registration-plate", "alphabet"));
 
 	cv::Mat damianMat = cv::imread(getTestFile("registration-plate", "damian.bmp"));
 	MatWrapper damianMw(damianMat);

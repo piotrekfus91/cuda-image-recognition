@@ -1,7 +1,10 @@
+#include "cir/common/config.h"
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
 #include "opencv2/opencv.hpp"
+#include <string.h>
 
 using namespace cir::common;
+using namespace std;
 
 namespace cir { namespace common { namespace recognition {
 
@@ -74,6 +77,7 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 					for(int k = 0; k < signsArray->size; k++) {
 						Segment* signSegment = signsArray->segments[k];
 						MatWrapper signMw = _service.crop(whitePlate, signSegment);
+
 						cv::imshow("sign", signMw.getMat());
 						cv::waitKey(0);
 					}
@@ -92,7 +96,29 @@ void RegistrationPlateRecognizor::learn(cir::common::MatWrapper& input) {
 }
 
 void RegistrationPlateRecognizor::learn(const char* filePath) {
+	string filePathStr(filePath);
+	unsigned int lastDirSeparatorPos = filePathStr.find_last_of(PATH_SEPARATOR);
+	string fileName;
+	if(lastDirSeparatorPos != string::npos) {
+		fileName = filePathStr.substr(lastDirSeparatorPos + 1);
+	} else {
+		fileName = filePath;
+	}
 
+	int extensionStart = fileName.find_last_of(".");
+	string fileNameCore = fileName.substr(0, extensionStart);
+
+	cv::Mat mat = cv::imread(filePath);
+	MatWrapper mw(mat);
+
+	if(REGISTRATION_PLATE_PATTERN_INVERTED) {
+		mw = _service.threshold(mw, true, 1);
+	}
+
+	double* huMoments [1] = {_service.countHuMoments(mw)};
+	Pattern pattern(filePath, 1, huMoments);
+
+	_patternsMap[fileName] = pattern;
 }
 
 MatWrapper RegistrationPlateRecognizor::detectAllColors(MatWrapper& input) const {

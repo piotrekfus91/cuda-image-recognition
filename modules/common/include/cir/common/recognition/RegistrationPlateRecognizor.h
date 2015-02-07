@@ -2,7 +2,9 @@
 #define REGISTRATIONPLATERECOGNIZOR_H_
 
 #include "cir/common/ImageProcessingService.h"
+#include "cir/common/recognition/Pattern.h"
 #include "cir/common/recognition/Recognizor.h"
+#include <map>
 
 namespace cir { namespace common { namespace recognition {
 
@@ -19,6 +21,8 @@ private:
 	cir::common::MatWrapper detectAllColors(cir::common::MatWrapper& input) const;
 	cir::common::MatWrapper detectBlue(cir::common::MatWrapper& input) const;
 	cir::common::MatWrapper detectWhite(cir::common::MatWrapper& input) const;
+
+	std::map<std::string, Pattern> _patternsMap;
 };
 
 }}}
