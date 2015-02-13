@@ -1,19 +1,29 @@
 #include "cir/common/config.h"
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
+#include "cir/common/recognition/heuristic/EuclidPatternHeuristic.h"
+#include "cir/common/recognition/heuristic/SimpleRatioPatternHeuristic.h"
+#include "cir/common/recognition/heuristic/CosinePatternHeuristic.h"
 #include "opencv2/opencv.hpp"
 #include <string.h>
+#include <iostream>
 
 using namespace cir::common;
+using namespace cir::common::recognition::heuristic;
 using namespace std;
 
 namespace cir { namespace common { namespace recognition {
 
-RegistrationPlateRecognizor::RegistrationPlateRecognizor(ImageProcessingService& service) : Recognizor(service) {
+RegistrationPlateRecognizor::RegistrationPlateRecognizor(ImageProcessingService& service)
+		: Recognizor(service), _patternHeuristic(new CosinePatternHeuristic) {
 
 }
 
 RegistrationPlateRecognizor::~RegistrationPlateRecognizor() {
 
+}
+
+void RegistrationPlateRecognizor::setPatternHeuristic(PatternHeuristic* patternHeuristic) {
+	_patternHeuristic = patternHeuristic;
 }
 
 const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) const {
@@ -78,6 +88,21 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 						Segment* signSegment = signsArray->segments[k];
 						MatWrapper signMw = _service.crop(whitePlate, signSegment);
 
+						double* huMoments = _service.countHuMoments(signMw);
+						std::string bestSign;
+						double bestHeuristic = 10000000.;
+						for(map<string, Pattern*>::const_iterator it = _patternsMap.begin(); it != _patternsMap.end(); it++) {
+							Pattern* pattern = it->second;
+							const double heuristic = abs(_patternHeuristic->countHeuristic(pattern, huMoments, 0));
+							std::cout << it->first << ": " << heuristic << std::endl;
+							if(bestHeuristic > heuristic) {
+								bestSign = it->first;
+								bestHeuristic = heuristic;
+							}
+						}
+
+						std::cout << "best sign: " << bestSign << std::endl;
+
 						cv::imshow("sign", signMw.getMat());
 						cv::waitKey(0);
 					}
@@ -111,14 +136,13 @@ void RegistrationPlateRecognizor::learn(const char* filePath) {
 	cv::Mat mat = cv::imread(filePath);
 	MatWrapper mw(mat);
 
-	if(REGISTRATION_PLATE_PATTERN_INVERTED) {
-		mw = _service.threshold(mw, true, 1);
-	}
+	mw = _service.threshold(mw, REGISTRATION_PLATE_PATTERN_INVERTED, 127);
 
-	double* huMoments [1] = {_service.countHuMoments(mw)};
-	Pattern pattern(filePath, 1, huMoments);
+	double** huMoments = new double*[1];
+	huMoments[0] = _service.countHuMoments(mw);
+	Pattern* pattern = new Pattern(filePath, 1, huMoments);
 
-	_patternsMap[fileName] = pattern;
+	_patternsMap[fileNameCore] = pattern;
 }
 
 MatWrapper RegistrationPlateRecognizor::detectAllColors(MatWrapper& input) const {

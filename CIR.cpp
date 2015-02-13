@@ -16,7 +16,54 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::ImmediateConsoleLogger logger;
-	imgGpu(cir::common::getTestFile("cpu-processing", "dashes.bmp").c_str(), logger);
+	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
+
+	cv::Mat dMat = cv::imread(cir::common::getTestFile("registration-plate/alphabet", "D.bmp").c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+	cir::common::MatWrapper dMw(dMat);
+	dMw = cpuService.threshold(dMw, true, 127);
+	double* dHuMoments = cpuService.countHuMoments(dMw);
+
+	cv::Mat ddMat = cv::imread(cir::common::getTestFile("registration-plate/alphabet", "DD.bmp").c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+	cir::common::MatWrapper ddMw(ddMat);
+	ddMw = cpuService.threshold(ddMw, true, 127);
+	double* ddHuMoments = cpuService.countHuMoments(ddMw);
+
+	cv::namedWindow("d");
+	cv::imshow("d", dMw.getMat());
+
+	cv::namedWindow("dd");
+	cv::imshow("dd", ddMw.getMat());
+
+	cv::Moments dMoments = cv::moments(dMat, true);
+	cv::Moments ddMoments = cv::moments(ddMat, true);
+
+	std::cout << dMoments.m00 << std::endl;
+	std::cout << dMoments.m01 << std::endl;
+	std::cout << dMoments.m10 << std::endl;
+	std::cout << dMoments.m11 << std::endl;
+	std::cout << dMoments.m02 << std::endl;
+	std::cout << dMoments.m20 << std::endl;
+	std::cout << dMoments.m21 << std::endl;
+	std::cout << dMoments.m12 << std::endl;
+	std::cout << dMoments.m30 << std::endl;
+	std::cout << dMoments.m03 << std::endl;
+
+	double* dOHuMoments = new double[7];
+	double* ddOHuMoments = new double[7];
+
+	cv::HuMoments(dMoments, dOHuMoments);
+	cv::HuMoments(ddMoments, ddOHuMoments);
+	for(int i = 0; i < 7; i++) {
+		double ratio = dHuMoments[i] / ddHuMoments[i];
+		double oRatio = dOHuMoments[i] / ddOHuMoments[i];
+		std::cout << i << std::endl << dHuMoments[i] << std::endl << ddHuMoments[i] << std::endl << ratio << std::endl;
+		std::cout << dOHuMoments[i] << std::endl << ddOHuMoments[i] << std::endl << oRatio << std::endl;
+		std::cout << std::endl;
+	}
+
+	cv::waitKey(0);
+
+//	imgGpu(cir::common::getTestFile("cpu-processing", "dashes.bmp").c_str(), logger);
 //	cam();
 
     return EXIT_SUCCESS;
