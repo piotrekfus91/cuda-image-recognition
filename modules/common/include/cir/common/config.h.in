@@ -9,6 +9,7 @@
 
 #define HU_MOMENTS_NUMBER 7
 #define HU_MOMENTS_THRESHOLD 0.7
+#define MOMENTS_BINARY true
 
 #define SEGMENTATOR_MIN_SIZE 10
 

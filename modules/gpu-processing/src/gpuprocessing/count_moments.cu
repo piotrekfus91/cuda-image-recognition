@@ -1,4 +1,5 @@
 #include <iostream>
+#include "cir/common/config.h"
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/gpuprocessing/count_moments.cuh"
 #include "cir/common/logger/Logger.h"
@@ -75,7 +76,11 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	__shared__ double cache[THREADS_PER_BLOCK];
 
 	int idx = x + y * step;
+#if MOMENTS_BINARY
+	double pixel = data[idx] == 0 ? 0. : 1.;
+#else
 	double pixel = data[idx];
+#endif
 
 	int cacheIdx = threadIdx.x + blockDim.x * threadIdx.y;
 
