@@ -143,8 +143,6 @@ void CpuRegionSplittingSegmentator::merge_blocks_horizontally(int di_lb_top_righ
 		Segment* segments, int block_width, int block_height) {
 
 	for (int i = 0; i < block_height; i++) {
-		int di_tlb_right = di_lb_top_right_x + i * step;
-		int di_trb_left = di_tlb_right + channels;
 		int ai_tlb = ai_x + width * (i + ai_y);
 		int ai_trb = ai_tlb + 1;
 
@@ -201,8 +199,6 @@ void CpuRegionSplittingSegmentator::merge_blocks_vertically(int di_lb_bottom_lef
 		Segment* segments, int block_width, int block_height) {
 
 	for (int i = 0; i < 2*block_width; i++) {
-		int di_tlb_bottom = di_lb_bottom_left_y + i * channels;
-		int di_blb_top = di_tlb_bottom + step;
 		int ai_tb = ai_x + i + width * ai_y;
 		int ai_bb = ai_tb + width;
 

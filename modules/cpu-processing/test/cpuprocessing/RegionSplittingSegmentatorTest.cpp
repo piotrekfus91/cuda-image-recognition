@@ -66,10 +66,6 @@ TEST_F(RegionSplittingSegmentatorTest, Sample9x11) {
 	mw = _service->bgrToHsv(mw);
 
 	SegmentArray* segmentArray = _service->segmentate(mw);
-	for(int i = 0; i < segmentArray->size; i++) {
-		Segment* segment = segmentArray->segments[i];
-		_service->init(mat.cols, mat.rows);
-	}
 	ASSERT_EQ(segmentArray->size, 9);
 }
 

@@ -100,7 +100,7 @@ bool CpuRegionGrowingSegmentator::isApplicable(uchar* data, int channels, int st
 		int val = data[pos];
 		return val > 0;
 	} else if(channels == 3) {
-		int hue = data[pos];
+//		int hue = data[pos];
 		int sat = data[pos+1];
 		int value = data[pos+2];
 
