@@ -11,6 +11,8 @@ using namespace cir::common::logger;
 using namespace cir::common::recognition;
 using namespace cir::cpuprocessing;
 
+void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, ImageProcessingService* service);
+
 int main() {
 	ImmediateConsoleLogger logger;
 	CpuImageProcessingService service(logger);
@@ -19,15 +21,21 @@ int main() {
 	RegistrationPlateTeacher teacher(&recognizor);
 	teacher.teach(getTestFile("registration-plate", "alphabet"));
 
-	cv::Mat damianMat = cv::imread(getTestFile("registration-plate", "damian.bmp"));
-	MatWrapper damianMw(damianMat);
-	recognizor.recognize(damianMw);
+	cv::namedWindow("result");
+	recognize(getTestFile("registration-plate", "damian.bmp"), recognizor, &service);
+	recognize(getTestFile("registration-plate", "pt-cruiser-front.jpeg"), recognizor, &service);
+	recognize(getTestFile("registration-plate", "pt-cruiser-back.jpeg"), recognizor, &service);
+	recognize(getTestFile("registration-plate", "Audi-Q7-white.jpg"), recognizor, &service);
+	recognize(getTestFile("registration-plate", "Audi-Q7-black.jpg"), recognizor, &service);
+}
 
-	cv::Mat ptCruiserFrontMat = cv::imread(getTestFile("registration-plate", "pt-cruiser-front.jpeg"));
-	MatWrapper ptCruiserFrontMw(ptCruiserFrontMat);
-	recognizor.recognize(ptCruiserFrontMw);
-
-	cv::Mat ptCruiserBackMat = cv::imread(getTestFile("registration-plate", "pt-cruiser-back.jpeg"));
-	MatWrapper ptCruiserBackMw(ptCruiserBackMat);
-	recognizor.recognize(ptCruiserBackMw);
+void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, ImageProcessingService* service) {
+	cv::Mat mat = cv::imread(filePath.c_str());
+	MatWrapper mw(mat);
+	RecognitionInfo recognitionInfo = recognizor.recognize(mw);
+	if(recognitionInfo.isSuccess()) {
+		mw = service->mark(mw, recognitionInfo.getMatchedSegments());
+	}
+	cv::imshow("result", mw.getMat());
+	cv::waitKey(0);
 }
