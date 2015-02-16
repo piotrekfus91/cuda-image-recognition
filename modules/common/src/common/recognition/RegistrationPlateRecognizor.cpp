@@ -3,18 +3,21 @@
 #include "cir/common/recognition/heuristic/EuclidPatternHeuristic.h"
 #include "cir/common/recognition/heuristic/SimpleRatioPatternHeuristic.h"
 #include "cir/common/recognition/heuristic/CosinePatternHeuristic.h"
+#include "cir/common/classification/TesseractClassifier.h"
 #include "opencv2/opencv.hpp"
-#include <string.h>
+#include <string>
+#include <list>
 #include <iostream>
 
 using namespace cir::common;
+using namespace cir::common::classification;
 using namespace cir::common::recognition::heuristic;
 using namespace std;
 
 namespace cir { namespace common { namespace recognition {
 
 RegistrationPlateRecognizor::RegistrationPlateRecognizor(ImageProcessingService& service)
-		: Recognizor(service), _patternHeuristic(new CosinePatternHeuristic) {
+		: Recognizor(service), _classifier(new TesseractClassifier) {
 
 }
 
@@ -22,11 +25,12 @@ RegistrationPlateRecognizor::~RegistrationPlateRecognizor() {
 
 }
 
-void RegistrationPlateRecognizor::setPatternHeuristic(PatternHeuristic* patternHeuristic) {
-	_patternHeuristic = patternHeuristic;
+void RegistrationPlateRecognizor::setClassifier(Classifier* classifier) {
+	_classifier = classifier;
 }
 
 const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) const {
+	std::list<std::string> recognizedPlates;
 	_service.init(input.getWidth(), input.getHeight());
 	cv::namedWindow("orig");
 	cv::imshow("orig", input.getMat());
@@ -79,37 +83,42 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 				whitePlate = _service.median(whitePlate);
 				cv::namedWindow("white2");
 				cv::imshow("white2", whitePlate.getMat());
-//				cv::waitKey(0);
 
 				SegmentArray* signsArray = _service.segmentate(whitePlate);
 				cv::namedWindow("sign");
 				if(signsArray->size > 3) {
+					std::string result = "";
 					for(int k = 0; k < signsArray->size; k++) {
 						Segment* signSegment = signsArray->segments[k];
-						MatWrapper signMw = _service.crop(whitePlate, signSegment);
+						std::string recognized = _classifier->detect(whitePlate, &_service, &_patternsMap, signSegment);
+						result.append(recognized);
 
-						double* huMoments = _service.countHuMoments(signMw);
-						std::string bestSign;
-						double bestHeuristic = 10000000.;
-						for(map<string, Pattern*>::const_iterator it = _patternsMap.begin(); it != _patternsMap.end(); it++) {
-							Pattern* pattern = it->second;
-							const double heuristic = abs(_patternHeuristic->countHeuristic(pattern, huMoments, 0));
-							std::cout << it->first << ": " << heuristic << std::endl;
-							if(bestHeuristic > heuristic) {
-								bestSign = it->first;
-								bestHeuristic = heuristic;
-							}
-						}
+//						double* huMoments = _service.countHuMoments(signMw);
+//						std::string bestSign;
+//						double bestHeuristic = 10000000.;
+//						for(map<string, Pattern*>::const_iterator it = _patternsMap.begin(); it != _patternsMap.end(); it++) {
+//							Pattern* pattern = it->second;
+//							const double heuristic = abs(_patternHeuristic->countHeuristic(pattern, huMoments, 0));
+//							std::cout << it->first << ": " << heuristic << std::endl;
+//							if(bestHeuristic > heuristic) {
+//								bestSign = it->first;
+//								bestHeuristic = heuristic;
+//							}
+//						}
+					}
 
-						std::cout << "best sign: " << bestSign << std::endl;
-
-						cv::imshow("sign", signMw.getMat());
-						cv::waitKey(0);
+					if(result.size() > 0) {
+						if(std::find(recognizedPlates.begin(), recognizedPlates.end(), result) == recognizedPlates.end())
+							recognizedPlates.push_back(result);
 					}
 					break;
 				}
 			}
 		}
+	}
+
+	for(std::list<std::string>::iterator it = recognizedPlates.begin(); it != recognizedPlates.end(); it++) {
+		std::cout << *it << std::endl;
 	}
 
 	RecognitionInfo recognitionInfo(false, NULL);

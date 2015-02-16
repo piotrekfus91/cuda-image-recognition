@@ -4,7 +4,7 @@
 #include "cir/common/ImageProcessingService.h"
 #include "cir/common/recognition/Pattern.h"
 #include "cir/common/recognition/Recognizor.h"
-#include "cir/common/recognition/heuristic/PatternHeuristic.h"
+#include "cir/common/classification/Classifier.h"
 #include <map>
 
 namespace cir { namespace common { namespace recognition {
@@ -18,7 +18,7 @@ public:
 	virtual void learn(cir::common::MatWrapper& input);
 	virtual void learn(const char* filePath);
 
-	void setPatternHeuristic(cir::common::recognition::heuristic::PatternHeuristic* patternHeuristic);
+	void setClassifier(cir::common::classification::Classifier* classifier);
 
 private:
 	cir::common::MatWrapper detectAllColors(cir::common::MatWrapper& input) const;
@@ -26,7 +26,7 @@ private:
 	cir::common::MatWrapper detectWhite(cir::common::MatWrapper& input) const;
 
 	std::map<std::string, Pattern*> _patternsMap;
-	cir::common::recognition::heuristic::PatternHeuristic* _patternHeuristic;
+	cir::common::classification::Classifier* _classifier;
 };
 
 }}}
