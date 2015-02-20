@@ -10,8 +10,13 @@ public:
 	CosinePatternHeuristic();
 	virtual ~CosinePatternHeuristic();
 
-	virtual const double countHeuristic(cir::common::recognition::Pattern* pattern,
-				double* huMoments, int segmentIndex = 0) const;
+	virtual bool isBetter(double previous, double current) const;
+	virtual bool isApplicable(double value) const;
+	virtual bool shouldNormalize() const;
+	virtual double getFirstValue() const;
+
+protected:
+	virtual const double doCountHeuristic(double* huMoments, double* patternHuMoments) const;
 };
 
 }}}}

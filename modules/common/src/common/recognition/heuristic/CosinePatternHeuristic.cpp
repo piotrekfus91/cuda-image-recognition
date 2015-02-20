@@ -13,14 +13,14 @@ CosinePatternHeuristic::~CosinePatternHeuristic() {
 }
 
 // http://en.wikipedia.org/wiki/Cosine_similarity
-const double CosinePatternHeuristic::countHeuristic(Pattern* pattern, double* huMoments, int segmentIndex) const {
+const double CosinePatternHeuristic::doCountHeuristic(double* huMoments, double* patternHuMoments) const {
 	double product = .0;
 	double huMomentTotal = .0;
 	double patternTotal = .0;
 
 	for(int i = 0; i < HU_MOMENTS_NUMBER; i++) {
-		double patternHuMoment = pattern->getHuMoment(segmentIndex, i);
 		double huMoment = huMoments[i];
+		double patternHuMoment = patternHuMoments[i];
 
 		product += huMoment * patternHuMoment;
 		huMomentTotal += huMoment * huMoment;
@@ -30,6 +30,22 @@ const double CosinePatternHeuristic::countHeuristic(Pattern* pattern, double* hu
 	huMomentTotal = sqrt(huMomentTotal);
 	patternTotal = sqrt(patternTotal);
 	return acos(product / (huMomentTotal * patternTotal));
+}
+
+bool CosinePatternHeuristic::isBetter(double previous, double current) const {
+	return current > previous;
+}
+
+bool CosinePatternHeuristic::isApplicable(double value) const {
+	return true;
+}
+
+bool CosinePatternHeuristic::shouldNormalize() const {
+	return true;
+}
+
+double CosinePatternHeuristic::getFirstValue() const {
+	return 0.;
 }
 
 }}}}

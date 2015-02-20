@@ -4,6 +4,7 @@
 #include "cir/common/recognition/heuristic/SimpleRatioPatternHeuristic.h"
 #include "cir/common/recognition/heuristic/CosinePatternHeuristic.h"
 #include "cir/common/classification/TesseractClassifier.h"
+#include "cir/common/classification/HuMomentsClassifier.h"
 #include "opencv2/opencv.hpp"
 #include <string>
 #include <list>
@@ -17,7 +18,7 @@ using namespace std;
 namespace cir { namespace common { namespace recognition {
 
 RegistrationPlateRecognizor::RegistrationPlateRecognizor(ImageProcessingService& service)
-		: Recognizor(service), _classifier(new TesseractClassifier) {
+		: Recognizor(service), _classifier(new HuMomentsClassifier) {
 
 }
 
@@ -102,7 +103,7 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 //						}
 					}
 
-					if(result.size() > 0) {
+					if(result.size() > 2) {
 						if(std::find(recognizedPlates.begin(), recognizedPlates.end(), result) == recognizedPlates.end()) {
 							recognizedPlates.push_back(result);
 							Segment* resultSegment = copySegment(candidate);

@@ -10,8 +10,17 @@ public:
 	PatternHeuristic();
 	virtual ~PatternHeuristic();
 
+public:
 	virtual const double countHeuristic(cir::common::recognition::Pattern* pattern,
-			double* huMoments, int segmentIndex = 0) const = 0;
+					double* huMoments, int segmentIndex = 0) const;
+	virtual bool isBetter(double previous, double current) const = 0;
+	virtual bool isApplicable(double value) const = 0;
+	virtual bool shouldNormalize() const = 0;
+	virtual double getFirstValue() const = 0;
+	virtual double* normalize(double* huMoments1, double* huMoments2) const;
+
+protected:
+	virtual const double doCountHeuristic(double* huMoments, double* patternHuMoments) const = 0;
 };
 
 }}}}

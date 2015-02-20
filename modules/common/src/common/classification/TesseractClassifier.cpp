@@ -49,6 +49,7 @@ string TesseractClassifier::detect(MatWrapper& input, ImageProcessingService* se
 		char c = detectedSigns[i];
 		if(('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) {
 			result.push_back(c);
+			break;
 		}
 	}
 	return result;

@@ -40,6 +40,10 @@ double Pattern::getHuMoment(int segment, int index) {
 	return _huMoments[segment][index];
 }
 
+double* Pattern::getHuMoments(int segment) {
+	return _huMoments[segment];
+}
+
 void Pattern::setHuMoments(double** huMoments) {
 	_huMoments = huMoments;
 }
