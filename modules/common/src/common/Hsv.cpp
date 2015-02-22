@@ -47,4 +47,19 @@ HsvRange getBlueRange() {
 	return rangeBlue;
 }
 
+HsvRange getYellowRange() {
+	Hsv lessYellow;
+	lessYellow.hue = 45;
+	lessYellow.saturation = 0.4;
+	lessYellow.value = 0.2;
+	Hsv greaterYellow;
+	greaterYellow.hue = 75;
+	greaterYellow.saturation = 1;
+	greaterYellow.value = 1;
+	HsvRange rangeYellow;
+	rangeYellow.less = lessYellow;
+	rangeYellow.greater = greaterYellow;
+	return rangeYellow;
+}
+
 }}

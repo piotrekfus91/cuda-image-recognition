@@ -28,11 +28,11 @@ bool EuclidPatternHeuristic::isBetter(double previous, double current) const {
 }
 
 bool EuclidPatternHeuristic::isApplicable(double value) const {
-	return true;
+	return value < 0.25;
 }
 
 bool EuclidPatternHeuristic::shouldNormalize() const {
-	return true;
+	return false;
 }
 
 double EuclidPatternHeuristic::getFirstValue() const {

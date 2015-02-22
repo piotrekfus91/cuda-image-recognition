@@ -11,7 +11,7 @@ public:
 	virtual ~PatternHeuristic();
 
 public:
-	virtual const double countHeuristic(cir::common::recognition::Pattern* pattern,
+	virtual const double countHeuristic(const cir::common::recognition::Pattern* pattern,
 					double* huMoments, int segmentIndex = 0) const;
 	virtual bool isBetter(double previous, double current) const = 0;
 	virtual bool isApplicable(double value) const = 0;

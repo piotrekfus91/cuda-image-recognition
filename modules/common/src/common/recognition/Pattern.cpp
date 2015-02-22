@@ -36,11 +36,11 @@ void Pattern::setFileName(std::string fileName) {
 	_fileName = fileName;
 }
 
-double Pattern::getHuMoment(int segment, int index) {
+double Pattern::getHuMoment(int segment, int index) const {
 	return _huMoments[segment][index];
 }
 
-double* Pattern::getHuMoments(int segment) {
+double* Pattern::getHuMoments(int segment) const {
 	return _huMoments[segment];
 }
 

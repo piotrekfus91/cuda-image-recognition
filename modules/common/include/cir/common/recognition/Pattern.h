@@ -14,8 +14,8 @@ public:
 
 	std::string getFileName();
 	void setFileName(std::string fileName);
-	double getHuMoment(int segment, int index);
-	double* getHuMoments(int segment);
+	double getHuMoment(int segment, int index) const;
+	double* getHuMoments(int segment) const;
 	void setHuMoments(double** huMoments);
 	void setSegmentsNumber(int segmentsNumber);
 

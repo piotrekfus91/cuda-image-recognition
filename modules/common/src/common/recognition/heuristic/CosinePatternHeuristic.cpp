@@ -29,7 +29,7 @@ const double CosinePatternHeuristic::doCountHeuristic(double* huMoments, double*
 
 	huMomentTotal = sqrt(huMomentTotal);
 	patternTotal = sqrt(patternTotal);
-	return acos(product / (huMomentTotal * patternTotal));
+	return product / (huMomentTotal * patternTotal);
 }
 
 bool CosinePatternHeuristic::isBetter(double previous, double current) const {
@@ -37,7 +37,7 @@ bool CosinePatternHeuristic::isBetter(double previous, double current) const {
 }
 
 bool CosinePatternHeuristic::isApplicable(double value) const {
-	return true;
+	return value > 0.9;
 }
 
 bool CosinePatternHeuristic::shouldNormalize() const {

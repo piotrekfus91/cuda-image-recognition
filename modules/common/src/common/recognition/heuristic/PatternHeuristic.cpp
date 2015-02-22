@@ -13,14 +13,16 @@ PatternHeuristic::~PatternHeuristic() {
 
 }
 
-const double PatternHeuristic::countHeuristic(Pattern* pattern,	double* huMoments, int segmentIndex) const {
+const double PatternHeuristic::countHeuristic(const Pattern* pattern, double* huMoments, int segmentIndex) const {
 	double* patternHuMoments = pattern->getHuMoments(segmentIndex);
 
 	if(shouldNormalize()) {
 		double* allNormalizedHuMoments = normalize(huMoments, patternHuMoments);
 		double* normalizedHuMoments = allNormalizedHuMoments;
 		double* normalizedPatternHuMoments = allNormalizedHuMoments + HU_MOMENTS_NUMBER;
-		return doCountHeuristic(normalizedHuMoments, normalizedPatternHuMoments);
+		double result = doCountHeuristic(normalizedHuMoments, normalizedPatternHuMoments);
+		free(allNormalizedHuMoments);
+		return result;
 	} else {
 		return doCountHeuristic(huMoments, patternHuMoments);
 	}
