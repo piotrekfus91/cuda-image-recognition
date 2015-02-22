@@ -33,7 +33,7 @@ double* CpuMomentCounter::countHuMoments(MatWrapper& matWrapper) {
 	double M30 = countRawMoment(data, width, height, step, 3, 0);
 	double M03 = countRawMoment(data, width, height, step, 0, 3);
 
-	cv::Moments cvMoments(M00, M01, M10, M20, M11, M02, M30, M21, M12, M03);
+	cv::Moments cvMoments(M00, M10, M01, M20, M11, M02, M30, M21, M12, M03);
 
 	double* huMoments = (double*) malloc(sizeof(double) * HU_MOMENTS_NUMBER);
 	cv::HuMoments(cvMoments, huMoments);
