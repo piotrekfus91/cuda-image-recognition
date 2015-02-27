@@ -6,7 +6,12 @@
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/common/logger/ImmediateConsoleLogger.h"
+#include "cir/common/logger/NullLogger.h"
 #include "cir/common/test_file_loader.h"
+#include "cir/common/video/SingleThreadVideoHandler.h"
+#include "cir/common/video/RecognitionVideoConverter.h"
+#include "cir/common/recognition/RegistrationPlateRecognizor.h"
+#include "cir/common/recognition/RegistrationPlateTeacher.h"
 
 using namespace std;
 
@@ -15,51 +20,19 @@ void imgGpu(const char*, cir::common::logger::Logger&);
 void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
-	cir::common::logger::ImmediateConsoleLogger logger;
+	cir::common::logger::NullLogger logger;
 	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
 
-	cv::Mat dMat = cv::imread(cir::common::getTestFile("registration-plate/alphabet", "D.bmp").c_str(), CV_LOAD_IMAGE_GRAYSCALE);
-	cir::common::MatWrapper dMw(dMat);
-	dMw = cpuService.threshold(dMw, true, 127);
-	double* dHuMoments = cpuService.countHuMoments(dMw);
+	cir::common::recognition::RegistrationPlateRecognizor* recognizor
+			= new cir::common::recognition::RegistrationPlateRecognizor(cpuService);
+	cir::common::recognition::RegistrationPlateTeacher teacher(recognizor);
+	teacher.teach(cir::common::getTestFile("registration-plate", "alphabet"));
 
-	cv::Mat ddMat = cv::imread(cir::common::getTestFile("registration-plate/alphabet", "DD.bmp").c_str(), CV_LOAD_IMAGE_GRAYSCALE);
-	cir::common::MatWrapper ddMw(ddMat);
-	ddMw = cpuService.threshold(ddMw, true, 127);
-	double* ddHuMoments = cpuService.countHuMoments(ddMw);
-
-	cv::namedWindow("d");
-	cv::imshow("d", dMw.getMat());
-
-	cv::namedWindow("dd");
-	cv::imshow("dd", ddMw.getMat());
-
-	cv::Moments dMoments = cv::moments(dMat, true);
-	cv::Moments ddMoments = cv::moments(ddMat, true);
-
-	std::cout << dMoments.m00 << std::endl;
-	std::cout << dMoments.m01 << std::endl;
-	std::cout << dMoments.m10 << std::endl;
-	std::cout << dMoments.m11 << std::endl;
-	std::cout << dMoments.m02 << std::endl;
-	std::cout << dMoments.m20 << std::endl;
-	std::cout << dMoments.m21 << std::endl;
-	std::cout << dMoments.m12 << std::endl;
-	std::cout << dMoments.m30 << std::endl;
-	std::cout << dMoments.m03 << std::endl;
-
-	double* dOHuMoments = new double[7];
-	double* ddOHuMoments = new double[7];
-
-	cv::HuMoments(dMoments, dOHuMoments);
-	cv::HuMoments(ddMoments, ddOHuMoments);
-	for(int i = 0; i < 7; i++) {
-		double ratio = dHuMoments[i] / ddHuMoments[i];
-		double oRatio = dOHuMoments[i] / ddOHuMoments[i];
-		std::cout << i << std::endl << dHuMoments[i] << std::endl << ddHuMoments[i] << std::endl << ratio << std::endl;
-		std::cout << dOHuMoments[i] << std::endl << ddOHuMoments[i] << std::endl << oRatio << std::endl;
-		std::cout << std::endl;
-	}
+	cir::common::video::VideoHandler* videoHandler = new cir::common::video::SingleThreadVideoHandler();
+	cir::common::video::RecognitionVideoConverter* videoConverter
+			= new cir::common::video::RecognitionVideoConverter(recognizor, cpuService);
+	std::string inputFilePath = cir::common::getTestFile("video", "simpler.avi");
+	videoHandler->handle(inputFilePath, videoConverter);
 
 	cv::waitKey(0);
 

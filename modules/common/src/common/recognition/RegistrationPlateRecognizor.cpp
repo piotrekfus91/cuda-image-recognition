@@ -18,7 +18,7 @@ using namespace std;
 namespace cir { namespace common { namespace recognition {
 
 RegistrationPlateRecognizor::RegistrationPlateRecognizor(ImageProcessingService& service)
-		: Recognizor(service), _classifier(new HuMomentsClassifier) {
+		: Recognizor(service), _classifier(new TesseractClassifier) {
 
 }
 
@@ -35,9 +35,9 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 	std::list<Segment*> recognizedSegments;
 
 	_service.init(input.getWidth(), input.getHeight());
-	cv::namedWindow("orig");
-	cv::imshow("orig", input.getMat());
-	cv::waitKey(0);
+//	cv::namedWindow("orig");
+//	cv::imshow("orig", input.getMat());
+//	cv::waitKey(0);
 	MatWrapper mw = _service.bgrToHsv(input);
 //	mw = _service.lowPass(mw);
 	mw = detectAllColors(mw);

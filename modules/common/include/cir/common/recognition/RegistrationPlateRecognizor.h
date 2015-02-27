@@ -9,7 +9,7 @@
 
 namespace cir { namespace common { namespace recognition {
 
-class RegistrationPlateRecognizor : Recognizor {
+class RegistrationPlateRecognizor : public Recognizor {
 public:
 	RegistrationPlateRecognizor(cir::common::ImageProcessingService& service);
 	virtual ~RegistrationPlateRecognizor();

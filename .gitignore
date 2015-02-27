@@ -3,3 +3,7 @@ modules/common/include/cir/common/config.h
 
 .project
 .cproject
+
+*.mp4
+convert_mp4_to_avi.sh
+*_out.*

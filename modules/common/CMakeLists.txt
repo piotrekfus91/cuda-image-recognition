@@ -4,6 +4,7 @@ file(GLOB src_common_logger_files "src/common/logger/*.cpp")
 file(GLOB src_common_recognition_files "src/common/recognition/*.cpp")
 file(GLOB src_common_heuristic_files "src/common/recognition/heuristic/*.cpp")
 file(GLOB src_common_classification_files "src/common/classification/*.cpp")
+file(GLOB src_common_video_files "src/common/video/*.cpp")
 file(GLOB test_common_files "test/common/*.cpp")
 
 cuda_compile(CUDA_UTIL src/common/cuda_host_util.cu)
@@ -15,6 +16,7 @@ add_library(common
 	${src_common_recognition_files}
 	${src_common_heuristic_files}
 	${src_common_classification_files}
+	${src_common_video_files}
 	${CUDA_UTIL}
 )
 
