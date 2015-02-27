@@ -35,31 +35,25 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 	std::list<Segment*> recognizedSegments;
 
 	_service.init(input.getWidth(), input.getHeight());
-//	cv::namedWindow("orig");
-//	cv::imshow("orig", input.getMat());
-//	cv::waitKey(0);
 	MatWrapper mw = _service.bgrToHsv(input);
-//	mw = _service.lowPass(mw);
 	mw = detectAllColors(mw);
 	SegmentArray* allSegmentsArray = _service.segmentate(mw);
-	mw = _service.hsvToBgr(mw);
 
 	for(int i = 0; i < allSegmentsArray->size; i++) {
 		Segment* segment = allSegmentsArray->segments[i];
 		MatWrapper segmentMw = _service.crop(mw, segment);
-		segmentMw = _service.bgrToHsv(segmentMw);
 
 		MatWrapper blueMw = detectBlue(segmentMw);
 		SegmentArray* blueSegmentsArray = _service.segmentate(blueMw);
 		Segment* blueSegment = NULL;
-		blueMw = _service.hsvToBgr(blueMw);
-		blueMw = _service.mark(blueMw, blueSegmentsArray);
+		if(blueSegmentsArray->size > 2)
+			continue;
 
 		int segmentWidth = segment->rightX - segment->leftX;
 		for(int j = 0; j < blueSegmentsArray->size; j++) {
 			Segment* candidate = blueSegmentsArray->segments[j];
 
-			if(candidate->leftX <= 0.05 * segmentWidth + segment->leftX) {
+			if(candidate->leftX <= 0.05 * segmentWidth && candidate->rightX <= 0.2 * segmentWidth) {
 				blueSegment = candidate;
 				break;
 			}
@@ -71,7 +65,6 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 
 		MatWrapper whiteMw = detectWhite(segmentMw);
 		SegmentArray* whiteSegmentsArray = _service.segmentate(whiteMw);
-		segmentMw = _service.mark(whiteMw, whiteSegmentsArray);
 
 		for(int j = 0; j < whiteSegmentsArray->size; j++) {
 			Segment* candidate = whiteSegmentsArray->segments[j];
@@ -81,28 +74,31 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 				whitePlate = _service.threshold(whitePlate, true);
 				whitePlate = _service.median(whitePlate);
 
-				SegmentArray* signsArray = _service.segmentate(whitePlate);
-				if(signsArray->size > 3) {
-					std::string result = "";
-					for(int k = 0; k < signsArray->size; k++) {
-						Segment* signSegment = signsArray->segments[k];
-						std::string recognized = _classifier->detect(whitePlate, &_service, &_patternsMap, signSegment);
-						result.append(recognized);
+				if(_classifier->singleChar()) {
+					SegmentArray* signsArray = _service.segmentate(whitePlate);
+					if(signsArray->size > 3) {
+						std::string result = "";
+						for(int k = 0; k < signsArray->size; k++) {
+							Segment* signSegment = signsArray->segments[k];
+							std::string recognized = _classifier->detect(whitePlate, &_service, &_patternsMap, signSegment);
+							result.append(recognized);
+						}
 
-//						double* huMoments = _service.countHuMoments(signMw);
-//						std::string bestSign;
-//						double bestHeuristic = 10000000.;
-//						for(map<string, Pattern*>::const_iterator it = _patternsMap.begin(); it != _patternsMap.end(); it++) {
-//							Pattern* pattern = it->second;
-//							const double heuristic = abs(_patternHeuristic->countHeuristic(pattern, huMoments, 0));
-//							std::cout << it->first << ": " << heuristic << std::endl;
-//							if(bestHeuristic > heuristic) {
-//								bestSign = it->first;
-//								bestHeuristic = heuristic;
-//							}
-//						}
+						if(result.size() > 2) {
+							if(std::find(recognizedPlates.begin(), recognizedPlates.end(), result) == recognizedPlates.end()) {
+								recognizedPlates.push_back(result);
+								Segment* resultSegment = copySegment(candidate);
+								resultSegment->leftX += segment->leftX;
+								resultSegment->rightX += segment->leftX;
+								resultSegment->topY += segment->topY;
+								resultSegment->bottomY += segment->topY;
+								recognizedSegments.push_back(resultSegment);
+							}
+						}
+						break;
 					}
-
+				} else {
+					std::string result = _classifier->detect(whitePlate, &_service, &_patternsMap, NULL);
 					if(result.size() > 2) {
 						if(std::find(recognizedPlates.begin(), recognizedPlates.end(), result) == recognizedPlates.end()) {
 							recognizedPlates.push_back(result);
@@ -114,7 +110,6 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 							recognizedSegments.push_back(resultSegment);
 						}
 					}
-					break;
 				}
 			}
 		}

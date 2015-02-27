@@ -25,22 +25,30 @@ TesseractClassifier::~TesseractClassifier() {
 	}
 }
 
+bool TesseractClassifier::singleChar() const {
+	return true;
+}
+
 string TesseractClassifier::detect(MatWrapper& input, ImageProcessingService* service,
 		const map<string, Pattern*>* patternsMap, Segment* segment) {
-	if(segment->leftX - _boundary >= 0)
-		segment->leftX -= _boundary;
-
-	if(segment->rightX + _boundary < input.getWidth())
-		segment->rightX += _boundary;
-
-	if(segment->topY - _boundary >= 0)
-		segment->topY -= _boundary;
-
-	if(segment->bottomY + _boundary < input.getHeight())
-		segment->bottomY += _boundary;
-
 	MatWrapper segmentMw = input.clone();
-	segmentMw = service->crop(segmentMw, segment);
+
+	if(segment != NULL) {
+		if(segment->leftX - _boundary >= 0)
+			segment->leftX -= _boundary;
+
+		if(segment->rightX + _boundary < input.getWidth())
+			segment->rightX += _boundary;
+
+		if(segment->topY - _boundary >= 0)
+			segment->topY -= _boundary;
+
+		if(segment->bottomY + _boundary < input.getHeight())
+			segment->bottomY += _boundary;
+
+		segmentMw = service->crop(segmentMw, segment);
+	}
+
 	cv::Mat mat = segmentMw.getMat();
 	_tesseract->SetImage(mat.data, mat.cols, mat.rows, mat.channels(), mat.step);
 	char* detectedSigns = _tesseract->GetUTF8Text();

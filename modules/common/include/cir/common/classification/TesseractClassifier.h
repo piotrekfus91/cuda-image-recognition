@@ -15,6 +15,8 @@ public:
 			const std::map<std::string, cir::common::recognition::Pattern*>* patternsMap,
 			cir::common::Segment* segment = NULL);
 
+	virtual bool singleChar() const;
+
 private:
 	tesseract::TessBaseAPI* _tesseract;
 	const int _boundary;

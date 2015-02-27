@@ -17,6 +17,8 @@ public:
 
 	virtual void setHeuristic(cir::common::recognition::heuristic::PatternHeuristic* heuristic);
 
+	virtual bool singleChar() const;
+
 protected:
 	cir::common::recognition::heuristic::PatternHeuristic* _heuristic;
 };

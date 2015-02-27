@@ -23,6 +23,10 @@ void HuMomentsClassifier::setHeuristic(PatternHeuristic* heuristic) {
 	_heuristic = heuristic;
 }
 
+bool HuMomentsClassifier::singleChar() const {
+	return true;
+}
+
 string HuMomentsClassifier::detect(MatWrapper& input, ImageProcessingService* service,
 				const map<string, Pattern*>* patternsMap, Segment* segment) {
 	double* huMoments = service->countHuMoments(input);

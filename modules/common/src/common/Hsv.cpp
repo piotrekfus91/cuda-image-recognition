@@ -5,7 +5,7 @@ namespace cir { namespace common {
 HsvRange getWhiteRange() {
 	Hsv lessWHite;
 	lessWHite.hue = 0;
-	lessWHite.saturation = 0.01;
+	lessWHite.saturation = 0.;
 	lessWHite.value = 0.6;
 	Hsv greaterWhite;
 	greaterWhite.hue = 360;
