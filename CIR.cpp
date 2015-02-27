@@ -12,6 +12,7 @@
 #include "cir/common/video/RecognitionVideoConverter.h"
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
 #include "cir/common/recognition/RegistrationPlateTeacher.h"
+#include "cir/devenv/ThreadInfo.h"
 
 using namespace std;
 
@@ -20,6 +21,7 @@ void imgGpu(const char*, cir::common::logger::Logger&);
 void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
+	std::cerr << cir::devenv::ThreadInfo::getNumberOfThreads();
 	cir::common::logger::NullLogger logger;
 	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
 

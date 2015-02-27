@@ -2,6 +2,11 @@ file(GLOB src_devenv_files "src/devenv/*.cpp")
 file(GLOB src_devenv_cu_files "src/devenv/*.cu")
 file(GLOB test_devenv_files "test/devenv/*.cpp")
 
+add_library(dev-env
+	${src_devenv_files}
+	${src_devenv_cu_files}
+)
+
 find_package(CUDA)
 
 if(test)
@@ -15,5 +20,6 @@ if(test)
 	
 	target_link_libraries(DevEnvTests gtest gtest_main pthread)
 	target_link_libraries(DevEnvTests ${OpenCV_LIBS})
+	target_link_libraries(DevEnvTests boost_thread boost_system)
 	add_test(Tests DevEnvTests)
 endif()
