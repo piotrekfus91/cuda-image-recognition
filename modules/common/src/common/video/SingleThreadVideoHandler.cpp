@@ -20,22 +20,14 @@ SingleThreadVideoHandler::~SingleThreadVideoHandler() {
 
 void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& outputFilePath,
 		VideoConverter* converter) {
-	VideoCapture videoReader(inputFilePath);
-	if(!videoReader.isOpened())
-		throw new VideoException("cannot open input video");
+	VideoCapture videoReader = openVideoReader(inputFilePath);
+	VideoWriter videoWriter = openVideoWriter(videoReader, outputFilePath);
+	int framesCount =  videoReader.get(CV_CAP_PROP_FRAME_COUNT);
 
-	double fourcc = videoReader.get(CV_CAP_PROP_FOURCC);
-	double fps = videoReader.get(CV_CAP_PROP_FPS);
-	double frameWidth = videoReader.get(CV_CAP_PROP_FRAME_WIDTH);
-	double frameHeight = videoReader.get(CV_CAP_PROP_FRAME_HEIGHT);
-	Size frameSize(frameWidth, frameHeight);
-
-	VideoWriter videoWriter(outputFilePath, fourcc, fps, frameSize);
-	if(!videoWriter.isOpened())
-		throw new VideoException("cannot open output video");
+	clock_t videoBegin = clock();
 
 	Mat frame;
-	while (true) {
+	while(true) {
 		bool frameRead = videoReader.read(frame);
 		if(!frameRead)
 			break;
@@ -45,7 +37,8 @@ void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& o
 			MatWrapper mw(frame);
 			mw = converter->convert(mw);
 			clock_t end = clock();
-			std::cout << "frame time: " << double(end - begin) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
+			std::cout << "frame time (" << int(videoReader.get(CV_CAP_PROP_POS_FRAMES)) << "): " <<
+					double(end - begin) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
 			videoWriter.write(mw.getMat());
 		} else {
 			videoWriter.write(frame);
@@ -55,6 +48,12 @@ void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& o
 
 	videoReader.release();
 	videoWriter.release();
+
+	clock_t videoEnd = clock();
+	double videoTime = videoEnd - videoBegin;
+
+	std::cout << "video time: " << videoTime / CLOCKS_PER_SEC << "s, frames count: " << framesCount << std::endl;
+	std::cout << "avg frame time: " << int(videoTime / framesCount * 1000 / CLOCKS_PER_SEC) << "ms" << std::endl;
 }
 
 }}}
