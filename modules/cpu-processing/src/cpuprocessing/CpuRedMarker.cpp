@@ -31,7 +31,7 @@ MatWrapper CpuRedMarker::markSegments(MatWrapper& input, const SegmentArray* seg
 		p2.x = segment->rightX;
 		p2.y = segment->topY;
 
-		cv::rectangle(outputMat, p1, p2, color);
+		cv::rectangle(outputMat, p1, p2, color, 3);
 	}
 
 	MatWrapper outputMw(outputMat);
