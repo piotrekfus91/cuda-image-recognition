@@ -17,7 +17,7 @@ public:
 	virtual void init(int width, int height);
 	virtual void shutdown();
 
-	virtual void setMinSize(int size) = 0;
+	virtual void setMinSize(int size);
 
 protected:
 	int _minSize;

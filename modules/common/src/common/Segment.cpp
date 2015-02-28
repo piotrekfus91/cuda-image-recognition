@@ -30,6 +30,32 @@ Segment* copySegment(Segment* segment) {
 	return copy;
 }
 
+void mergeSegments(Segment* segm1, Segment* segm2) {
+	if(segm1->leftX < segm2->leftX) {
+		segm2->leftX = segm1->leftX;
+	} else {
+		segm1->leftX = segm2->leftX;
+	}
+
+	if(segm1->rightX > segm2->rightX) {
+		segm2->rightX = segm1->rightX;
+	} else {
+		segm1->rightX = segm2->rightX;
+	}
+
+	if(segm1->topY < segm2->topY) {
+		segm2->topY = segm1->topY;
+	} else {
+		segm1->topY = segm2->topY;
+	}
+
+	if(segm1->bottomY > segm2->bottomY) {
+		segm2->bottomY = segm1->bottomY;
+	} else {
+		segm1->bottomY = segm2->bottomY;
+	}
+}
+
 void expandLeft(Segment* segment) {
 	segment->leftX--;
 }
