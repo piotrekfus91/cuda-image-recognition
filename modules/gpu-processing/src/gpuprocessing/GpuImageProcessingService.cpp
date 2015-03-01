@@ -20,7 +20,7 @@ GpuImageProcessingService::~GpuImageProcessingService() {
 
 void GpuImageProcessingService::init(int width, int height) {
 	_logger.setModule(getModule());
-	_segmentator.init(width, height);
+	_segmentator->init(width, height);
 	_gpuMomentCounter.init(width, height);
 	Logger* kernelLogger = _logger.clone();
 	kernelLogger->setModule("Kernel");
@@ -32,7 +32,7 @@ const char* GpuImageProcessingService::getModule() {
 }
 
 void GpuImageProcessingService::setSegmentatorMinSize(int minSize) {
-	_segmentator.setMinSize(minSize);
+	_segmentator->setMinSize(minSize);
 }
 
 MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
@@ -121,7 +121,7 @@ MatWrapper GpuImageProcessingService::doDetectColorHsv(const MatWrapper& input, 
 
 SegmentArray* GpuImageProcessingService::doSegmentate(const cir::common::MatWrapper& input) {
 	cir::common::MatWrapper matWrapper = input;
-	return _segmentator.segmentate(matWrapper);
+	return _segmentator->segmentate(matWrapper);
 }
 
 MatWrapper GpuImageProcessingService::doErode(const MatWrapper& input, int times) {

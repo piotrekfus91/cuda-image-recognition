@@ -18,7 +18,6 @@ public:
 	void init(int width, int height);
 
 	virtual const char* getModule();
-	virtual void setSegmentator(cir::common::Segmentator* segmentator);
 	virtual void setSegmentatorMinSize(int minSize);
 
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, const cir::common::SegmentArray* segmentArray);

@@ -7,6 +7,7 @@
 #include <map>
 #include "cir/common/logger/Logger.h"
 #include "cir/common/Hsv.h"
+#include "cir/common/Segmentator.h"
 
 namespace cir { namespace common {
 
@@ -22,6 +23,7 @@ public:
 
 	virtual const char* getModule() = 0;
 	virtual void setSegmentatorMinSize(int minSize) = 0;
+	virtual void setSegmentator(cir::common::Segmentator* segmentator);
 
 	virtual MatWrapper toGrey(const MatWrapper& input);
 	virtual MatWrapper threshold(const MatWrapper& input, bool invertColors = false, double thresholdValue = 1.f);
@@ -46,6 +48,7 @@ protected:
 	static cv::Mat DEFAULT_DILATE_KERNEL;
 
 	cir::common::logger::Logger& _logger;
+	cir::common::Segmentator* _segmentator;
 
 	virtual MatWrapper doToGrey(const MatWrapper& input) = 0;
 	virtual MatWrapper doThreshold(const MatWrapper& input, bool invertColors, double thresholdValue) = 0;

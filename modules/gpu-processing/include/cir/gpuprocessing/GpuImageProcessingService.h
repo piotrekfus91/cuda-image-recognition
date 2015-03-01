@@ -41,7 +41,6 @@ protected:
 
 private:
 	GpuColorDetector _gpuColorDetector;
-	GpuRegionSplittingSegmentator _segmentator;
 	GpuMomentCounter _gpuMomentCounter;
 	GpuBlurer _blurer;
 };

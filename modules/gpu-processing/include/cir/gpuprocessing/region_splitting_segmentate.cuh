@@ -10,8 +10,6 @@ namespace cir { namespace gpuprocessing {
 
 void region_splitting_segmentate_init(int width, int height);
 
-void set_min_segment_size(int minSize);
-
 cir::common::SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height);
 
 void region_splitting_segmentate_shutdown();
@@ -43,9 +41,6 @@ void d_try_merge(int idx, int current_elem_id, int id_to_set, int width, int hei
 
 __device__
 bool d_is_empty(uchar* data, int addr);
-
-__device__
-void d_merge_segments(cir::common::Segment* segm1, cir::common::Segment* segm2);
 
 __device__ __host__
 void d_is_segment_applicable(cir::common::Segment* segment, bool* is_applicable, int min_size);

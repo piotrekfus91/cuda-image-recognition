@@ -23,6 +23,10 @@ ImageProcessingService::~ImageProcessingService() {
 
 }
 
+void ImageProcessingService::setSegmentator(Segmentator* segmentator) {
+	_segmentator = segmentator;
+}
+
 cir::common::MatWrapper ImageProcessingService::toGrey(const cir::common::MatWrapper& input) {
 	clock_t start = clock();
 	cir::common::MatWrapper mw = doToGrey(input);

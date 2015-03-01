@@ -1,5 +1,6 @@
 #include "cir/gpuprocessing/GpuRegionSplittingSegmentator.h"
 #include "cir/gpuprocessing/region_splitting_segmentate.cuh"
+#include "cir/gpuprocessing/segmentate_base.cuh"
 
 using namespace cir::common;
 
@@ -18,7 +19,7 @@ void GpuRegionSplittingSegmentator::init(int width, int height) {
 }
 
 void GpuRegionSplittingSegmentator::setMinSize(int size) {
-	set_min_segment_size(size);
+	set_segment_min_size(size);
 }
 
 SegmentArray* GpuRegionSplittingSegmentator::segmentate(const MatWrapper& matWrapper) {

@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <cstdio>
 #include "cir/gpuprocessing/region_splitting_segmentate.cuh"
+#include "cir/gpuprocessing/segmentate_base.cuh"
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/common/config.h"
 
@@ -14,15 +15,10 @@ using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
-int _min_size = SEGMENTATOR_MIN_SIZE;
-
 int sumBlocksNumber;
 
 element* elements;
 element* d_elements;
-
-Segment* segments;
-Segment* d_segments;
 
 int* partialSums;
 int* d_partialSums;
@@ -37,10 +33,6 @@ void region_splitting_segmentate_init(int width, int height) {
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_segments, sizeof(Segment) * width * height));
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_partialSums, sizeof(int) * sumBlocksNumber));
-}
-
-void set_min_segment_size(int minSize) {
-	_min_size = minSize;
 }
 
 SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height) {
@@ -388,6 +380,13 @@ bool d_is_empty(uchar* data, int addr) {
 	return data[addr+1] == 0 && data[addr+2] == 0;
 }
 
+__device__ __host__
+void d_is_segment_applicable(Segment* segment, bool* is_applicable, int min_size) {
+	int width = abs(segment->rightX - segment->leftX);
+	int height = abs(segment->topY - segment->bottomY);
+	*is_applicable = width >= min_size && height >= min_size;
+}
+
 __device__
 void d_merge_segments(Segment* segm1, Segment* segm2) {
 	if(segm1->leftX < segm2->leftX) {
@@ -413,13 +412,6 @@ void d_merge_segments(Segment* segm1, Segment* segm2) {
 	} else {
 		segm1->topY = segm2->topY;
 	}
-}
-
-__device__ __host__
-void d_is_segment_applicable(Segment* segment, bool* is_applicable, int min_size) {
-	int width = abs(segment->rightX - segment->leftX);
-	int height = abs(segment->topY - segment->bottomY);
-	*is_applicable = width >= min_size && height >= min_size;
 }
 
 }}

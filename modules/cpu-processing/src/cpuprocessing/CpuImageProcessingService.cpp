@@ -21,10 +21,6 @@ void CpuImageProcessingService::init(int width, int height) {
 	_segmentator->init(width, height);
 }
 
-void CpuImageProcessingService::setSegmentator(Segmentator* segmentator) {
-	_segmentator = segmentator;
-}
-
 const char* CpuImageProcessingService::getModule() {
 	return "CPU";
 }
