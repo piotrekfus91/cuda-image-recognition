@@ -1,3 +1,4 @@
+#include <iostream>
 #include <locale.h>
 #include <tesseract/baseapi.h>
 #include <opencv2/opencv.hpp>
@@ -49,7 +50,13 @@ string TesseractClassifier::detect(MatWrapper& input, ImageProcessingService* se
 		segmentMw = service->crop(segmentMw, segment);
 	}
 
-	cv::Mat mat = segmentMw.getMat();
+	cv::Mat mat;
+	if(segmentMw.getType() == MatWrapper::MAT) {
+		mat = segmentMw.getMat();
+	} else {
+		cv::gpu::GpuMat gpuMat = segmentMw.getGpuMat();
+		gpuMat.download(mat);
+	}
 	_tesseract->SetImage(mat.data, mat.cols, mat.rows, mat.channels(), mat.step);
 	char* detectedSigns = _tesseract->GetUTF8Text();
 	string result;
