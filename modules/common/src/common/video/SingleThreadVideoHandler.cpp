@@ -34,7 +34,7 @@ void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& o
 
 		if(frame.type() != 0) {
 			clock_t begin = clock();
-			MatWrapper mw(frame);
+			MatWrapper mw = converter->getService()->getMatWrapper(frame);
 			mw = converter->convert(mw);
 			clock_t end = clock();
 			std::cout << "frame time (" << int(videoReader.get(CV_CAP_PROP_POS_FRAMES)) << "): " <<
