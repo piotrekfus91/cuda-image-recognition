@@ -68,7 +68,7 @@ int MatWrapper::getHeight() const {
 	if(_matType == MAT)
 		return _mat.rows;
 	else if(_matType == GPU_MAT)
-		return _gpuMat.cols;
+		return _gpuMat.rows;
 
 	return 0;
 }
