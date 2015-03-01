@@ -26,6 +26,7 @@ void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& o
 
 	clock_t videoBegin = clock();
 
+	bool initialized = false;
 	Mat frame;
 	while(true) {
 		bool frameRead = videoReader.read(frame);
@@ -33,13 +34,25 @@ void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& o
 			break;
 
 		if(frame.type() != 0) {
+			if(!initialized) {
+				converter->getService()->init(frame.cols, frame.rows);
+				initialized = true;
+			}
 			clock_t begin = clock();
 			MatWrapper mw = converter->getService()->getMatWrapper(frame);
 			mw = converter->convert(mw);
 			clock_t end = clock();
 			std::cout << "frame time (" << int(videoReader.get(CV_CAP_PROP_POS_FRAMES)) << "): " <<
 					double(end - begin) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
-			videoWriter.write(mw.getMat());
+
+			cv::Mat outMat;
+			if(mw.getType() == MatWrapper::MAT) {
+				outMat = mw.getMat();
+			} else {
+				cv::gpu::GpuMat outGpuMat = mw.getGpuMat();
+				outGpuMat.download(outMat);
+			}
+			videoWriter.write(outMat);
 		} else {
 			videoWriter.write(frame);
 		}

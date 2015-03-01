@@ -6,6 +6,7 @@
 #include "cir/gpuprocessing/GpuRegionSplittingSegmentator.h"
 #include "cir/gpuprocessing/GpuMomentCounter.h"
 #include "cir/gpuprocessing/GpuBlurer.h"
+#include "cir/gpuprocessing/GpuRedMarker.h"
 
 namespace cir { namespace gpuprocessing {
 
@@ -43,6 +44,7 @@ private:
 	GpuColorDetector _gpuColorDetector;
 	GpuMomentCounter _gpuMomentCounter;
 	GpuBlurer _blurer;
+	GpuRedMarker _marker;
 };
 
 }}

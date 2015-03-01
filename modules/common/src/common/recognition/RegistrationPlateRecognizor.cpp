@@ -34,7 +34,6 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 	std::list<std::string> recognizedPlates;
 	std::list<Segment*> recognizedSegments;
 
-	_service.init(input.getWidth(), input.getHeight());
 	MatWrapper mw = _service.bgrToHsv(input);
 	mw = detectAllColors(mw);
 	SegmentArray* allSegmentsArray = _service.segmentate(mw);
@@ -76,6 +75,7 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 
 				if(_classifier->singleChar()) {
 					SegmentArray* signsArray = _service.segmentate(whitePlate);
+
 					if(signsArray->size > 3) {
 						std::string result = "";
 						for(int k = 0; k < signsArray->size; k++) {
@@ -142,28 +142,29 @@ void RegistrationPlateRecognizor::learn(cir::common::MatWrapper& input) {
 }
 
 void RegistrationPlateRecognizor::learn(const char* filePath) {
-	string filePathStr(filePath);
-	unsigned int lastDirSeparatorPos = filePathStr.find_last_of(PATH_SEPARATOR);
-	string fileName;
-	if(lastDirSeparatorPos != string::npos) {
-		fileName = filePathStr.substr(lastDirSeparatorPos + 1);
-	} else {
-		fileName = filePath;
-	}
-
-	int extensionStart = fileName.find_last_of(".");
-	string fileNameCore = fileName.substr(0, extensionStart);
-
-	cv::Mat mat = cv::imread(filePath);
-	MatWrapper mw(mat);
-
-	mw = _service.threshold(mw, REGISTRATION_PLATE_PATTERN_INVERTED, 127);
-
-	double** huMoments = new double*[1];
-	huMoments[0] = _service.countHuMoments(mw);
-	Pattern* pattern = new Pattern(filePath, 1, huMoments);
-
-	_patternsMap[fileNameCore] = pattern;
+//	string filePathStr(filePath);
+//	unsigned int lastDirSeparatorPos = filePathStr.find_last_of(PATH_SEPARATOR);
+//	string fileName;
+//	if(lastDirSeparatorPos != string::npos) {
+//		fileName = filePathStr.substr(lastDirSeparatorPos + 1);
+//	} else {
+//		fileName = filePath;
+//	}
+//
+//	int extensionStart = fileName.find_last_of(".");
+//	string fileNameCore = fileName.substr(0, extensionStart);
+//
+//	cv::Mat mat = cv::imread(filePath);
+//	MatWrapper mw = _service.getMatWrapper(mat);
+//
+//	mw = _service.toGrey(mw);
+//	mw = _service.threshold(mw, REGISTRATION_PLATE_PATTERN_INVERTED, 127);
+//
+//	double** huMoments = new double*[1];
+//	huMoments[0] = _service.countHuMoments(mw);
+//	Pattern* pattern = new Pattern(filePath, 1, huMoments);
+//
+//	_patternsMap[fileNameCore] = pattern;
 }
 
 MatWrapper RegistrationPlateRecognizor::detectAllColors(MatWrapper& input) const {

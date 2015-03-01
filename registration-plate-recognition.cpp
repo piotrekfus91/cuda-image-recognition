@@ -41,17 +41,18 @@ int main() {
 }
 
 void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, ImageProcessingService* service) {
-	NullLogger markerLogger;
-	CpuImageProcessingService marker(markerLogger);
-
 	cv::Mat mat = cv::imread(filePath.c_str());
 	cv::gpu::GpuMat gpuMat(mat);
 	MatWrapper mw(gpuMat);
+	service->init(mw.getWidth(), mw.getHeight());
 	RecognitionInfo recognitionInfo = recognizor.recognize(mw);
 
 	if(recognitionInfo.isSuccess()) {
-		mw = marker.mark(mw, recognitionInfo.getMatchedSegments());
-		cv::imshow("result", mw.getMat());
+		mw = service->mark(mw, recognitionInfo.getMatchedSegments());
+		cv::Mat mat;
+		cv::gpu::GpuMat gpuMat = mw.getGpuMat();
+		gpuMat.download(mat);
+		cv::imshow("result", mat);
 		cv::waitKey(0);
 	}
 }

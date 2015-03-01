@@ -3,7 +3,9 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/gpu/gpu.hpp"
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
+#include "cir/cpuprocessing/CpuUnionFindSegmentator.h"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
+#include "cir/gpuprocessing/GpuUnionFindSegmentator.h"
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/common/logger/ImmediateConsoleLogger.h"
 #include "cir/common/logger/NullLogger.h"
@@ -21,9 +23,11 @@ void imgGpu(const char*, cir::common::logger::Logger&);
 void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
-	std::cerr << cir::devenv::ThreadInfo::getNumberOfThreads();
 	cir::common::logger::NullLogger logger;
-	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
+	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
+	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
+//	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
+//	cpuService.setSegmentator(new cir::cpuprocessing::CpuUnionFindSegmentator);
 
 	cir::common::recognition::RegistrationPlateRecognizor* recognizor
 			= new cir::common::recognition::RegistrationPlateRecognizor(cpuService);
@@ -32,8 +36,8 @@ int main(int argc, char** argv) {
 
 	cir::common::video::VideoHandler* videoHandler = new cir::common::video::SingleThreadVideoHandler();
 	cir::common::video::RecognitionVideoConverter* videoConverter
-			= new cir::common::video::RecognitionVideoConverter(recognizor, cpuService);
-	std::string inputFilePath = cir::common::getTestFile("video", "simpler.avi");
+			= new cir::common::video::RecognitionVideoConverter(recognizor, &cpuService);
+	std::string inputFilePath = cir::common::getTestFile("video", "walk.avi");
 	videoHandler->handle(inputFilePath, videoConverter);
 
 	cv::waitKey(0);

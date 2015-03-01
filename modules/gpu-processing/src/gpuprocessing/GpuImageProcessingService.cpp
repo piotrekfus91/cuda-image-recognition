@@ -141,14 +141,21 @@ MatWrapper GpuImageProcessingService::doDilate(const MatWrapper& input, int time
 }
 
 MatWrapper GpuImageProcessingService::mark(MatWrapper& input, const cir::common::SegmentArray* segmentArray) {
-	return input; // TODO
+	return _marker.markSegments(input, segmentArray);
 }
 
 MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::gpu::GpuMat inputMat = input.getGpuMat();
 	cv::gpu::GpuMat outputMat;
-	cv::Rect rect = cv::Rect(segment->leftX, segment->bottomY,
-			segment->rightX - segment->leftX + 1, segment->topY - segment->bottomY + 1);
+	int rectWidth = segment->rightX - segment->leftX + 1;
+	if(rectWidth > inputMat.cols)
+		rectWidth = inputMat.cols;
+
+	int rectHeight = segment->bottomY - segment->topY + 1;
+	if(rectHeight > inputMat.rows)
+		rectHeight = inputMat.rows;
+
+	cv::Rect rect = cv::Rect(segment->leftX, segment->topY, rectWidth, rectHeight);
 	inputMat(rect).copyTo(outputMat);
 	MatWrapper mw(outputMat);
 	mw.setColorScheme(input.getColorScheme());
