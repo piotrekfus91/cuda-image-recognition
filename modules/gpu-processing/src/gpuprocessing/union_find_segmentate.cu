@@ -84,19 +84,22 @@ SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int wid
 
 			Segment* currentSegment = &segments[i];
 			Segment* targetSegment = appliedSegments[currentSegmentId];
-			d_merge_segments(currentSegment, targetSegment);
+			if(currentSegment != NULL && targetSegment != NULL)
+				d_merge_segments(currentSegment, targetSegment);
 		}
 
 		int idx = 0;
 		Segment** segmentsToSet = (Segment**) malloc(sizeof(Segment*) * total);
 		for(std::map<int, Segment*>::iterator it = appliedSegments.begin(); it != appliedSegments.end(); it++) {
 			Segment* segm = (*it).second;
-			Segment* copy = copySegment(segm);
-			segmentsToSet[idx] = copy;
-			idx++;
+			if(segm != NULL) {
+				Segment* copy = copySegment(segm);
+				segmentsToSet[idx] = copy;
+				idx++;
+			}
 		}
 		segmentArray->segments = segmentsToSet;
-		segmentArray->size = total;
+		segmentArray->size = idx;
 	} else {
 		segmentArray->size = 0;
 		segmentArray->segments = NULL;
