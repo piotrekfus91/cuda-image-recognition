@@ -11,6 +11,7 @@
 #include "cir/common/logger/NullLogger.h"
 #include "cir/common/test_file_loader.h"
 #include "cir/common/video/SingleThreadVideoHandler.h"
+#include "cir/common/video/MultiThreadVideoHandler.h"
 #include "cir/common/video/RecognitionVideoConverter.h"
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
 #include "cir/common/recognition/RegistrationPlateTeacher.h"
@@ -24,10 +25,10 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::NullLogger logger;
-	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
-	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
-//	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
-//	cpuService.setSegmentator(new cir::cpuprocessing::CpuUnionFindSegmentator);
+//	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
+//	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
+	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
+	cpuService.setSegmentator(new cir::cpuprocessing::CpuUnionFindSegmentator);
 
 	cir::common::recognition::RegistrationPlateRecognizor* recognizor
 			= new cir::common::recognition::RegistrationPlateRecognizor(cpuService);
@@ -35,15 +36,11 @@ int main(int argc, char** argv) {
 	teacher.teach(cir::common::getTestFile("registration-plate", "alphabet"));
 
 	cir::common::video::VideoHandler* videoHandler = new cir::common::video::SingleThreadVideoHandler();
+//	cir::common::video::VideoHandler* videoHandler = new cir::common::video::MultiThreadVideoHandler();
 	cir::common::video::RecognitionVideoConverter* videoConverter
 			= new cir::common::video::RecognitionVideoConverter(recognizor, &cpuService);
 	std::string inputFilePath = cir::common::getTestFile("video", "walk.avi");
 	videoHandler->handle(inputFilePath, videoConverter);
-
-	cv::waitKey(0);
-
-//	imgGpu(cir::common::getTestFile("cpu-processing", "dashes.bmp").c_str(), logger);
-//	cam();
 
     return EXIT_SUCCESS;
 }
