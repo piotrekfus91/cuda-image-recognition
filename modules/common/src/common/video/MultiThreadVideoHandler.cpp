@@ -16,8 +16,7 @@ using namespace cir::common::concurrency;
 namespace cir { namespace common { namespace video {
 
 MultiThreadVideoHandler::MultiThreadVideoHandler() {
-//	_threadNumber = cir::devenv::ThreadInfo::getNumberOfThreads();
-	_threadNumber = 4;
+	_threadNumber = cir::devenv::ThreadInfo::getNumberOfThreads();
 	_preConversionQueues = new IndexedMatWrapperBlockingQueue*[_threadNumber];
 	_postConversionQueues = new IndexedMatWrapperBlockingQueue*[_threadNumber];
 

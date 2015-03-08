@@ -8,7 +8,7 @@ using namespace cir::common;
 
 namespace cir { namespace cpuprocessing {
 
-CpuUnionFindSegmentator::CpuUnionFindSegmentator() : _segments(NULL), _ids(NULL) {
+CpuUnionFindSegmentator::CpuUnionFindSegmentator() {
 
 }
 
@@ -17,19 +17,15 @@ CpuUnionFindSegmentator::~CpuUnionFindSegmentator() {
 }
 
 void CpuUnionFindSegmentator::init(int width, int height) {
-	_segments = (Segment*) malloc(sizeof(Segment) * width * height);
-	_ids = (int*) malloc(sizeof(int) * width * height);
+
 }
 
 void CpuUnionFindSegmentator::shutdown() {
-	if(_segments != NULL)
-		free(_segments);
 
-	if(_ids != NULL)
-		free(_ids);
 }
 
-void CpuUnionFindSegmentator::initInternalStructures(uchar* data, int width, int height, int step, int channels) {
+void CpuUnionFindSegmentator::initInternalStructures(uchar* data, int width, int height, int step, int channels,
+		int* _ids, Segment* _segments) {
 	for(int x = 0; x < width; x++) {
 		for(int y = 0; y < height; y++) {
 			int pos = x + width * y;
@@ -60,13 +56,15 @@ SegmentArray* CpuUnionFindSegmentator::segmentate(const MatWrapper& input) {
 	int step = mat.step;
 	int channels = mat.channels();
 	uchar* data = mat.data;
+	Segment* _segments = (Segment*) malloc(sizeof(Segment) * width * height);
+	int* _ids = (int*) malloc(sizeof(int) * width * height);
 
-	initInternalStructures(data, width, height, step, channels);
+	initInternalStructures(data, width, height, step, channels, _ids, _segments);
 
 	bool changed = true;
 	while(changed) {
 		changed = false;
-		unionFindSegmentate(width, height, step, channels, &changed);
+		unionFindSegmentate(width, height, step, channels, &changed, _ids, _segments);
 	}
 
 	std::list<Segment*> appliedSegments;
@@ -100,10 +98,11 @@ SegmentArray* CpuUnionFindSegmentator::segmentate(const MatWrapper& input) {
 	return segmentArray;
 }
 
-void CpuUnionFindSegmentator::unionFindSegmentate(int width, int height, int step, int channels, bool* changed) {
+void CpuUnionFindSegmentator::unionFindSegmentate(int width, int height, int step, int channels, bool* changed,
+		int* _ids, Segment* _segments) {
 	for(int x = 0; x < width; x++) {
 		for(int y = 0; y < height; y++) {
-			prepareBestNeighbour(x, y, width, height, changed);
+			prepareBestNeighbour(x, y, width, height, changed, _ids, _segments);
 		}
 	}
 
@@ -112,46 +111,48 @@ void CpuUnionFindSegmentator::unionFindSegmentate(int width, int height, int ste
 			int pos = countPos(x, y, width, height);
 			int currentId = _ids[pos];
 			if(currentId != -1 && currentId != pos) {
-				_ids[pos] = findRoot(pos);
+				_ids[pos] = findRoot(pos, _ids);
 			}
 		}
 	}
 }
 
-void CpuUnionFindSegmentator::prepareBestNeighbour(int x, int y, int width, int height, bool* changed) {
+void CpuUnionFindSegmentator::prepareBestNeighbour(int x, int y, int width, int height, bool* changed,
+		int* _ids, Segment* _segments) {
 	int pos = countPos(x, y, width, height);
 	if(_ids[pos] == -1)
 		return;
 
 	if(x > 0) {
 		int neighbourPos = pos - 1;
-		unite(pos, neighbourPos, changed);
+		unite(pos, neighbourPos, changed, _ids, _segments);
 	}
 
 	if(x < width - 1) {
 		int neighbourPos = pos + 1;
-		unite(pos, neighbourPos, changed);
+		unite(pos, neighbourPos, changed, _ids, _segments);
 	}
 
 	if(y > 0) {
 		int neighbourPos = pos - width;
-		unite(pos, neighbourPos, changed);
+		unite(pos, neighbourPos, changed, _ids, _segments);
 	}
 
 	if(y < height - 1) {
 		int neighbourPos = pos + width;
-		unite(pos, neighbourPos, changed);
+		unite(pos, neighbourPos, changed, _ids, _segments);
 	}
 }
 
-int CpuUnionFindSegmentator::findRoot(int pos) {
+int CpuUnionFindSegmentator::findRoot(int pos, int* _ids) {
 	while(_ids[pos] != pos) {
 		pos = _ids[pos];
 	}
 	return pos;
 }
 
-void CpuUnionFindSegmentator::unite(int pos1, int pos2, bool* changed) {
+void CpuUnionFindSegmentator::unite(int pos1, int pos2, bool* changed,
+		int* _ids, Segment* _segments) {
 	int id1 = _ids[pos1];
 	if(id1 == -1)
 		return;
@@ -160,8 +161,8 @@ void CpuUnionFindSegmentator::unite(int pos1, int pos2, bool* changed) {
 	if(id2 == -1)
 		return;
 
-	int root1 = findRoot(pos1);
-	int root2 = findRoot(pos2);
+	int root1 = findRoot(pos1, _ids);
+	int root2 = findRoot(pos2, _ids);
 
 	if(root1 < root2) {
 		mergeSegments(&_segments[_ids[root1]], &_segments[_ids[root2]]);
