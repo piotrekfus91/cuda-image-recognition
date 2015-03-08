@@ -12,7 +12,7 @@ public:
 			cir::common::ImageProcessingService* service);
 	virtual ~RecognitionVideoConverter();
 
-	virtual cir::common::MatWrapper convert(cir::common::MatWrapper& input);
+	virtual cir::common::MatWrapper convert(cir::common::MatWrapper input);
 
 private:
 	cir::common::recognition::Recognizor* _recognizor;

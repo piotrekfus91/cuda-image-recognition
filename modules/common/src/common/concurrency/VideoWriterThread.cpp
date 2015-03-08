@@ -30,6 +30,9 @@ void VideoWriterThread::operator()() {
 
 		MatWrapper mw = imw.matWrapper;
 
+//		cv::imshow("s", mw.getMat());
+//		cv::waitKey(0);
+
 		std::cerr << imw.id << std::endl;
 		_videoWriter->write(mw.getMat());
 	}

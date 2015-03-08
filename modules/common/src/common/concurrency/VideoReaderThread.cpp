@@ -23,16 +23,12 @@ VideoReaderThread::~VideoReaderThread() {
 
 void VideoReaderThread::operator()() {
 	Mat frame;
-//	cv::namedWindow("r");
 	while(true) {
 		bool frameRead = _videoReader->read(frame);
 		if(!frameRead) {
 			addPoisonMatWrapper();
 			break;
 		}
-
-//		cv::imshow("r", frame);
-//		cv::waitKey(0);
 
 		MatWrapper mw = _service->getMatWrapper(frame);
 		IndexedMatWrapper imw;
@@ -50,7 +46,7 @@ void VideoReaderThread::addMatWrapper(IndexedMatWrapper& imw) {
 
 void VideoReaderThread::addPoisonMatWrapper() {
 	IndexedMatWrapper imw;
-	imw.id = -1;
+	imw.bePoison();
 	for(int i = 0; i < _threadsNumber; i++)
 		addMatWrapper(imw);
 }

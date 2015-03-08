@@ -10,7 +10,7 @@ public:
 	CpuRedMarker();
 	virtual ~CpuRedMarker();
 
-	cir::common::MatWrapper markSegments(cir::common::MatWrapper& input,
+	cir::common::MatWrapper markSegments(cir::common::MatWrapper input,
 			const cir::common::SegmentArray* segmentArray);
 };
 

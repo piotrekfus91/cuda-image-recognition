@@ -11,6 +11,7 @@ public:
 	virtual ~IndexedMatWrapper();
 
 	bool isPoison();
+	void bePoison();
 
 	int id;
 	cir::common::MatWrapper matWrapper;

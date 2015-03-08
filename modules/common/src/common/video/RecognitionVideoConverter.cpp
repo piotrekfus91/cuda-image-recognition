@@ -14,7 +14,7 @@ RecognitionVideoConverter::~RecognitionVideoConverter() {
 
 }
 
-MatWrapper RecognitionVideoConverter::convert(MatWrapper& input) {
+MatWrapper RecognitionVideoConverter::convert(MatWrapper input) {
 	RecognitionInfo recognitionInfo = _recognizor->recognize(input);
 	if(recognitionInfo.isSuccess()) {
 		return _service->mark(input, recognitionInfo.getMatchedSegments());

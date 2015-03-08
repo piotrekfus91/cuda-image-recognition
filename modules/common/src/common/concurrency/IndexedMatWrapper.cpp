@@ -14,4 +14,8 @@ bool IndexedMatWrapper::isPoison() {
 	return id == -1;
 }
 
+void IndexedMatWrapper::bePoison() {
+	id = -1;
+}
+
 }}}

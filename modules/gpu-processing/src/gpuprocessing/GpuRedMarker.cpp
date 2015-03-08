@@ -12,7 +12,7 @@ GpuRedMarker::~GpuRedMarker() {
 
 }
 
-MatWrapper GpuRedMarker::markSegments(MatWrapper& input, const SegmentArray* segmentArray) {
+MatWrapper GpuRedMarker::markSegments(MatWrapper input, const SegmentArray* segmentArray) {
 	cv::Mat mat;
 	cv::gpu::GpuMat gpuMat = input.getGpuMat();
 	gpuMat.download(mat);

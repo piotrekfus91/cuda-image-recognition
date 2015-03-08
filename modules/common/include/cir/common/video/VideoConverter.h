@@ -11,7 +11,7 @@ public:
 	VideoConverter(cir::common::ImageProcessingService* service);
 	virtual ~VideoConverter();
 
-	virtual cir::common::MatWrapper convert(cir::common::MatWrapper& input) = 0;
+	virtual cir::common::MatWrapper convert(cir::common::MatWrapper input) = 0;
 
 	virtual cir::common::ImageProcessingService* getService();
 

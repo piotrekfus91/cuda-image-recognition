@@ -11,7 +11,7 @@ public:
 	Marker();
 	virtual ~Marker();
 
-	virtual MatWrapper markSegments(MatWrapper& input, const SegmentArray* segmentArray) = 0;
+	virtual MatWrapper markSegments(MatWrapper input, const SegmentArray* segmentArray) = 0;
 };
 
 }}

@@ -10,7 +10,7 @@ public:
 	GpuRedMarker();
 	virtual ~GpuRedMarker();
 
-	cir::common::MatWrapper markSegments(cir::common::MatWrapper& input,
+	cir::common::MatWrapper markSegments(cir::common::MatWrapper input,
 			const cir::common::SegmentArray* segmentArray);
 };
 
