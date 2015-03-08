@@ -15,7 +15,7 @@ cv::Mat ImageProcessingService::DEFAULT_ERODE_KERNEL = cv::getStructuringElement
 
 cv::Mat ImageProcessingService::DEFAULT_DILATE_KERNEL = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
 
-ImageProcessingService::ImageProcessingService(Logger& logger) : _logger(logger) {
+ImageProcessingService::ImageProcessingService(Logger& logger) : _logger(logger), _segmentator(NULL) {
 
 }
 
@@ -116,6 +116,15 @@ cir::common::MatWrapper ImageProcessingService::dilate(const MatWrapper& input, 
 	clock_t stop = clock();
 	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
 	_logger.log("Erode", elapsed_secs);
+	return mw;
+}
+
+cir::common::MatWrapper ImageProcessingService::equalizeHistogram(const MatWrapper& input) {
+	clock_t start = clock();
+	cir::common::MatWrapper mw = doEqualizeHistogram(input);
+	clock_t stop = clock();
+	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
+	_logger.log("Equalize histogram", elapsed_secs);
 	return mw;
 }
 

@@ -140,6 +140,14 @@ MatWrapper GpuImageProcessingService::doDilate(const MatWrapper& input, int time
 	return outputMw;
 }
 
+MatWrapper GpuImageProcessingService::doEqualizeHistogram(const MatWrapper& input) {
+	cv::gpu::GpuMat output;
+	cv::gpu::equalizeHist(input.getGpuMat(), output);
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
+}
+
 MatWrapper GpuImageProcessingService::mark(MatWrapper& input, const cir::common::SegmentArray* segmentArray) {
 	return _marker.markSegments(input, segmentArray);
 }

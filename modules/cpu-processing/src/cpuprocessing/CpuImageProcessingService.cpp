@@ -136,6 +136,14 @@ MatWrapper CpuImageProcessingService::doDilate(const MatWrapper& input, int time
 	return outputMw;
 }
 
+MatWrapper CpuImageProcessingService::doEqualizeHistogram(const MatWrapper& input) {
+	cv::Mat output;
+	cv::equalizeHist(input.getMat(), output);
+	MatWrapper outputMw(output);
+	outputMw.setColorScheme(input.getColorScheme());
+	return outputMw;
+}
+
 MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::Mat inputMat = input.getMat();
 	cv::Mat outputMat;

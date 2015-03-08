@@ -35,6 +35,7 @@ protected:
 			const int hsvRangesNumber, const cir::common::HsvRange* hsvRanges);
 	virtual cir::common::MatWrapper doErode(const cir::common::MatWrapper& input, int times);
 	virtual cir::common::MatWrapper doDilate(const cir::common::MatWrapper& input, int times);
+	virtual cir::common::MatWrapper doEqualizeHistogram(const cir::common::MatWrapper& input);
 	virtual cir::common::SegmentArray* doSegmentate(const cir::common::MatWrapper& input);
 	virtual double* doCountHuMoments(const cir::common::MatWrapper& matWrapper);
 

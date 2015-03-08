@@ -35,6 +35,7 @@ public:
 	virtual MatWrapper detectColorHsv(const MatWrapper& input, const int hsvRangesNumber, const HsvRange* hsvRanges);
 	virtual MatWrapper erode(const MatWrapper& input, int times = 1);
 	virtual MatWrapper dilate(const MatWrapper& input, int times = 1);
+	virtual MatWrapper equalizeHistogram(const MatWrapper& input);
 	virtual SegmentArray* segmentate(const MatWrapper& input);
 	virtual MatWrapper mark(MatWrapper& input, const SegmentArray* segmentArray) = 0;
 	virtual MatWrapper crop(MatWrapper& input, Segment* segment) = 0;
@@ -60,6 +61,7 @@ protected:
 	virtual MatWrapper doDetectColorHsv(const MatWrapper& input, const int hsvRangesNumber, const HsvRange* hsvRanges) = 0;
 	virtual MatWrapper doErode(const MatWrapper& input, int times) = 0;
 	virtual MatWrapper doDilate(const MatWrapper& input, int times) = 0;
+	virtual MatWrapper doEqualizeHistogram(const MatWrapper& input) = 0;
 	virtual SegmentArray* doSegmentate(const MatWrapper& input) = 0;
 	virtual double* doCountHuMoments(const MatWrapper& matWrapper) = 0;
 };
