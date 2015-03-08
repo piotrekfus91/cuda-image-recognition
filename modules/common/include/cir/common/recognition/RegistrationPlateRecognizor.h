@@ -5,6 +5,7 @@
 #include "cir/common/recognition/Pattern.h"
 #include "cir/common/recognition/Recognizor.h"
 #include "cir/common/classification/Classifier.h"
+#include <boost/thread.hpp>
 #include <map>
 
 namespace cir { namespace common { namespace recognition {
@@ -14,7 +15,7 @@ public:
 	RegistrationPlateRecognizor(cir::common::ImageProcessingService& service);
 	virtual ~RegistrationPlateRecognizor();
 
-	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input) const;
+	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input);
 	virtual void learn(cir::common::MatWrapper& input);
 	virtual void learn(const char* filePath);
 

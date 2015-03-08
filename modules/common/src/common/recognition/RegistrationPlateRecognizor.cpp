@@ -30,7 +30,7 @@ void RegistrationPlateRecognizor::setClassifier(Classifier* classifier) {
 	_classifier = classifier;
 }
 
-const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) const {
+const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) {
 	std::list<std::string> recognizedPlates;
 	std::list<Segment*> recognizedSegments;
 
@@ -73,14 +73,16 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 				whitePlate = _service.threshold(whitePlate, true);
 				whitePlate = _service.median(whitePlate);
 
-				if(_classifier->singleChar()) {
+				Classifier* classifier = new TesseractClassifier;
+
+				if(classifier->singleChar()) {
 					SegmentArray* signsArray = _service.segmentate(whitePlate);
 
 					if(signsArray->size > 3) {
 						std::string result = "";
 						for(int k = 0; k < signsArray->size; k++) {
 							Segment* signSegment = signsArray->segments[k];
-							std::string recognized = _classifier->detect(whitePlate, &_service, &_patternsMap, signSegment);
+							std::string recognized = classifier->detect(whitePlate, &_service, &_patternsMap, signSegment);
 							result.append(recognized);
 						}
 
@@ -116,7 +118,7 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 	}
 
 	for(std::list<std::string>::iterator it = recognizedPlates.begin(); it != recognizedPlates.end(); it++) {
-		std::cout << *it << std::endl;
+//		std::cout << *it << std::endl;
 	}
 
 	SegmentArray* resultSegmentArray = NULL;

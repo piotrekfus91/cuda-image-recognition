@@ -7,6 +7,10 @@ using namespace cv::gpu;
 using namespace cir::common;
 using namespace cir::common::exception;
 
+MatWrapper::MatWrapper() : _matType(NONE), _colorScheme(UNKNOWN) {
+
+}
+
 MatWrapper::MatWrapper(const Mat& mat) : _mat(mat), _matType(MAT), _colorScheme(BGR) {
 	validateType();
 }

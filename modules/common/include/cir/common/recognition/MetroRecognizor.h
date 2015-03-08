@@ -11,7 +11,7 @@ public:
 	MetroRecognizor(cir::common::ImageProcessingService& service);
 	virtual ~MetroRecognizor();
 
-	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input) const;
+	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input);
 	virtual void learn(cir::common::MatWrapper& input);
 	virtual void learn(const char* filePath);
 

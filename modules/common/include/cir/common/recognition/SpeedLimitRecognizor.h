@@ -12,7 +12,7 @@ public:
 	SpeedLimitRecognizor(ImageProcessingService& service);
 	virtual ~SpeedLimitRecognizor();
 
-	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input) const;
+	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input);
 	virtual void learn(cir::common::MatWrapper& input);
 	virtual void learn(const char* filePath);
 

@@ -17,7 +17,7 @@ SpeedLimitRecognizor::~SpeedLimitRecognizor() {
 
 }
 
-const RecognitionInfo SpeedLimitRecognizor::recognize(MatWrapper& input) const {
+const RecognitionInfo SpeedLimitRecognizor::recognize(MatWrapper& input) {
 	MatWrapper mw = input.clone();
 	mw = _service.bgrToHsv(mw);
 	MatWrapper inputHsv = mw.clone();

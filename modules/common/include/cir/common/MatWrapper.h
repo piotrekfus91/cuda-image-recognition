@@ -8,6 +8,7 @@ namespace cir { namespace common {
 
 class MatWrapper {
 public:
+	MatWrapper();
 	MatWrapper(const cv::Mat& mat);
 	MatWrapper(const cv::gpu::GpuMat& gpuMat);
 
@@ -17,6 +18,7 @@ public:
 	cv::gpu::GpuMat getGpuMat() const;
 
 	enum MAT_TYPE {
+		NONE,
 		MAT,
 		GPU_MAT
 	};

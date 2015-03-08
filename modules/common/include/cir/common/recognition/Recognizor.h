@@ -12,7 +12,7 @@ public:
 	Recognizor(ImageProcessingService& service);
 	virtual ~Recognizor();
 
-	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input) const = 0;
+	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input) = 0;
 	virtual void learn(cir::common::MatWrapper& input) = 0;
 	virtual void learn(const char* filePath) = 0;
 
