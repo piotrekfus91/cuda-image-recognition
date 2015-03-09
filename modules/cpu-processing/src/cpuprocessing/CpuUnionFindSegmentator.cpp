@@ -79,22 +79,7 @@ SegmentArray* CpuUnionFindSegmentator::segmentate(const MatWrapper& input) {
 		}
 	}
 
-	SegmentArray* segmentArray = (SegmentArray*) malloc(sizeof(SegmentArray));
-	if(total > 0) {
-		int idx = 0;
-		Segment** segments = (Segment**) malloc(sizeof(Segment*) * total);
-		for(std::list<Segment*>::iterator it = appliedSegments.begin(); it != appliedSegments.end(); it++) {
-			Segment* copy = copySegment(*it);
-			segments[idx] = copy;
-			idx++;
-		}
-		segmentArray->segments = segments;
-		segmentArray->size = total;
-	} else {
-		segmentArray->size = 0;
-		segmentArray->segments = NULL;
-	}
-
+	SegmentArray* segmentArray = createSegmentArray(appliedSegments);
 	return segmentArray;
 }
 

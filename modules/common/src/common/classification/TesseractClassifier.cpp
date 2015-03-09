@@ -22,6 +22,8 @@ TesseractClassifier::TesseractClassifier() : _boundary(2) {
 
 TesseractClassifier::~TesseractClassifier() {
 	if(_tesseract != NULL) {
+		_tesseract->Clear();
+		_tesseract->End();
 		delete _tesseract;
 	}
 }

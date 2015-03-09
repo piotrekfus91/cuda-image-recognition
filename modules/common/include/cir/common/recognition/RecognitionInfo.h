@@ -7,15 +7,15 @@ namespace cir { namespace common { namespace recognition {
 
 class RecognitionInfo {
 public:
-	RecognitionInfo(const bool success, const SegmentArray* matchedSegments);
+	RecognitionInfo(const bool success, SegmentArray* matchedSegments);
 	virtual ~RecognitionInfo();
 
 	const bool isSuccess() const;
-	const cir::common::SegmentArray* getMatchedSegments() const;
+	cir::common::SegmentArray* getMatchedSegments() const;
 
 private:
 	const bool _success;
-	const cir::common::SegmentArray* _matchedSegments;
+	cir::common::SegmentArray* _matchedSegments;
 };
 
 }}}

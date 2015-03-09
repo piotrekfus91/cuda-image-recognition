@@ -30,6 +30,13 @@ Segment* copySegment(Segment* segment) {
 	return copy;
 }
 
+void release(Segment* segment) {
+	if(segment == NULL)
+		return;
+
+	free(segment);
+}
+
 void mergeSegments(Segment* segm1, Segment* segm2) {
 	if(segm1->leftX < segm2->leftX) {
 		segm2->leftX = segm1->leftX;

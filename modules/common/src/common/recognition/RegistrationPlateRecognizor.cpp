@@ -45,8 +45,10 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 		MatWrapper blueMw = detectBlue(segmentMw);
 		SegmentArray* blueSegmentsArray = _service.segmentate(blueMw);
 		Segment* blueSegment = NULL;
-		if(blueSegmentsArray->size > 2)
+		if(blueSegmentsArray->size > 2) {
+			release(blueSegmentsArray);
 			continue;
+		}
 
 		int segmentWidth = segment->rightX - segment->leftX;
 		for(int j = 0; j < blueSegmentsArray->size; j++) {
@@ -59,8 +61,11 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 		}
 
 		if(blueSegment == NULL) {
+			release(blueSegmentsArray);
 			continue;
 		}
+
+		release(blueSegmentsArray);
 
 		MatWrapper whiteMw = detectWhite(segmentMw);
 		SegmentArray* whiteSegmentsArray = _service.segmentate(whiteMw);
@@ -73,16 +78,16 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 				whitePlate = _service.threshold(whitePlate, true);
 				whitePlate = _service.median(whitePlate);
 
-				Classifier* classifier = new TesseractClassifier;
+				TesseractClassifier classifier;
 
-				if(classifier->singleChar()) {
+				if(classifier.singleChar()) {
 					SegmentArray* signsArray = _service.segmentate(whitePlate);
 
 					if(signsArray->size > 3) {
 						std::string result = "";
 						for(int k = 0; k < signsArray->size; k++) {
 							Segment* signSegment = signsArray->segments[k];
-							std::string recognized = classifier->detect(whitePlate, &_service, &_patternsMap, signSegment);
+							std::string recognized = classifier.detect(whitePlate, &_service, &_patternsMap, signSegment);
 							result.append(recognized);
 						}
 
@@ -116,6 +121,8 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 			}
 		}
 	}
+
+	release(allSegmentsArray);
 
 	for(std::list<std::string>::iterator it = recognizedPlates.begin(); it != recognizedPlates.end(); it++) {
 //		std::cout << *it << std::endl;

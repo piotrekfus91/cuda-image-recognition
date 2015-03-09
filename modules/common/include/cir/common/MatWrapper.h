@@ -12,6 +12,8 @@ public:
 	MatWrapper(const cv::Mat& mat);
 	MatWrapper(const cv::gpu::GpuMat& gpuMat);
 
+	virtual ~MatWrapper();
+
 	MatWrapper clone() const;
 
 	cv::Mat getMat() const;

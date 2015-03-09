@@ -19,6 +19,14 @@ MatWrapper::MatWrapper(const GpuMat& gpuMat) : _gpuMat(gpuMat), _matType(GPU_MAT
 	validateType();
 }
 
+MatWrapper::~MatWrapper() {
+	if(_matType == MAT)
+		_mat.release();
+
+	if(_matType == GPU_MAT)
+		_gpuMat.release();
+}
+
 MatWrapper MatWrapper::clone() const {
 	if(_matType == MAT) {
 		cv::Mat mat(_mat.clone());
