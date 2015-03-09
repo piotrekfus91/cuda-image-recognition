@@ -25,10 +25,10 @@ void cam(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::NullLogger logger;
-//	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
-//	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
-	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
-	cpuService.setSegmentator(new cir::cpuprocessing::CpuUnionFindSegmentator);
+	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
+	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
+//	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
+//	cpuService.setSegmentator(new cir::cpuprocessing::CpuUnionFindSegmentator);
 
 	cir::common::recognition::RegistrationPlateRecognizor* recognizor
 			= new cir::common::recognition::RegistrationPlateRecognizor(cpuService);

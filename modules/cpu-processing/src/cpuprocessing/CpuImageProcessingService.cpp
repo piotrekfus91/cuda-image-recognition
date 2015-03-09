@@ -170,3 +170,7 @@ double* CpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper
 MatWrapper CpuImageProcessingService::getMatWrapper(const cv::Mat& mat) const {
 	return mat;
 }
+
+cv::Mat CpuImageProcessingService::getMat(const MatWrapper& matWrapper) const {
+	return matWrapper.getMat();
+}

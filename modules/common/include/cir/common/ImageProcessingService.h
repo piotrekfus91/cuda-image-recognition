@@ -42,6 +42,7 @@ public:
 	virtual double* countHuMoments(const MatWrapper& matWrapper);
 
 	virtual MatWrapper getMatWrapper(const cv::Mat& mat) const = 0;
+	virtual cv::Mat getMat(const MatWrapper& matWrapper) const = 0;
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;

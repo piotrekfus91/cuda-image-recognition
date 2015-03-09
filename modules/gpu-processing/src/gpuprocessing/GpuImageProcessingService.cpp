@@ -179,3 +179,10 @@ MatWrapper GpuImageProcessingService::getMatWrapper(const cv::Mat& mat) const {
 	cv::gpu::GpuMat gpuMat(mat);
 	return MatWrapper(gpuMat);
 }
+
+cv::Mat GpuImageProcessingService::getMat(const MatWrapper& matWrapper) const {
+	cv::gpu::GpuMat gpuMat = matWrapper.getGpuMat();
+	cv::Mat mat;
+	gpuMat.download(mat);
+	return mat;
+}

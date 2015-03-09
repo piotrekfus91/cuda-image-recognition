@@ -40,6 +40,7 @@ protected:
 	virtual double* doCountHuMoments(const cir::common::MatWrapper& matWrapper);
 
 	virtual cir::common::MatWrapper getMatWrapper(const cv::Mat& mat) const;
+	virtual cv::Mat getMat(const cir::common::MatWrapper& matWrapper) const;
 
 private:
 	GpuColorDetector _gpuColorDetector;
