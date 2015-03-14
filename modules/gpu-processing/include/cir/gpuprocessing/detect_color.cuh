@@ -8,7 +8,7 @@
 namespace cir { namespace gpuprocessing {
 
 void detect_color(uchar* src, const int hsvRangesNumber, const cir::common::OpenCvHsvRange* hsvRanges,
-		const int width, const int height, const int step, uchar* dst);
+		const int width, const int height, const int step, uchar* dst, cudaStream_t stream);
 
 __global__
 void k_detect_color(uchar* src, const int hsvRangesNumber, const cir::common::OpenCvHsvRange* hsvRanges,

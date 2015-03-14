@@ -10,7 +10,7 @@ namespace cir { namespace gpuprocessing {
 void union_find_segmentate_init(int width, int height);
 
 cir::common::SegmentArray* union_find_segmentate(uchar* data, int step, int channels,
-		int width, int height);
+		int width, int height, cudaStream_t stream);
 
 void union_find_segmentate_shutdown();
 

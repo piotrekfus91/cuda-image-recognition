@@ -4,11 +4,13 @@
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
 #include "cir/common/exception/InvalidColorSchemeException.h"
 #include "cir/common/cuda_host_util.cuh"
+#include "cir/common/concurrency/StreamHandler.h"
 
 using namespace cir::common;
 using namespace cir::gpuprocessing;
 using namespace cir::common::logger;
 using namespace cir::common::exception;
+using namespace cir::common::concurrency;
 
 GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger) : ImageProcessingService(logger) {
 
@@ -38,8 +40,10 @@ void GpuImageProcessingService::setSegmentatorMinSize(int minSize) {
 MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
 
+	cv::gpu::Stream* currentStream = StreamHandler::currentStream();
+
 	if(input.getColorScheme() == MatWrapper::BGR) {
-		cv::gpu::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY);
+		cv::gpu::cvtColor(input.getGpuMat(), output, CV_BGR2GRAY, *currentStream);
 		MatWrapper mw(output);
 		mw.setColorScheme(MatWrapper::GRAY);
 		return mw;
@@ -47,7 +51,7 @@ MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
 
 	if(input.getColorScheme() == MatWrapper::HSV) {
 		cv::gpu::GpuMat hsvChannels[3];
-		cv::gpu::split(input.getGpuMat(), hsvChannels);
+		cv::gpu::split(input.getGpuMat(), hsvChannels, *currentStream);
 		MatWrapper mw(hsvChannels[2]);
 		mw.setColorScheme(MatWrapper::GRAY);
 		return mw;
@@ -60,7 +64,7 @@ MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, bool 
 		double thresholdValue) {
 	int type = invertColors ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 	cv::gpu::GpuMat output;
-	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, type);
+	cv::gpu::threshold(input.getGpuMat(), output, thresholdValue, 255, type, *(StreamHandler::currentStream()));
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::GRAY);
 	return mw;
@@ -69,10 +73,12 @@ MatWrapper GpuImageProcessingService::doThreshold(const MatWrapper& input, bool 
 MatWrapper GpuImageProcessingService::doLowPass(const MatWrapper& input, int size) {
 	cv::gpu::GpuMat output;
 	if(size == DEFAULT_LOW_PASS_KERNEL_SIZE) {
-		cv::gpu::filter2D(input.getGpuMat(), output, -1, DEFAULT_LOW_PASS_KERNEL);
+		cv::gpu::filter2D(input.getGpuMat(), output, -1, DEFAULT_LOW_PASS_KERNEL, cv::Point(-1,-1),
+				cv::BORDER_DEFAULT, *(StreamHandler::currentStream()));
 	} else {
 		cv::Mat kernel = cv::Mat::ones(size, size, CV_32F) / (float)(size*size);
-		cv::gpu::filter2D(input.getGpuMat(), output, -1, kernel);
+		cv::gpu::filter2D(input.getGpuMat(), output, -1, kernel, cv::Point(-1, -1),
+				cv::BORDER_DEFAULT, *(StreamHandler::currentStream()));
 	}
 
 	MatWrapper mw(output);
@@ -86,7 +92,8 @@ MatWrapper GpuImageProcessingService::doMedian(const MatWrapper& input, int size
 
 MatWrapper GpuImageProcessingService::doHighPass(const MatWrapper& input, int size) {
 	cv::gpu::GpuMat output;
-	cv::gpu::Laplacian(input.getGpuMat(), output, -1, size);
+	cv::gpu::Laplacian(input.getGpuMat(), output, -1, size, 1, cv::BORDER_DEFAULT,
+			*(StreamHandler::currentStream()));
 	MatWrapper mw(output);
 	mw.setColorScheme(input.getColorScheme());
 	return output;
@@ -97,7 +104,7 @@ MatWrapper GpuImageProcessingService::doBgrToHsv(const MatWrapper& input) {
 		throw InvalidColorSchemeException();
 
 	cv::gpu::GpuMat output;
-	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_BGR2HSV);
+	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_BGR2HSV, 0, *(StreamHandler::currentStream()));
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::HSV);
 	return mw;
@@ -108,7 +115,7 @@ MatWrapper GpuImageProcessingService::doHsvToBgr(const MatWrapper& input) {
 		throw InvalidColorSchemeException();
 
 	cv::gpu::GpuMat output;
-	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR);
+	cv::gpu::cvtColor(input.getGpuMat(), output, cv::COLOR_HSV2BGR, 0, *(StreamHandler::currentStream()));
 	MatWrapper mw(output);
 	mw.setColorScheme(MatWrapper::BGR);
 	return output;
@@ -126,7 +133,9 @@ SegmentArray* GpuImageProcessingService::doSegmentate(const cir::common::MatWrap
 
 MatWrapper GpuImageProcessingService::doErode(const MatWrapper& input, int times) {
 	cv::gpu::GpuMat output;
-	cv::gpu::erode(input.getGpuMat(), output, DEFAULT_ERODE_KERNEL, cv::Point(1, 1), times);
+	cv::gpu::GpuMat buf;
+	cv::gpu::erode(input.getGpuMat(), output, DEFAULT_ERODE_KERNEL, buf, cv::Point(1, 1), times,
+			*(StreamHandler::currentStream()));
 	MatWrapper outputMw(output);
 	outputMw.setColorScheme(input.getColorScheme());
 	return outputMw;
@@ -134,7 +143,9 @@ MatWrapper GpuImageProcessingService::doErode(const MatWrapper& input, int times
 
 MatWrapper GpuImageProcessingService::doDilate(const MatWrapper& input, int times) {
 	cv::gpu::GpuMat output;
-	cv::gpu::dilate(input.getGpuMat(), output, DEFAULT_DILATE_KERNEL, cv::Point(1, 1), times);
+	cv::gpu::GpuMat buf;
+	cv::gpu::dilate(input.getGpuMat(), output, DEFAULT_DILATE_KERNEL, buf, cv::Point(1, 1), times,
+			*(StreamHandler::currentStream()));
 	MatWrapper outputMw(output);
 	outputMw.setColorScheme(input.getColorScheme());
 	return outputMw;
@@ -142,7 +153,7 @@ MatWrapper GpuImageProcessingService::doDilate(const MatWrapper& input, int time
 
 MatWrapper GpuImageProcessingService::doEqualizeHistogram(const MatWrapper& input) {
 	cv::gpu::GpuMat output;
-	cv::gpu::equalizeHist(input.getGpuMat(), output);
+	cv::gpu::equalizeHist(input.getGpuMat(), output, *(StreamHandler::currentStream()));
 	MatWrapper outputMw(output);
 	outputMw.setColorScheme(input.getColorScheme());
 	return outputMw;
@@ -163,8 +174,10 @@ MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) 
 	if(rectHeight > inputMat.rows)
 		rectHeight = inputMat.rows;
 
+	cv::gpu::Stream* currentStream = StreamHandler::currentStream();
 	cv::Rect rect = cv::Rect(segment->leftX, segment->topY, rectWidth, rectHeight);
-	inputMat(rect).copyTo(outputMat);
+	currentStream->enqueueCopy(inputMat(rect), outputMat);
+
 	MatWrapper mw(outputMat);
 	mw.setColorScheme(input.getColorScheme());
 	return mw;
@@ -176,13 +189,20 @@ double* GpuImageProcessingService::doCountHuMoments(const MatWrapper& matWrapper
 }
 
 MatWrapper GpuImageProcessingService::getMatWrapper(const cv::Mat& mat) const {
-	cv::gpu::GpuMat gpuMat(mat);
+	cv::gpu::Stream* currentStream = StreamHandler::currentStream();
+	cv::gpu::GpuMat gpuMat;
+	cv::gpu::CudaMem mem(mat, cv::gpu::CudaMem::ALLOC_PAGE_LOCKED);
+	currentStream->enqueueUpload(mem, gpuMat);
+	currentStream->waitForCompletion();
 	return MatWrapper(gpuMat);
 }
 
 cv::Mat GpuImageProcessingService::getMat(const MatWrapper& matWrapper) const {
+	cv::gpu::Stream* currentStream = StreamHandler::currentStream();
 	cv::gpu::GpuMat gpuMat = matWrapper.getGpuMat();
-	cv::Mat mat;
-	gpuMat.download(mat);
+	cv::Mat mat(cv::Size(matWrapper.getWidth(), matWrapper.getHeight()), gpuMat.type());
+//	cv::gpu::registerPageLocked(mat);
+	currentStream->enqueueDownload(gpuMat, mat);
+	currentStream->waitForCompletion();
 	return mat;
 }

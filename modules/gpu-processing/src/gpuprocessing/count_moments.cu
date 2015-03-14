@@ -12,55 +12,50 @@ using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
-int horizontalBlocks;
-int verticalBlocks;
-int totalBlocks;
+double count_raw_moment(uchar* data, int width, int height, int step, int p, int q,
+		cudaStream_t stream) {
+	int horizontalBlocks = (width + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
+	int verticalBlocks = (height + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
+	int totalBlocks = horizontalBlocks * verticalBlocks;
 
-double* zeroBlockSums;
-double* blockSums;
-double* d_blockSums;
-
-void count_raw_moment_init(int width, int height) {
-	horizontalBlocks = (width + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
-	verticalBlocks = (height + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
-	totalBlocks = horizontalBlocks * verticalBlocks;
-
-	zeroBlockSums = (double*) malloc(sizeof(double) * totalBlocks);
+	double* blockSums;
+	cudaHostAlloc((void**) &blockSums, sizeof(double) * totalBlocks, cudaHostAllocDefault);
 	for(int i = 0; i < totalBlocks; i++) {
-		zeroBlockSums[i] = 0;
+		blockSums[i] = 0;
 	}
-	blockSums = (double*) malloc(sizeof(double) * totalBlocks);
+
+	double* d_blockSums;
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(double) * totalBlocks));
-}
 
-double count_raw_moment(uchar* data, int width, int height, int step, int p, int q) {
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_blockSums, zeroBlockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_blockSums, blockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice,
+			stream));
 
 	// TODO kernel dims
 	dim3 blocks(horizontalBlocks, verticalBlocks);
 	dim3 threads(THREADS_IN_BLOCK, THREADS_IN_BLOCK);
 
-	KERNEL_MEASURE_START
+	//KERNEL_MEASURE_START
 
-	k_count_raw_moment<<<blocks, threads>>>(data, width, height, step, p, q, d_blockSums);
+	k_count_raw_moment<<<blocks, threads, 0, stream>>>(data, width, height, step, p, q, d_blockSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	KERNEL_MEASURE_END("Count Hu moments")
+	//KERNEL_MEASURE_END("Count Hu moments")
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost,
+			stream));
+
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
 	double ret = 0;
 	for(int i = 0; i < totalBlocks; i++) {
 		ret += blockSums[i];
 	}
 
-	return ret;
-}
-
-void count_raw_moment_shutdown() {
 	HANDLE_CUDA_ERROR(cudaFree(d_blockSums));
-	free(blockSums);
+	HANDLE_CUDA_ERROR(cudaFreeHost(blockSums));
+
+	return ret;
 }
 
 __global__

@@ -11,25 +11,31 @@ using namespace cir::common::logger;
 namespace cir { namespace gpuprocessing {
 
 void detect_color(uchar* src, const int hsvRangesNumber, const OpenCvHsvRange* hsvRanges,
-		const int width, const int height, const int step, uchar* dst) {
+		const int width, const int height, const int step, uchar* dst, cudaStream_t stream) {
 	int size = hsvRangesNumber * sizeof(OpenCvHsvRange);
+	OpenCvHsvRange* pinned_hsvRanges;
 	OpenCvHsvRange* d_hsvRanges;
+
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**)&pinned_hsvRanges, size, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(pinned_hsvRanges, hsvRanges, size, cudaMemcpyHostToHost, stream));
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**)&d_hsvRanges, size));
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_hsvRanges, hsvRanges, size, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_hsvRanges, pinned_hsvRanges, size, cudaMemcpyHostToDevice, stream));
 
 	// TODO kernel dims
 	dim3 block((width+15)/16, (height+15)/16);
 	dim3 thread(16, 16);
 
-	KERNEL_MEASURE_START
+//	KERNEL_MEASURE_START
 
-	k_detect_color<<<block, thread>>>(src, hsvRangesNumber, d_hsvRanges, width, height, step, dst);
+	k_detect_color<<<block, thread, 0, stream>>>(src, hsvRangesNumber, d_hsvRanges, width, height, step, dst);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
-	KERNEL_MEASURE_END("Detect color")
+//	KERNEL_MEASURE_END("Detect color")
 
+	HANDLE_CUDA_ERROR(cudaFreeHost(pinned_hsvRanges));
 	HANDLE_CUDA_ERROR(cudaFree(d_hsvRanges));
 }
 

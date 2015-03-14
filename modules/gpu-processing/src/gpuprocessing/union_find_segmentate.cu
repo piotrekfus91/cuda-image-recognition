@@ -11,54 +11,54 @@ using namespace cir::common;
 
 namespace cir { namespace gpuprocessing {
 
-int* ids;
-int* d_ids;
-bool* changed;
-bool* d_changed;
+SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int width, int height,
+		cudaStream_t stream) {
+	int* ids;
+	int* d_ids;
+	bool* changed;
+	bool* d_changed;
+	Segment* segments;
+	Segment* d_segments;
 
-void union_find_segmentate_init(int width, int height) {
-	segments = (Segment*) malloc(sizeof(Segment) * width * height);
-	ids = (int*) malloc(sizeof(int) * width * height);
-	changed = (bool*) malloc(sizeof(bool));
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**)&ids, sizeof(int) * width * height, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**)&segments, sizeof(Segment) * width * height, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**)&changed, sizeof(bool), cudaHostAllocDefault));
 
 	HANDLE_CUDA_ERROR(cudaMalloc(&d_segments, sizeof(Segment) * width * height));
 	HANDLE_CUDA_ERROR(cudaMalloc(&d_ids, sizeof(int) * width * height));
 	HANDLE_CUDA_ERROR(cudaMalloc(&d_changed, sizeof(bool)));
-}
 
-void union_find_segmentate_shutdown() {
-	free(segments);
-	free(ids);
-	free(changed);
-
-	HANDLE_CUDA_ERROR(cudaFree(d_segments));
-	HANDLE_CUDA_ERROR(cudaFree(d_ids));
-	HANDLE_CUDA_ERROR(cudaFree(d_changed));
-}
-
-SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int width, int height) {
 	dim3 threads(THREADS, THREADS);
 	dim3 blocks((width+THREADS-1)/THREADS, (height+THREADS-1)/THREADS);
 
-	k_init_internal_structures<<<blocks, threads>>>(data, width, height, step, channels, d_segments, d_ids);
+	k_init_internal_structures<<<blocks, threads, 0, stream>>>(data, width, height, step, channels,
+			d_segments, d_ids);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
 	*changed = true;
 	while(*changed) {
 		*changed = false;
-		HANDLE_CUDA_ERROR(cudaMemcpy(d_changed, changed, sizeof(bool), cudaMemcpyHostToDevice));
+		HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_changed, changed, sizeof(bool), cudaMemcpyHostToDevice, stream));
+		HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
-		k_prepare_best_neighbour<<<blocks, threads>>>(d_ids, d_segments, width, height, d_changed);
+		k_prepare_best_neighbour<<<blocks, threads, 0, stream>>>(d_ids, d_segments, width, height, d_changed);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
+		HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
-		k_find_best_root<<<blocks, threads>>>(d_ids, width, height);
+		k_find_best_root<<<blocks, threads, 0, stream>>>(d_ids, width, height);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
+		HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
-		HANDLE_CUDA_ERROR(cudaMemcpy(changed, d_changed, sizeof(bool), cudaMemcpyDeviceToHost));
+		HANDLE_CUDA_ERROR(cudaMemcpyAsync(changed, d_changed, sizeof(bool), cudaMemcpyDeviceToHost, stream));
+		HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 	}
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(ids, d_ids, sizeof(int)*width*height, cudaMemcpyDeviceToHost));
-	HANDLE_CUDA_ERROR(cudaMemcpy(segments, d_segments, sizeof(Segment)*width*height, cudaMemcpyDeviceToHost));
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(segments, d_segments, sizeof(Segment)*width*height, cudaMemcpyDeviceToHost,
+			stream));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(ids, d_ids, sizeof(int)*width*height, cudaMemcpyDeviceToHost, stream));
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
 	std::map<int, Segment*> appliedSegments;
 	int total = 0;
@@ -104,6 +104,16 @@ SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int wid
 		segmentArray->size = 0;
 		segmentArray->segments = NULL;
 	}
+
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
+
+	HANDLE_CUDA_ERROR(cudaFreeHost(segments));
+	HANDLE_CUDA_ERROR(cudaFreeHost(ids));
+	HANDLE_CUDA_ERROR(cudaFreeHost(changed));
+
+	HANDLE_CUDA_ERROR(cudaFree(d_segments));
+	HANDLE_CUDA_ERROR(cudaFree(d_ids));
+	HANDLE_CUDA_ERROR(cudaFree(d_changed));
 
 	return segmentArray;
 }

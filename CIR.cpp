@@ -2,6 +2,7 @@
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include "opencv2/gpu/gpu.hpp"
+#include <boost/thread.hpp>
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
 #include "cir/cpuprocessing/CpuUnionFindSegmentator.h"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
@@ -22,9 +23,11 @@ using namespace std;
 void imgCpu(const char*, cir::common::logger::Logger&);
 void imgGpu(const char*, cir::common::logger::Logger&);
 void cam(cir::common::logger::Logger&);
+void streams(cir::common::logger::Logger&);
 
 int main(int argc, char** argv) {
 	cir::common::logger::NullLogger logger;
+//	streams(logger);
 	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
 	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
 //	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
@@ -43,6 +46,50 @@ int main(int argc, char** argv) {
 	videoHandler->handle(inputFilePath, videoConverter);
 
     return EXIT_SUCCESS;
+}
+
+void stream() {
+	static int i = 0;
+	i++;
+	int j = i;
+	cir::common::logger::NullLogger logger;
+	cir::gpuprocessing::GpuImageProcessingService gpuService(logger);
+	gpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
+
+	cv::Mat mat = cv::imread(cir::common::getTestFile("registration-plate", "damian.bmp").c_str());
+	gpuService.init(mat.cols, mat.rows);
+	cir::common::MatWrapper mw = gpuService.getMatWrapper(mat);
+
+	for(int i = 0; i < 10; i++) {
+		mw = gpuService.bgrToHsv(mw);
+		mw = gpuService.hsvToBgr(mw);
+	}
+
+	mw = gpuService.toGrey(mw);
+//	mw = gpuService.threshold(mw);
+
+	for(int i = 0; i < 10; i++) {
+		double* huMoments = gpuService.countHuMoments(mw);
+		for(int i = 0; i < 7; i++) {
+//			std::cerr << huMoments[i] << std::endl;
+		}
+	}
+	mat = gpuService.getMat(mw);
+	if(j == 1) {
+		std::cerr << mat.rows << " " << mat.cols << std::endl;
+		cv::imwrite("s.bmp", mat);
+		std::cerr << "after write" << std::endl;
+	}
+	std::cerr << "finished" << std::endl;
+}
+
+void streams(cir::common::logger::Logger& logger) {
+	for(int i = 0; i < 3; i++)
+		boost::thread t(stream);
+	boost::thread t(stream);
+	t.join();
+	boost::this_thread::sleep(boost::posix_time::seconds(1));
+	std::cerr << "finished all" << std::endl;
 }
 
 void imgCpu(const char* fileName, cir::common::logger::Logger& logger) {

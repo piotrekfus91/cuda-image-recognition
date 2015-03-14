@@ -9,21 +9,22 @@ using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
-void median_blur(uchar* origData, uchar* cloneData, int width, int height, int size, int step) {
+void median_blur(uchar* origData, uchar* cloneData, int width, int height, int size, int step,
+		cudaStream_t stream) {
 	dim3 blocks((width+THREADS-1)/THREADS, (height+THREADS-1)/THREADS);
 	dim3 threads(THREADS, THREADS);
 
-	KERNEL_MEASURE_START
+//	KERNEL_MEASURE_START
 
 	if(size == 1)
-		k_median_blur<1><<<blocks, threads>>>(origData, cloneData, width, height, step);
+		k_median_blur<1><<<blocks, threads, 0, stream>>>(origData, cloneData, width, height, step);
 	else if(size == 2)
-		k_median_blur<2><<<blocks, threads>>>(origData, cloneData, width, height, step);
+		k_median_blur<2><<<blocks, threads, 0, stream>>>(origData, cloneData, width, height, step);
 	else if(size == 3)
-		k_median_blur<3><<<blocks, threads>>>(origData, cloneData, width, height, step);
+		k_median_blur<3><<<blocks, threads, 0, stream>>>(origData, cloneData, width, height, step);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	KERNEL_MEASURE_END("Median")
+//	KERNEL_MEASURE_END("Median")
 }
 
 template<class T>
@@ -45,7 +46,12 @@ template <int SIZE>
 __global__
 void k_median_blur(uchar* origData, uchar* cloneData, int width, int height, int step) {
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
+	if(x >= width)
+		return;
+
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
+	if(y >= height)
+		return;
 
 	uchar surround[(2*SIZE+1) * (2*SIZE+1)];
 	int total = 0;

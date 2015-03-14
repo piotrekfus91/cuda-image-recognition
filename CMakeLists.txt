@@ -5,8 +5,9 @@ option(test "Builds tests" ON)
 project(CIR)
 
 set(CMAKE_CXX_FLAGS "-Wall -g -ansi")
-set(CUDA_NVCC_FLAGS "-G;-g;-arch=sm_21")
+set(CUDA_NVCC_FLAGS "-G;-g;-arch=sm_30")
 
+find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED)
 
