@@ -51,7 +51,7 @@ void showRecognitionResults(MetroRecognizor& recognizor, ImageProcessingService*
 }
 
 void experiment(MetroRecognizor& recognizor, ImageProcessingService* service) {
-	int reps = 100;
+	int reps = 1;
 	for(int i = 0; i < reps; i++) {
 		recognize(getTestFile("metro", "metro.png"), recognizor, service);
 	}

@@ -18,17 +18,17 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	int verticalBlocks = (height + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
 	int totalBlocks = horizontalBlocks * verticalBlocks;
 
-	double* blockSums;
-	cudaHostAlloc((void**) &blockSums, sizeof(double) * totalBlocks, cudaHostAllocDefault);
+	long* blockSums;
+	cudaHostAlloc((void**) &blockSums, sizeof(long) * totalBlocks, cudaHostAllocDefault);
 	for(int i = 0; i < totalBlocks; i++) {
-		blockSums[i] = 0.;
+		blockSums[i] = 0;
 	}
 
-	double* d_blockSums;
+	long* d_blockSums;
 
-	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(double) * totalBlocks));
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(long) * totalBlocks));
 
-	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_blockSums, blockSums, sizeof(double) * totalBlocks, cudaMemcpyHostToDevice,
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_blockSums, blockSums, sizeof(long) * totalBlocks, cudaMemcpyHostToDevice,
 			stream));
 
 	// TODO kernel dims
@@ -42,12 +42,12 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 
 	KERNEL_MEASURE_END("Count Hu moments", stream)
 
-	HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost,
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(long) * totalBlocks, cudaMemcpyDeviceToHost,
 			stream));
 
 	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
-	double ret = 0;
+	long ret = 0;
 	for(int i = 0; i < totalBlocks; i++) {
 		ret += blockSums[i];
 	}
@@ -59,8 +59,8 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 }
 
 __global__
-void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int q, double* blockSums) {
-	__shared__ double cache[THREADS_PER_BLOCK];
+void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int q, long* blockSums) {
+	__shared__ long cache[THREADS_PER_BLOCK];
 	int cacheIdx = threadIdx.x + blockDim.x * threadIdx.y;
 	cache[cacheIdx] = 0;
 
@@ -74,9 +74,9 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 
 	int idx = x + y * step;
 #if MOMENTS_BINARY
-	double pixel = data[idx] == 0 ? 0. : 1.;
+	int pixel = data[idx] == 0 ? 0 : 1;
 #else
-	double pixel = data[idx];
+	int pixel = data[idx];
 #endif
 
 	if(p == 0 && q == 0)
