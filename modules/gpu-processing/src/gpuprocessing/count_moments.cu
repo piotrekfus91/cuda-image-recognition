@@ -21,7 +21,7 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	double* blockSums;
 	cudaHostAlloc((void**) &blockSums, sizeof(double) * totalBlocks, cudaHostAllocDefault);
 	for(int i = 0; i < totalBlocks; i++) {
-		blockSums[i] = 0;
+		blockSums[i] = 0.;
 	}
 
 	double* d_blockSums;
@@ -60,6 +60,10 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 
 __global__
 void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int q, double* blockSums) {
+	__shared__ double cache[THREADS_PER_BLOCK];
+	int cacheIdx = threadIdx.x + blockDim.x * threadIdx.y;
+	cache[cacheIdx] = 0;
+
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	if(x >= width)
 		return;
@@ -68,16 +72,12 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	if(y >= height)
 		return;
 
-	__shared__ double cache[THREADS_PER_BLOCK];
-
 	int idx = x + y * step;
 #if MOMENTS_BINARY
 	double pixel = data[idx] == 0 ? 0. : 1.;
 #else
 	double pixel = data[idx];
 #endif
-
-	int cacheIdx = threadIdx.x + blockDim.x * threadIdx.y;
 
 	if(p == 0 && q == 0)
 		cache[cacheIdx] = pixel;
