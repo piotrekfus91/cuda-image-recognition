@@ -23,6 +23,10 @@ int main() {
 	recognize(getTestFile("metro", "metro.png"), recognizor, &service);
 	recognize(getTestFile("metro", "warszawa_metro_swietokrzyska.jpeg"), recognizor, &service);
 	recognize(getTestFile("metro", "metro_warszawa_450.jpeg"), recognizor, &service);
+	recognize(getTestFile("metro", "metro_mlociny.jpeg"), recognizor, &service);
+	recognize(getTestFile("metro", "metro-imielin.jpg"), recognizor, &service);
+	recognize(getTestFile("metro", "metro-otwarte.jpeg"), recognizor, &service);
+	recognize(getTestFile("metro", "Metro_stoklosy.jpg"), recognizor, &service);
 }
 
 void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessingService* service) {
