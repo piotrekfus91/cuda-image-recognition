@@ -4,6 +4,7 @@
 #include "cir/gpuprocessing/count_moments.cuh"
 #include "cir/common/logger/Logger.h"
 
+#define RAW_MOMENTS 10
 #define THREADS_IN_BLOCK 16
 #define THREADS_PER_BLOCK THREADS_IN_BLOCK * THREADS_IN_BLOCK
 
@@ -12,23 +13,24 @@ using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
-double count_raw_moment(uchar* data, int width, int height, int step, int p, int q,
+void count_raw_moments(uchar* data, int width, int height, int step, double* rawMoments,
 		cudaStream_t stream) {
 	int horizontalBlocks = (width + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
 	int verticalBlocks = (height + THREADS_IN_BLOCK - 1) / THREADS_IN_BLOCK;
 	int totalBlocks = horizontalBlocks * verticalBlocks;
+	int totalToAlloc = totalBlocks * RAW_MOMENTS;
 
 	long* blockSums;
-	cudaHostAlloc((void**) &blockSums, sizeof(long) * totalBlocks, cudaHostAllocDefault);
-	for(int i = 0; i < totalBlocks; i++) {
+	cudaHostAlloc((void**) &blockSums, sizeof(long) * totalToAlloc, cudaHostAllocDefault);
+	for(int i = 0; i < totalToAlloc; i++) {
 		blockSums[i] = 0;
 	}
 
 	long* d_blockSums;
 
-	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(long) * totalBlocks));
+	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_blockSums, sizeof(long) * totalToAlloc));
 
-	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_blockSums, blockSums, sizeof(long) * totalBlocks, cudaMemcpyHostToDevice,
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_blockSums, blockSums, sizeof(long) * totalToAlloc, cudaMemcpyHostToDevice,
 			stream));
 
 	// TODO kernel dims
@@ -37,32 +39,38 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 
 	KERNEL_MEASURE_START(stream)
 
-	k_count_raw_moment<<<blocks, threads, 0, stream>>>(data, width, height, step, p, q, d_blockSums);
+	k_count_raw_moment<<<blocks, threads, 0, stream>>>(data, width, height, step,d_blockSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
 	KERNEL_MEASURE_END("Count Hu moments", stream)
 
-	HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(long) * totalBlocks, cudaMemcpyDeviceToHost,
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(long) * totalToAlloc, cudaMemcpyDeviceToHost,
 			stream));
 
 	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
-	long ret = 0;
-	for(int i = 0; i < totalBlocks; i++) {
-		ret += blockSums[i];
+	for(int i = 0; i < RAW_MOMENTS; i++) {
+		rawMoments[i] = 0.;
+	}
+
+	for(int j = 0; j < totalBlocks; j++) {
+		for(int i = 0; i < RAW_MOMENTS; i++) {
+			rawMoments[i] += blockSums[j * RAW_MOMENTS + i];
+		}
 	}
 
 	HANDLE_CUDA_ERROR(cudaFree(d_blockSums));
 	HANDLE_CUDA_ERROR(cudaFreeHost(blockSums));
-
-	return ret;
 }
 
 __global__
-void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int q, long* blockSums) {
-	__shared__ long cache[THREADS_PER_BLOCK];
-	int cacheIdx = threadIdx.x + blockDim.x * threadIdx.y;
-	cache[cacheIdx] = 0;
+void k_count_raw_moment(uchar* data, int width, int height, int step, long* blockSums) {
+	__shared__ long cache[THREADS_PER_BLOCK * RAW_MOMENTS];
+	int tid = threadIdx.x + blockDim.x * threadIdx.y;
+	int cacheIdx = tid * RAW_MOMENTS;
+	for(int i = 0; i < RAW_MOMENTS; i++) {
+		cache[cacheIdx + i] = 0;
+	}
 
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	if(x >= width)
@@ -79,43 +87,33 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	int pixel = data[idx];
 #endif
 
-	if(p == 0 && q == 0)
-		cache[cacheIdx] = pixel;
-	else if(p == 0)
-		cache[cacheIdx] = pow(y, q) * pixel;
-	else if(q == 0)
-		cache[cacheIdx] = pow(x, p) * pixel;
-	else
-		cache[cacheIdx] = pow(x, p) * pow(y, q) * pixel;
+	/* M00 */ cache[cacheIdx + 0] = pixel;
+	/* M01 */ cache[cacheIdx + 1] = pixel * y;
+	/* M10 */ cache[cacheIdx + 2] = pixel * x;
+	/* M11 */ cache[cacheIdx + 3] = pixel * x * y;
+	/* M02 */ cache[cacheIdx + 4] = pixel * y * y;
+	/* M20 */ cache[cacheIdx + 5] = pixel * x * x;
+	/* M21 */ cache[cacheIdx + 6] = pixel * x * x * y;
+	/* M12 */ cache[cacheIdx + 7] = pixel * x * y * y;
+	/* M30 */ cache[cacheIdx + 8] = pixel * x * x * x;
+	/* M03 */ cache[cacheIdx + 9] = pixel * y * y * y;
 
 	__syncthreads();
 
-	for(int i = THREADS_PER_BLOCK / 2; i != 0; i /= 2) {
-		if(cacheIdx < i) {
-			cache[cacheIdx] += cache[cacheIdx + i];
+	for(int j = THREADS_PER_BLOCK / 2; j != 0; j /= 2) {
+		if(tid < j) {
+			for(int i = 0; i < RAW_MOMENTS; i++) {
+				cache[cacheIdx + i] += cache[cacheIdx + i + j * RAW_MOMENTS];
+			}
 		}
 		__syncthreads();
 	}
 
-	if(cacheIdx == 0)
-		blockSums[blockIdx.x + blockIdx.y * gridDim.x] = cache[0];
-}
-
-__device__ __inline__
-int pow(int p, int q) {
-	if(q == 0)
-		return 1;
-
-	if(q == 1)
-		return p;
-
-	if(q == 2)
-		return p * p;
-
-	if(q == 3)
-		return p * p * p;
-
-	return -1; // should never happen!
+	if(tid == 0) {
+		for(int i = 0; i < RAW_MOMENTS; i++) {
+			blockSums[i + (blockIdx.x + blockIdx.y * gridDim.x) * RAW_MOMENTS] = cache[i];
+		}
+	}
 }
 
 }}
