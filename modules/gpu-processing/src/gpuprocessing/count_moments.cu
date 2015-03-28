@@ -101,7 +101,7 @@ void k_count_raw_moment(uchar* data, int width, int height, int step, int p, int
 		blockSums[blockIdx.x + blockIdx.y * gridDim.x] = cache[0];
 }
 
-__device__
+__device__ __inline__
 int pow(int p, int q) {
 	if(q == 0)
 		return 1;
