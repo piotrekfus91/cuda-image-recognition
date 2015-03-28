@@ -147,11 +147,11 @@ MatWrapper CpuImageProcessingService::doEqualizeHistogram(const MatWrapper& inpu
 MatWrapper CpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::Mat inputMat = input.getMat();
 	cv::Mat outputMat;
-	int rectWidth = segment->rightX - segment->leftX;
+	int rectWidth = segment->rightX - segment->leftX + 1;
 	if(rectWidth > inputMat.cols)
 		rectWidth = inputMat.cols;
 
-	int rectHeight = segment->bottomY - segment->topY;
+	int rectHeight = segment->bottomY - segment->topY + 1;
 	if(rectHeight > inputMat.rows)
 		rectHeight = inputMat.rows;
 
