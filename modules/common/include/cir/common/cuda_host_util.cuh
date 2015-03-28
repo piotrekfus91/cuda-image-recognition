@@ -17,13 +17,14 @@ cir::common::logger::Logger* get_default_logger();
 #define HANDLE_CUDA_ERROR(err) (cir::common::cuda_handle_error(err, __FILE__, __LINE__))
 
 
-#define KERNEL_MEASURE_START cudaEvent_t start; \
+#define KERNEL_MEASURE_START(stream) cudaEvent_t start; \
 		cudaEvent_t stop; \
 		HANDLE_CUDA_ERROR(cudaEventCreate(&start)); \
 		HANDLE_CUDA_ERROR(cudaEventCreate(&stop)); \
-		HANDLE_CUDA_ERROR(cudaEventRecord(start, 0)); // TODO stream
+		HANDLE_CUDA_ERROR(cudaEventRecord(start, stream));
 
-#define KERNEL_MEASURE_END(msg) HANDLE_CUDA_ERROR(cudaEventRecord(stop, 0)); \
+#define KERNEL_MEASURE_END(msg, stream) HANDLE_CUDA_ERROR(cudaEventRecord(stop, stream)); \
+		HANDLE_CUDA_ERROR(cudaEventRecord(stop, stream)); \
 		HANDLE_CUDA_ERROR(cudaEventSynchronize(stop)); \
 		\
 		float time; \

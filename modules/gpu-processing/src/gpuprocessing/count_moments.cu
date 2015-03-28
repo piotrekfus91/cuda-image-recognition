@@ -35,12 +35,12 @@ double count_raw_moment(uchar* data, int width, int height, int step, int p, int
 	dim3 blocks(horizontalBlocks, verticalBlocks);
 	dim3 threads(THREADS_IN_BLOCK, THREADS_IN_BLOCK);
 
-	//KERNEL_MEASURE_START
+	KERNEL_MEASURE_START(stream)
 
 	k_count_raw_moment<<<blocks, threads, 0, stream>>>(data, width, height, step, p, q, d_blockSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-	//KERNEL_MEASURE_END("Count Hu moments")
+	KERNEL_MEASURE_END("Count Hu moments", stream)
 
 	HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(double) * totalBlocks, cudaMemcpyDeviceToHost,
 			stream));

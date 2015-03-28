@@ -61,13 +61,14 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 
 		dim3 blocks((width+i*THREADS-1)/(i*THREADS), (height+i*THREADS-1)/(i*THREADS));
 		dim3 threads(THREADS, THREADS);
-		KERNEL_MEASURE_START
+
+//		KERNEL_MEASURE_START(stream)
 
 		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_elements, d_segments, step,
 				channels, width, height, block_width, block_height);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
 
-		KERNEL_MEASURE_END("Segmentate")
+//		KERNEL_MEASURE_END("Segmentate", stream)
 
 //		HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
 //		for(int x = 0; x < width; x++) {
@@ -84,10 +85,10 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 	dim3 blocksForSum(sumBlocksNumber);
 	dim3 threadsForSum(THREADS*THREADS);
 
-	KERNEL_MEASURE_START
+//	KERNEL_MEASURE_START(stream)
 	k_count_applicable_segments<<<blocksForSum, threadsForSum>>>(d_elements, d_segments, width*height, _min_size, d_partialSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
-	KERNEL_MEASURE_END("Segmentate sum")
+//	KERNEL_MEASURE_END("Segmentate sum", stream)
 
 	HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
 	HANDLE_CUDA_ERROR(cudaMemcpy(segments, d_segments, sizeof(Segment) * width * height, cudaMemcpyDeviceToHost));
