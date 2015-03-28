@@ -11,7 +11,7 @@ void count_raw_moments(uchar* data, int width, int height, int step, double* raw
 		cudaStream_t stream);
 
 __global__
-void k_count_raw_moment(uchar* data, int width, int height, int step, long* result);
+void k_count_raw_moment(uchar* data, int width, int height, int step, int pass, long* result);
 
 }}
 
