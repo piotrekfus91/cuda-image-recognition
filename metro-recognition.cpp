@@ -1,5 +1,8 @@
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
+#include "cir/gpuprocessing/GpuImageProcessingService.h"
+#include "cir/gpuprocessing/GpuUnionFindSegmentator.h"
 #include "cir/common/logger/ImmediateConsoleLogger.h"
+#include "cir/common/logger/NullLogger.h"
 #include "cir/common/test_file_loader.h"
 #include "cir/common/recognition/MetroRecognizor.h"
 #include "opencv2/opencv.hpp"
@@ -9,12 +12,14 @@ using namespace cir::common;
 using namespace cir::common::logger;
 using namespace cir::common::recognition;
 using namespace cir::cpuprocessing;
+using namespace cir::gpuprocessing;
 
 void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessingService* service);
 
 int main() {
 	ImmediateConsoleLogger logger;
-	CpuImageProcessingService service(logger);
+	GpuImageProcessingService service(logger);
+	service.setSegmentator(new GpuUnionFindSegmentator);
 
 	MetroRecognizor recognizor(service);
 	recognizor.learn(getTestFile("metro", "metro.png").c_str());
@@ -31,11 +36,12 @@ int main() {
 
 void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessingService* service) {
 	cv::Mat mat = cv::imread(filePath.c_str());
-	MatWrapper mw(mat);
+	MatWrapper mw = service->getMatWrapper(mat);
 	RecognitionInfo recognitionInfo = recognizor.recognize(mw);
 	if(recognitionInfo.isSuccess()) {
 		mw = service->mark(mw, recognitionInfo.getMatchedSegments());
 	}
-	cv::imshow("result", mw.getMat());
+	mat = service->getMat(mw);
+	cv::imshow("result", mat);
 	cv::waitKey(0);
 }

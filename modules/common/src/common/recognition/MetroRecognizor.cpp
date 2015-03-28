@@ -25,9 +25,6 @@ const RecognitionInfo MetroRecognizor::recognize(MatWrapper& input) {
 	mw = _service.toGrey(mw);
 	mw = _service.median(mw);
 	mw = _service.threshold(mw);
-	cv::namedWindow("all");
-	cv::imshow("all", mw.getMat());
-//	cv::waitKey(0);
 
 	SegmentArray* segmentArray = _service.segmentate(mw);
 	std::list<Segment*> acceptedSegments;
@@ -39,26 +36,18 @@ const RecognitionInfo MetroRecognizor::recognize(MatWrapper& input) {
 		MatWrapper redSegmentMw = detectRed(segmentMw);
 		redSegmentMw = _service.toGrey(redSegmentMw);
 		redSegmentMw = _service.threshold(redSegmentMw);
-		cv::namedWindow("red");
-		cv::imshow("red", redSegmentMw.getMat());
-//		cv::waitKey(0);
+
 		double* redHuMoments = _service.countHuMoments(redSegmentMw);
-		cv::Moments mom = cv::moments(redSegmentMw.getMat(), true);
-		double* huMom = new double[7];
-		cv::HuMoments(mom, huMom);
 		double redResult = _heuristic->countHeuristic(&_pattern, redHuMoments, 0);
 		if(_heuristic->isApplicable(redResult)) {
 			MatWrapper yellowSegmentMw = detectYellow(segmentMw);
 			yellowSegmentMw = _service.toGrey(yellowSegmentMw);
 			yellowSegmentMw = _service.threshold(yellowSegmentMw);
-			cv::namedWindow("yellow");
-			cv::imshow("yellow", yellowSegmentMw.getMat());
-//			cv::waitKey(0);
+
 			double* yellowHuMoments = _service.countHuMoments(yellowSegmentMw);
 			double yellowResult = _heuristic->countHeuristic(&_pattern, yellowHuMoments, 1);
 			if(_heuristic->isApplicable(yellowResult)) {
 				acceptedSegments.push_back(segment);
-//				cv::waitKey(0);
 			}
 		}
 	}
@@ -87,14 +76,14 @@ void MetroRecognizor::learn(MatWrapper& input) {
 	MatWrapper mw = _service.bgrToHsv(input);
 	mw = detectRed(mw);
 	mw = _service.toGrey(mw);
-	mw = _service.median(mw);
+//	mw = _service.median(mw);
 	mw = _service.threshold(mw);
 	double* redHuMoments = _service.countHuMoments(mw);
 
 	mw = _service.bgrToHsv(input);
 	mw = detectYellow(mw);
 	mw = _service.toGrey(mw);
-	mw = _service.median(mw);
+//	mw = _service.median(mw);
 	mw = _service.threshold(mw);
 	double* yellowHuMoments = _service.countHuMoments(mw);
 
@@ -108,7 +97,7 @@ void MetroRecognizor::learn(MatWrapper& input) {
 
 void MetroRecognizor::learn(const char* filePath) {
 	cv::Mat mat = cv::imread(filePath);
-	MatWrapper mw(mat);
+	MatWrapper mw = _service.getMatWrapper(mat);
 	learn(mw);
 	_pattern.setFileName(filePath);
 }
