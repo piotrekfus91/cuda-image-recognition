@@ -20,39 +20,42 @@ void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, Im
 
 int main() {
 	cv::Mat mat = cv::imread(getTestFile("cpu-processing", "metro_red_yellow.bmp").c_str());
-	cv::gpu::GpuMat gpuMat(mat);
 
 	NullLogger logger;
-	GpuImageProcessingService gpuService(logger);
-	gpuService.setSegmentator(new GpuUnionFindSegmentator);
+	CpuImageProcessingService cpuService(logger);
+	cpuService.setSegmentator(new CpuUnionFindSegmentator);
 
-	gpuService.init(gpuMat.cols, gpuMat.rows);
+	cpuService.init(mat.cols, mat.rows);
 
-	RegistrationPlateRecognizor recognizor(gpuService);
+	RegistrationPlateRecognizor recognizor(cpuService);
 	RegistrationPlateTeacher teacher(&recognizor);
+	recognizor.setWriteLetters(true);
 	teacher.teach(getTestFile("registration-plate", "alphabet"));
 
 	cv::namedWindow("result");
-	recognize(getTestFile("registration-plate", "damian.bmp"), recognizor, &gpuService);
-	recognize(getTestFile("registration-plate", "pt-cruiser-front.jpeg"), recognizor, &gpuService);
-	recognize(getTestFile("registration-plate", "pt-cruiser-back.jpeg"), recognizor, &gpuService);
-	recognize(getTestFile("registration-plate", "Audi-Q7-white.jpg"), recognizor, &gpuService);
-	recognize(getTestFile("registration-plate", "Audi-Q7-black.jpg"), recognizor, &gpuService);
+	recognize(getTestFile("registration-plate", "damian.bmp"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "pt-cruiser-front.jpeg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "pt-cruiser-back.jpeg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "Audi-Q7-white.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "Audi-Q7-black.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "skoda.jpeg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "passat.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "passat2.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "audi-a4.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "audi-a42.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "vectra.jpg"), recognizor, &cpuService);
+	recognize(getTestFile("registration-plate", "vectra2.jpg"), recognizor, &cpuService);
 }
 
 void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, ImageProcessingService* service) {
 	cv::Mat mat = cv::imread(filePath.c_str());
-	cv::gpu::GpuMat gpuMat(mat);
-	MatWrapper mw(gpuMat);
+	MatWrapper mw(mat);
 	service->init(mw.getWidth(), mw.getHeight());
 	RecognitionInfo recognitionInfo = recognizor.recognize(mw);
 
 	if(recognitionInfo.isSuccess()) {
 		mw = service->mark(mw, recognitionInfo.getMatchedSegments());
-		cv::Mat mat;
-		cv::gpu::GpuMat gpuMat = mw.getGpuMat();
-		gpuMat.download(mat);
-		cv::imshow("result", mat);
-		cv::waitKey(0);
 	}
+	cv::imshow("result", mw.getMat());
+	cv::waitKey(0);
 }

@@ -18,12 +18,16 @@ using namespace std;
 namespace cir { namespace common { namespace recognition {
 
 RegistrationPlateRecognizor::RegistrationPlateRecognizor(ImageProcessingService& service)
-		: Recognizor(service), _classifier(new TesseractClassifier) {
+		: Recognizor(service), _classifier(new TesseractClassifier), _writeLetters(false) {
 
 }
 
 RegistrationPlateRecognizor::~RegistrationPlateRecognizor() {
 
+}
+
+void RegistrationPlateRecognizor::setWriteLetters(bool writeLetters) {
+	_writeLetters = writeLetters;
 }
 
 void RegistrationPlateRecognizor::setClassifier(Classifier* classifier) {
@@ -124,8 +128,10 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 
 	release(allSegmentsArray);
 
-	for(std::list<std::string>::iterator it = recognizedPlates.begin(); it != recognizedPlates.end(); it++) {
-//		std::cout << *it << std::endl;
+	if(_writeLetters) {
+		for(std::list<std::string>::iterator it = recognizedPlates.begin(); it != recognizedPlates.end(); it++) {
+			std::cout << *it << std::endl;
+		}
 	}
 
 	SegmentArray* resultSegmentArray = NULL;

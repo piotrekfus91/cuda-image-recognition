@@ -20,6 +20,7 @@ public:
 	virtual void learn(const char* filePath);
 
 	void setClassifier(cir::common::classification::Classifier* classifier);
+	void setWriteLetters(bool writeLetters);
 
 private:
 	cir::common::MatWrapper detectAllColors(cir::common::MatWrapper& input) const;
@@ -28,6 +29,7 @@ private:
 
 	std::map<std::string, Pattern*> _patternsMap;
 	cir::common::classification::Classifier* _classifier;
+	bool _writeLetters;
 };
 
 }}}
