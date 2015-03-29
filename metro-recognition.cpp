@@ -1,4 +1,5 @@
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
+#include "cir/cpuprocessing/CpuUnionFindSegmentator.h"
 #include "cir/gpuprocessing/GpuImageProcessingService.h"
 #include "cir/gpuprocessing/GpuUnionFindSegmentator.h"
 #include "cir/common/logger/ImmediateConsoleLogger.h"
@@ -23,18 +24,18 @@ void experiment(MetroRecognizor& recognizor, ImageProcessingService* service);
 
 int main() {
 	std::list<std::string> loggerConf;
-	loggerConf.push_back("Median");
+	loggerConf.push_back("Segmentate");
 	BufferedConfigurableLogger logger(loggerConf);
-	GpuImageProcessingService service(logger);
-	service.setSegmentator(new GpuUnionFindSegmentator);
+	CpuImageProcessingService service(logger);
+	service.setSegmentator(new CpuUnionFindSegmentator);
 	service.init(0, 0);
 	service.setSegmentatorMinSize(30);
 
 	MetroRecognizor recognizor(service);
 	recognizor.learn(getTestFile("metro", "metro.png").c_str());
 
-//	showRecognitionResults(recognizor, &service);
-	experiment(recognizor, &service);
+	showRecognitionResults(recognizor, &service);
+//	experiment(recognizor, &service);
 
 	logger.flushBuffer();
 }
@@ -56,10 +57,10 @@ void experiment(MetroRecognizor& recognizor, ImageProcessingService* service) {
 		recognize(getTestFile("metro", "metro.png"), recognizor, service);
 	}
 	for(int i = 0; i < reps; i++) {
-		recognize(getTestFile("metro", "metro640x480.png"), recognizor, service);
+		recognize(getTestFile("metro", "metro_mlociny.jpeg"), recognizor, service);
 	}
 	for(int i = 0; i < reps; i++) {
-		recognize(getTestFile("metro", "metro1024x768.png"), recognizor, service);
+		recognize(getTestFile("metro", "metro-imielin.jpg"), recognizor, service);
 	}
 }
 
@@ -72,5 +73,5 @@ void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessin
 	}
 	mat = service->getMat(mw);
 	cv::imshow("result", mat);
-//	cv::waitKey(0);
+	cv::waitKey(0);
 }
