@@ -15,16 +15,12 @@ cv::Mat ImageProcessingService::DEFAULT_ERODE_KERNEL = cv::getStructuringElement
 
 cv::Mat ImageProcessingService::DEFAULT_DILATE_KERNEL = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
 
-ImageProcessingService::ImageProcessingService(Logger& logger) : _logger(logger), _segmentator(NULL) {
+ImageProcessingService::ImageProcessingService(Logger& logger) : _logger(logger) {
 
 }
 
 ImageProcessingService::~ImageProcessingService() {
 
-}
-
-void ImageProcessingService::setSegmentator(Segmentator* segmentator) {
-	_segmentator = segmentator;
 }
 
 cir::common::MatWrapper ImageProcessingService::toGrey(const cir::common::MatWrapper& input) {

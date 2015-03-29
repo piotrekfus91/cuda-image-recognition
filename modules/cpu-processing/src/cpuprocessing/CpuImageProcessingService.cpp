@@ -29,6 +29,10 @@ void CpuImageProcessingService::setSegmentatorMinSize(int minSize) {
 	_segmentator->setMinSize(minSize);
 }
 
+void CpuImageProcessingService::setSegmentator(Segmentator* segmentator) {
+	_segmentator = segmentator;
+}
+
 MatWrapper CpuImageProcessingService::doToGrey(const MatWrapper& input) {
 	cv::Mat output;
 

@@ -12,7 +12,8 @@ using namespace cir::common::logger;
 using namespace cir::common::exception;
 using namespace cir::common::concurrency;
 
-GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger) : ImageProcessingService(logger) {
+GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger)
+		: ImageProcessingService(logger), _segmentator(NULL) {
 
 }
 
@@ -35,6 +36,10 @@ const char* GpuImageProcessingService::getModule() {
 
 void GpuImageProcessingService::setSegmentatorMinSize(int minSize) {
 	_segmentator->setMinSize(minSize);
+}
+
+void GpuImageProcessingService::setSegmentator(Segmentator* segmentator) {
+	_segmentator = segmentator;
 }
 
 MatWrapper GpuImageProcessingService::doToGrey(const MatWrapper& input) {
