@@ -23,10 +23,10 @@ void experiment(MetroRecognizor& recognizor, ImageProcessingService* service);
 
 int main() {
 	std::list<std::string> loggerConf;
-	loggerConf.push_back("Count Hu moments");
+	loggerConf.push_back("Median");
 	BufferedConfigurableLogger logger(loggerConf);
-	GpuImageProcessingService service(logger);
-	service.setSegmentator(new GpuUnionFindSegmentator);
+	CpuImageProcessingService service(logger);
+//	service.setSegmentator(new GpuUnionFindSegmentator);
 	service.init(0, 0);
 	service.setSegmentatorMinSize(30);
 
