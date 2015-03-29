@@ -78,9 +78,7 @@ void k_median_blur(uchar* origData, uchar* cloneData, int width, int height, int
 
 	for(int i = x[0] - SIZE, i2 = threadIdx.x; i <= x[0] + SIZE; i++, i2++) {
 		for(int j = y - SIZE, j2 = threadIdx.y; j <= y + SIZE; j++, j2++) {
-			if(i >= 0 && i < width && j >= 0 && j < height) {
-				surround[total++] = cache[j2 * (blockDim.x + 2) + i2];
-			}
+			surround[total++] = cache[j2 * (blockDim.x + 2) + i2];
 		}
 	}
 	sort<uchar>(surround, total);
