@@ -14,7 +14,7 @@ void median_blur(uchar* origData, uchar* cloneData, int width, int height, int s
 	dim3 blocks((width+THREADS-1)/THREADS, (height+THREADS-1)/THREADS);
 	dim3 threads(THREADS, THREADS);
 
-//	KERNEL_MEASURE_START
+//	KERNEL_MEASURE_START(stream)
 
 	if(size == 1)
 		k_median_blur<1><<<blocks, threads, 0, stream>>>(origData, cloneData, width, height, step);
@@ -24,7 +24,7 @@ void median_blur(uchar* origData, uchar* cloneData, int width, int height, int s
 		k_median_blur<3><<<blocks, threads, 0, stream>>>(origData, cloneData, width, height, step);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 
-//	KERNEL_MEASURE_END("Median")
+//	KERNEL_MEASURE_END("Median", stream)
 }
 
 template<class T>
@@ -45,27 +45,47 @@ void sort(T* arr, int size) {
 template <int SIZE>
 __global__
 void k_median_blur(uchar* origData, uchar* cloneData, int width, int height, int step) {
-	int x = threadIdx.x + blockDim.x * blockIdx.x;
-	if(x >= width)
+	__shared__ char cache[(THREADS+2) * (THREADS+2)];
+	__shared__ int x[1];
+	x[0] = threadIdx.x + blockDim.x * blockIdx.x;
+	if(x[0] >= width)
 		return;
 
-	int y = threadIdx.y + blockDim.y * blockIdx.y;
+	int y;
+	y = threadIdx.y + blockDim.y * blockIdx.y;
 	if(y >= height)
 		return;
+
+	int globalIdx = x[0] + step * y;
+
+	int cacheIdx = threadIdx.x + 1 + (blockDim.x + 2) * (threadIdx.y + 1);
+	cache[cacheIdx] = origData[globalIdx];
+
+	if(threadIdx.x == 0)
+		cache[(threadIdx.y + 1) * (blockDim.x + 2)] = blockIdx.x == 0 ? 0 : origData[globalIdx - 1];
+
+	if(threadIdx.x == blockDim.x - 1)
+		cache[(threadIdx.y + 1) * (blockDim.x + 2) + blockDim.x + 1] = blockIdx.x == gridDim.x ? 0 : origData[globalIdx + 1];
+
+	if(threadIdx.y == 0)
+		cache[threadIdx.x] = blockIdx.y == 0 ? 0 : origData[globalIdx - (blockDim.x + 2)];
+
+	if(threadIdx.y == blockDim.y - 1)
+		cache[threadIdx.x + 1 + (blockDim.x + 2) * (blockDim.y + 1)] = blockIdx.y == gridDim.y ? 0 : origData[globalIdx + (blockDim.x + 2)];
 
 	uchar surround[(2*SIZE+1) * (2*SIZE+1)];
 	int total = 0;
 
-	for(int i = x - SIZE; i <= x + SIZE; i++) {
-		for(int j = y - SIZE; j <= y + SIZE; j++) {
+	for(int i = x[0] - SIZE, i2 = threadIdx.x; i <= x[0] + SIZE; i++, i2++) {
+		for(int j = y - SIZE, j2 = threadIdx.y; j <= y + SIZE; j++, j2++) {
 			if(i >= 0 && i < width && j >= 0 && j < height) {
-				surround[total++] = origData[j * step + i];
+				surround[total++] = cache[j2 * (blockDim.x + 2) + i2];
 			}
 		}
 	}
 	sort<uchar>(surround, total);
 	uchar u = total % 2 == 0 ? (surround[total / 2] + surround[total / 2 - 1]) / 2 : surround[total / 2 - 1];
-	cloneData[(x + step * y)] = u;
+	cloneData[globalIdx] = u;
 }
 
 }}
