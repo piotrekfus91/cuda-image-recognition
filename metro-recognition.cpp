@@ -34,8 +34,8 @@ int main() {
 	MetroRecognizor recognizor(service);
 	recognizor.learn(getTestFile("metro", "metro.png").c_str());
 
-	showRecognitionResults(recognizor, &service);
-//	experiment(recognizor, &service);
+//	showRecognitionResults(recognizor, &service);
+	experiment(recognizor, &service);
 
 	logger.flushBuffer();
 }
@@ -73,5 +73,5 @@ void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessin
 	}
 	mat = service->getMat(mw);
 	cv::imshow("result", mat);
-	cv::waitKey(0);
+//	cv::waitKey(0);
 }
