@@ -25,8 +25,8 @@ int main() {
 	std::list<std::string> loggerConf;
 	loggerConf.push_back("Median");
 	BufferedConfigurableLogger logger(loggerConf);
-	CpuImageProcessingService service(logger);
-//	service.setSegmentator(new GpuUnionFindSegmentator);
+	GpuImageProcessingService service(logger);
+	service.setSegmentator(new GpuUnionFindSegmentator);
 	service.init(0, 0);
 	service.setSegmentatorMinSize(30);
 
