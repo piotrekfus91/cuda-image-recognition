@@ -26,8 +26,8 @@ int main() {
 	std::list<std::string> loggerConf;
 	loggerConf.push_back("Segmentate");
 	BufferedConfigurableLogger logger(loggerConf);
-	CpuImageProcessingService service(logger);
-	service.setSegmentator(new CpuUnionFindSegmentator);
+	GpuImageProcessingService service(logger);
+	service.setSegmentator(new GpuUnionFindSegmentator);
 	service.init(0, 0);
 	service.setSegmentatorMinSize(30);
 
