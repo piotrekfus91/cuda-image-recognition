@@ -60,8 +60,20 @@ SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int wid
 	HANDLE_CUDA_ERROR(cudaMemcpyAsync(ids, d_ids, sizeof(int)*width*height, cudaMemcpyDeviceToHost, stream));
 	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
+	for(int i = 0; i < width * height; i++) {
+		int currentSegmentId = ids[i];
+		if(currentSegmentId == -1)
+			continue;
+
+		Segment* currentSegment = &segments[i];
+		Segment* targetSegment = &segments[currentSegmentId];
+		if(currentSegment != NULL && targetSegment != NULL)
+			d_merge_segments(currentSegment, targetSegment);
+	}
+
 	std::map<int, Segment*> appliedSegments;
 	int total = 0;
+	
 	for(int i = 0; i < width*height; i++) {
 		if(i == ids[i]) {
 			Segment* segm = &segments[i];
@@ -77,17 +89,6 @@ SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int wid
 	SegmentArray* segmentArray = (SegmentArray*) malloc(sizeof(SegmentArray));
 
 	if(total > 0) {
-		for(int i = 0; i < width * height; i++) {
-			int currentSegmentId = ids[i];
-			if(currentSegmentId == -1)
-				continue;
-
-			Segment* currentSegment = &segments[i];
-			Segment* targetSegment = appliedSegments[currentSegmentId];
-			if(currentSegment != NULL && targetSegment != NULL)
-				d_merge_segments(currentSegment, targetSegment);
-		}
-
 		int idx = 0;
 		Segment** segmentsToSet = (Segment**) malloc(sizeof(Segment*) * total);
 		for(std::map<int, Segment*>::iterator it = appliedSegments.begin(); it != appliedSegments.end(); it++) {
@@ -192,11 +193,9 @@ void d_unite(int pos1, int pos2, int* ids, Segment* segments, bool* changed) {
 	int root2 = d_find_root(ids, id2);
 
 	if(root1 < root2) {
-		d_merge_segments(&segments[ids[root1]], &segments[ids[root2]]);
 		ids[root2] = root1;
 		*changed = true;
 	} else if(root1 > root2) {
-		d_merge_segments(&segments[ids[root1]], &segments[ids[root2]]);
 		ids[root1] = root2;
 		*changed = true;
 	}
