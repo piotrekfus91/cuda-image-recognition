@@ -129,26 +129,34 @@ void k_prepare_best_neighbour(int* ids, Segment* segments, int width, int height
 	if(y >= height)
 		return;
 
-	int pos = d_count_pos(x, y, width, height);
+	int tid = x + width * y;
+	int total = width * height;
+	int warpsPerImage = (total + warpSize - 1) / warpSize;
+	int pos;
+	if(total % 2 != 0)
+		pos = (tid * warpSize) % total;
+	else
+		pos = ((tid * warpSize) % total + tid / warpsPerImage) % total;
+
 	if(ids[pos] == -1)
 		return;
 
-	if(x > 0) {
+	if(pos % width > 0) {
 		int neighbourPos = pos - 1;
 		d_unite(pos, neighbourPos, ids, segments, changed);
 	}
 
-	if(x < width - 1) {
+	if(pos % width < width - 1) {
 		int neighbourPos = pos + 1;
 		d_unite(pos, neighbourPos, ids, segments, changed);
 	}
 
-	if(y > 0) {
+	if(pos / width > 0) {
 		int neighbourPos = pos - width;
 		d_unite(pos, neighbourPos, ids, segments, changed);
 	}
 
-	if(y < height - 1) {
+	if(pos / width < height - 1) {
 		int neighbourPos = pos + width;
 		d_unite(pos, neighbourPos, ids, segments, changed);
 	}
