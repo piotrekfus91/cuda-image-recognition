@@ -188,8 +188,8 @@ void d_unite(int pos1, int pos2, int* ids, Segment* segments, bool* changed) {
 	if(id2 == -1)
 		return;
 
-	int root1 = d_find_root(ids, pos1);
-	int root2 = d_find_root(ids, pos2);
+	int root1 = d_find_root(ids, id1);
+	int root2 = d_find_root(ids, id2);
 
 	if(root1 < root2) {
 		d_merge_segments(&segments[ids[root1]], &segments[ids[root2]]);
