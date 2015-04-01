@@ -73,7 +73,7 @@ SegmentArray* union_find_segmentate(uchar* data, int step, int channels, int wid
 
 	std::map<int, Segment*> appliedSegments;
 	int total = 0;
-	
+
 	for(int i = 0; i < width*height; i++) {
 		if(i == ids[i]) {
 			Segment* segm = &segments[i];
@@ -187,6 +187,9 @@ void d_unite(int pos1, int pos2, int* ids, Segment* segments, bool* changed) {
 
 	int id2 = ids[pos2];
 	if(id2 == -1)
+		return;
+
+	if(id1 == id2)
 		return;
 
 	int root1 = d_find_root(ids, id1);
