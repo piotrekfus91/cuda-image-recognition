@@ -44,6 +44,9 @@ const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) 
 
 	for(int i = 0; i < allSegmentsArray->size; i++) {
 		Segment* segment = allSegmentsArray->segments[i];
+		if(segment->rightX - segment->leftX == input.getWidth() - 1)
+			continue;
+
 		MatWrapper segmentMw = _service.crop(mw, segment);
 
 		MatWrapper blueMw = detectBlue(segmentMw);
