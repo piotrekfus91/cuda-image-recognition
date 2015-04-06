@@ -10,7 +10,8 @@ namespace cir { namespace gpuprocessing {
 
 void region_splitting_segmentate_init(int width, int height);
 
-cir::common::SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height);
+cir::common::SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height,
+		cudaStream_t stream);
 
 void region_splitting_segmentate_shutdown();
 

@@ -15,27 +15,30 @@ using namespace cir::common::logger;
 
 namespace cir { namespace gpuprocessing {
 
-int sumBlocksNumber;
-
-element* elements;
-element* d_elements;
-
-int* partialSums;
-int* d_partialSums;
-
 void region_splitting_segmentate_init(int width, int height) {
-	sumBlocksNumber = (width*height+THREADS*THREADS-1)/(THREADS*THREADS);
-	elements = (element*) malloc(sizeof(element) * width * height);
-	segments = (Segment*) malloc(sizeof(Segment) * width * height);
-	partialSums = (int*) malloc(sizeof(int) * sumBlocksNumber);
+
+}
+
+SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height,
+		cudaStream_t stream) {
+	int sumBlocksNumber = (width*height+THREADS*THREADS-1)/(THREADS*THREADS);
+
+	element* elements;
+	Segment* segments;
+	int* partialSums;
+
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**) &elements, sizeof(element) * width * height, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**) &segments, sizeof(Segment) * width * height, cudaHostAllocDefault));
+	HANDLE_CUDA_ERROR(cudaHostAlloc((void**) &partialSums, sizeof(int) * sumBlocksNumber, cudaHostAllocDefault));
+
+	element* d_elements;
+	Segment* d_segments;
+	int* d_partialSums;
 
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_elements, sizeof(element) * width * height));
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_segments, sizeof(Segment) * width * height));
-
 	HANDLE_CUDA_ERROR(cudaMalloc((void**) &d_partialSums, sizeof(int) * sumBlocksNumber));
-}
 
-SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, int width, int height) {
 	for(int i = 0; i < width * height; i++) {
 		elements[i].id = i;
 		elements[i].valid = true;
@@ -43,17 +46,18 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 		segments[i] = createSimpleSegment(i % width, i / width);
 	}
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_elements, elements, sizeof(element) * width * height, cudaMemcpyHostToDevice));
-	HANDLE_CUDA_ERROR(cudaMemcpy(d_segments, segments, sizeof(Segment) * width * height, cudaMemcpyHostToDevice));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_elements, elements, sizeof(element) * width * height,
+			cudaMemcpyHostToDevice, stream));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_segments, segments, sizeof(Segment) * width * height,
+			cudaMemcpyHostToDevice, stream));
 
 	dim3 blocks((width+THREADS-1)/THREADS, (height+THREADS-1)/THREADS);
 	dim3 threads(THREADS, THREADS);
 
-	k_remove_empty_segments<<<blocks, threads>>>(data, width, height, step, d_elements);
+	k_remove_empty_segments<<<blocks, threads, 0, stream>>>(data, width, height, step, d_elements);
+	HANDLE_CUDA_ERROR(cudaGetLastError());
 
 	int greaterDim = width > height ? width : height;
-
-	HANDLE_CUDA_ERROR(cudaGetLastError());
 
 	for(int i = 1; i < greaterDim; i = 2 * i) {
 		int block_width = i;
@@ -64,7 +68,7 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 
 //		KERNEL_MEASURE_START(stream)
 
-		k_region_splitting_segmentate<<<blocks, threads>>>(data, d_elements, d_segments, step,
+		k_region_splitting_segmentate<<<blocks, threads, 0, stream>>>(data, d_elements, d_segments, step,
 				channels, width, height, block_width, block_height);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
 
@@ -82,17 +86,24 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 //		HANDLE_CUDA_ERROR(cudaDeviceSynchronize());
 	}
 
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
+
 	dim3 blocksForSum(sumBlocksNumber);
 	dim3 threadsForSum(THREADS*THREADS);
 
 //	KERNEL_MEASURE_START(stream)
-	k_count_applicable_segments<<<blocksForSum, threadsForSum>>>(d_elements, d_segments, width*height, _min_size, d_partialSums);
+	k_count_applicable_segments<<<blocksForSum, threadsForSum, 0, stream>>>(d_elements, d_segments, width*height, _min_size, d_partialSums);
 	HANDLE_CUDA_ERROR(cudaGetLastError());
 //	KERNEL_MEASURE_END("Segmentate sum", stream)
 
-	HANDLE_CUDA_ERROR(cudaMemcpy(elements, d_elements, sizeof(element) * width * height, cudaMemcpyDeviceToHost));
-	HANDLE_CUDA_ERROR(cudaMemcpy(segments, d_segments, sizeof(Segment) * width * height, cudaMemcpyDeviceToHost));
-	HANDLE_CUDA_ERROR(cudaMemcpy(partialSums, d_partialSums, sizeof(int) * sumBlocksNumber, cudaMemcpyDeviceToHost));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(elements, d_elements, sizeof(element) * width * height,
+			cudaMemcpyDeviceToHost, stream));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(segments, d_segments, sizeof(Segment) * width * height,
+			cudaMemcpyDeviceToHost, stream));
+	HANDLE_CUDA_ERROR(cudaMemcpyAsync(partialSums, d_partialSums, sizeof(int) * sumBlocksNumber,
+			cudaMemcpyDeviceToHost, stream));
+
+	HANDLE_CUDA_ERROR(cudaStreamSynchronize(stream));
 
 	int foundSegmentsSize = 0;
 	for(int j = 0; j < sumBlocksNumber; j++) {
@@ -120,15 +131,19 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 		segmentArray->segments = NULL;
 	}
 
+	HANDLE_CUDA_ERROR(cudaFree(d_elements));
+	HANDLE_CUDA_ERROR(cudaFree(d_segments));
+	HANDLE_CUDA_ERROR(cudaFree(d_partialSums));
+
+	HANDLE_CUDA_ERROR(cudaFreeHost(elements));
+	HANDLE_CUDA_ERROR(cudaFreeHost(segments));
+	HANDLE_CUDA_ERROR(cudaFreeHost(partialSums));
+
 	return segmentArray;
 }
 
 void region_splitting_segmentate_shutdown() {
-	HANDLE_CUDA_ERROR(cudaFree(d_elements));
-	HANDLE_CUDA_ERROR(cudaFree(d_segments));
 
-	free(elements);
-	free(segments);
 }
 
 __global__
