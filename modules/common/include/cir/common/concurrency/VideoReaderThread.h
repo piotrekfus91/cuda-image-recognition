@@ -16,12 +16,15 @@ public:
 
 	void operator()();
 
+	void stop();
+
 private:
 	int _threadsNumber;
 	cir::common::concurrency::IndexedMatWrapperBlockingQueue** _preConversionQueues;
 	cv::VideoCapture* _videoReader;
 	cir::common::ImageProcessingService* _service;
 	int _frameIdx;
+	bool run;
 
 	void addMatWrapper(cir::common::concurrency::IndexedMatWrapper& imw);
 	void addPoisonMatWrapper();

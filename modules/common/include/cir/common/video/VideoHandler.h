@@ -4,6 +4,7 @@
 #include <string>
 #include "cir/common/video/VideoConverter.h"
 #include <opencv2/opencv.hpp>
+#include <ctime>
 
 namespace cir { namespace common { namespace video {
 
@@ -23,6 +24,8 @@ protected:
 	virtual cv::VideoWriter openVideoWriter(cv::VideoCapture& videoReader, std::string& outputFilePath) const;
 
 	virtual cv::VideoCapture openVideoReader(int cameraIdx) const;
+
+	virtual int countTimeToWait(clock_t startTime, int frameRate) const;
 };
 
 }}}

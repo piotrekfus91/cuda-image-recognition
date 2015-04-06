@@ -34,14 +34,24 @@ void MultiThreadVideoHandler::handle(std::string& inputFilePath, std::string& ou
 		VideoConverter* converter) {
 	VideoCapture videoReader = openVideoReader(inputFilePath);
 	VideoWriter videoWriter = openVideoWriter(videoReader, outputFilePath);
-	int framesCount =  videoReader.get(CV_CAP_PROP_FRAME_COUNT);
 
-	clock_t videoBegin = clock();
+	handle(&videoReader, &videoWriter, converter, 0);
+}
 
-	VideoReaderThread reader(&videoReader, _preConversionQueues, _threadNumber,
+void MultiThreadVideoHandler::handle(int cameraIdx, VideoConverter* converter, int frameRate) {
+	cv::VideoCapture videoReader = openVideoReader(cameraIdx);
+	videoReader.set(CV_CAP_PROP_FPS, frameRate);
+	videoReader.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+	videoReader.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+	handle(&videoReader, NULL, converter, frameRate);
+}
+
+void MultiThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWriter* videoWriter,
+		VideoConverter* converter, int frameRate) {
+	VideoReaderThread reader(videoReader, _preConversionQueues, _threadNumber,
 			converter->getService());
-	VideoWriterThread writer(&videoWriter, _postConversionQueues, _threadNumber,
-			converter->getService());
+	VideoWriterThread writer(videoWriter, _postConversionQueues, _threadNumber,
+			converter->getService(), frameRate, &reader);
 
 	boost::thread readerThread(reader);
 	boost::thread writerThread(writer);
@@ -54,14 +64,9 @@ void MultiThreadVideoHandler::handle(std::string& inputFilePath, std::string& ou
 
 	writerThread.join();
 
-	videoReader.release();
-	videoWriter.release();
-
-	clock_t videoEnd = clock();
-	double videoTime = videoEnd - videoBegin;
-
-	std::cout << "video time: " << videoTime / _threadNumber / CLOCKS_PER_SEC << "s, frames count: " << framesCount << std::endl;
-	std::cout << "avg frame time: " << int(videoTime / framesCount * 1000 / CLOCKS_PER_SEC / _threadNumber) << "ms" << std::endl;
+	videoReader->release();
+	if(videoWriter != NULL)
+		videoWriter->release();
 }
 
 }}}

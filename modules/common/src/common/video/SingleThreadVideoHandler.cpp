@@ -21,15 +21,10 @@ SingleThreadVideoHandler::~SingleThreadVideoHandler() {
 void SingleThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWriter* videoWriter,
 		VideoConverter* converter, int frameRate) {
 	cv::namedWindow("Video");
-	videoReader->set(CV_CAP_PROP_FPS, frameRate);
-	videoReader->set(CV_CAP_PROP_FRAME_WIDTH, 640);
-	videoReader->set(CV_CAP_PROP_FRAME_HEIGHT, 480);
 
 	bool initialized = false;
 	Mat frame;
 	int frameIdx = 0;
-
-	int frameTime = frameRate != 0 ? 1000 / frameRate : 0;
 
 	while(true) {
 		clock_t startTime = clock();
@@ -61,10 +56,8 @@ void SingleThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWr
 			videoWriter->write(outMat);
 		} else {
 			cv::imshow("Video", outMat);
-			clock_t endTime = clock();
-			double totalTime = double(endTime - startTime) / CLOCKS_PER_SEC * 1000;
-			int timeToWait = frameTime - totalTime < 1 ? 1 : frameTime - totalTime;
-			std::cerr << totalTime << " " << timeToWait << std::endl;
+			int timeToWait = countTimeToWait(startTime, frameRate);
+			std::cerr << timeToWait << std::endl;
 			if(cv::waitKey(timeToWait) == 27) { // ESC
 				break;
 			}
@@ -87,6 +80,9 @@ void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& o
 
 void SingleThreadVideoHandler::handle(int cameraIdx, VideoConverter* converter, int frameRate) {
 	VideoCapture videoReader = openVideoReader(cameraIdx);
+	videoReader.set(CV_CAP_PROP_FPS, frameRate);
+	videoReader.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+	videoReader.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
 	handle(&videoReader, NULL, converter, frameRate);
 }
 

@@ -9,12 +9,14 @@ namespace cir { namespace common { namespace concurrency {
 
 VideoWriterThread::VideoWriterThread(VideoWriter* videoWriter,
 		IndexedMatWrapperBlockingQueue** postConversionQueues, int threadsNumber,
-		ImageProcessingService* service) {
+		ImageProcessingService* service, int frameRate, VideoReaderThread* reader) {
 	_videoWriter = videoWriter;
 	_postConversionQueues = postConversionQueues;
 	_threadsNumber = threadsNumber;
 	_service = service;
 	_frameIdx = 0;
+	_frameRate = frameRate;
+	_reader = reader;
 }
 
 VideoWriterThread::~VideoWriterThread() {
@@ -22,6 +24,9 @@ VideoWriterThread::~VideoWriterThread() {
 }
 
 void VideoWriterThread::operator()() {
+	if(_videoWriter == NULL)
+		cv::namedWindow("Video");
+
 	while(true) {
 		IndexedMatWrapper imw = readMatWrapper();
 		if(imw.isPoison()) {
@@ -30,8 +35,14 @@ void VideoWriterThread::operator()() {
 
 		MatWrapper mw = imw.matWrapper;
 
-		std::cerr << imw.id << std::endl;
-		_videoWriter->write(_service->getMat(mw));
+		if(_videoWriter == NULL) {
+			cv::imshow("Video", _service->getMat(mw));
+			if(cv::waitKey(1000 / _frameRate) == 27) { // ESC
+				_reader->stop();
+			}
+		} else {
+			_videoWriter->write(_service->getMat(mw));
+		}
 	}
 }
 

@@ -50,4 +50,12 @@ VideoWriter VideoHandler::openVideoWriter(VideoCapture& videoReader, std::string
 	return videoWriter;
 }
 
+int VideoHandler::countTimeToWait(clock_t startTime, int frameRate) const {
+	int frameTime = frameRate != 0 ? 1000 / frameRate : 0;
+	clock_t endTime = clock();
+	double totalTime = double(endTime - startTime) / CLOCKS_PER_SEC * 1000;
+	int timeToWait = frameTime - totalTime < 1 ? 1 : frameTime - totalTime;
+	return timeToWait;
+}
+
 }}}

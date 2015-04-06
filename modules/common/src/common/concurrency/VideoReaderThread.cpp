@@ -15,6 +15,7 @@ VideoReaderThread::VideoReaderThread(VideoCapture* videoReader,
 	_videoReader = videoReader;
 	_service = service;
 	_frameIdx = 0;
+	run = true;
 }
 
 VideoReaderThread::~VideoReaderThread() {
@@ -23,7 +24,7 @@ VideoReaderThread::~VideoReaderThread() {
 
 void VideoReaderThread::operator()() {
 	Mat frame;
-	while(true) {
+	while(run) {
 		bool frameRead = _videoReader->read(frame);
 		if(!frameRead) {
 			addPoisonMatWrapper();
@@ -49,6 +50,11 @@ void VideoReaderThread::addPoisonMatWrapper() {
 	imw.bePoison();
 	for(int i = 0; i < _threadsNumber; i++)
 		addMatWrapper(imw);
+}
+
+void VideoReaderThread::stop() {
+	run = false;
+	addPoisonMatWrapper();
 }
 
 }}}
