@@ -43,12 +43,12 @@ void count_raw_moments(uchar* data, int width, int height, int step, double* raw
 		HANDLE_CUDA_ERROR(cudaMemcpyAsync(d_blockSums, blockSums, sizeof(long) * totalToAlloc, cudaMemcpyHostToDevice,
 				stream));
 
-		KERNEL_MEASURE_START(stream)
+//		KERNEL_MEASURE_START(stream)
 
 		k_count_raw_moment<<<blocks, threads, 0, stream>>>(data, width, height, step, pass, d_blockSums);
 		HANDLE_CUDA_ERROR(cudaGetLastError());
 
-		KERNEL_MEASURE_END("Count Hu moments", stream)
+//		KERNEL_MEASURE_END("Count Hu moments", stream)
 
 		HANDLE_CUDA_ERROR(cudaMemcpyAsync(blockSums, d_blockSums, sizeof(long) * totalToAlloc, cudaMemcpyDeviceToHost,
 				stream));

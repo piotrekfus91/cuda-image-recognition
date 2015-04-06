@@ -12,6 +12,12 @@ public:
 
 	virtual void handle(std::string& inputFilePath, std::string& outputFilePath,
 			VideoConverter* converter);
+
+	virtual void handle(int cameraIdx, VideoConverter* converter, int frameRate);
+
+private:
+	virtual void handle(cv::VideoCapture* videoReader, cv::VideoWriter* videoWriter,
+			VideoConverter* converter, int frameRate);
 };
 
 }}}

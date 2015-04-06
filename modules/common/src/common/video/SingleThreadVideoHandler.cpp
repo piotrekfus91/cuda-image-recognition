@@ -18,55 +18,76 @@ SingleThreadVideoHandler::~SingleThreadVideoHandler() {
 
 }
 
-void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& outputFilePath,
-		VideoConverter* converter) {
-	VideoCapture videoReader = openVideoReader(inputFilePath);
-	VideoWriter videoWriter = openVideoWriter(videoReader, outputFilePath);
-	int framesCount =  videoReader.get(CV_CAP_PROP_FRAME_COUNT);
-
-	clock_t videoBegin = clock();
+void SingleThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWriter* videoWriter,
+		VideoConverter* converter, int frameRate) {
+	cv::namedWindow("Video");
+	videoReader->set(CV_CAP_PROP_FPS, frameRate);
+	videoReader->set(CV_CAP_PROP_FRAME_WIDTH, 640);
+	videoReader->set(CV_CAP_PROP_FRAME_HEIGHT, 480);
 
 	bool initialized = false;
 	Mat frame;
+	int frameIdx = 0;
+
+	int frameTime = frameRate != 0 ? 1000 / frameRate : 0;
+
 	while(true) {
-		bool frameRead = videoReader.read(frame);
+		clock_t startTime = clock();
+		bool frameRead = videoReader->read(frame);
 		if(!frameRead)
 			break;
+
+		cv::Mat outMat;
 
 		if(frame.type() != 0) {
 			if(!initialized) {
 				converter->getService()->init(frame.cols, frame.rows);
 				initialized = true;
 			}
-			clock_t begin = clock();
 			MatWrapper mw = converter->getService()->getMatWrapper(frame);
 			mw = converter->convert(mw);
-			clock_t end = clock();
-			std::cout << "frame time (" << int(videoReader.get(CV_CAP_PROP_POS_FRAMES)) << "): " <<
-					double(end - begin) / CLOCKS_PER_SEC * 1000 << "ms" << std::endl;
 
-			cv::Mat outMat;
 			if(mw.getType() == MatWrapper::MAT) {
 				outMat = mw.getMat();
 			} else {
 				cv::gpu::GpuMat outGpuMat = mw.getGpuMat();
 				outGpuMat.download(outMat);
 			}
-			videoWriter.write(outMat);
 		} else {
-			videoWriter.write(frame);
+			outMat = frame;
 		}
 
+		if(videoWriter != NULL) {
+			videoWriter->write(outMat);
+		} else {
+			cv::imshow("Video", outMat);
+			clock_t endTime = clock();
+			double totalTime = double(endTime - startTime) / CLOCKS_PER_SEC * 1000;
+			int timeToWait = frameTime - totalTime < 1 ? 1 : frameTime - totalTime;
+			std::cerr << totalTime << " " << timeToWait << std::endl;
+			if(cv::waitKey(timeToWait) == 27) { // ESC
+				break;
+			}
+		}
+
+		frameIdx++;
 	}
 
-	videoReader.release();
-	videoWriter.release();
+	videoReader->release();
+	if(videoWriter != NULL)
+		videoWriter->release();
+}
 
-	clock_t videoEnd = clock();
-	double videoTime = videoEnd - videoBegin;
+void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& outputFilePath,
+		VideoConverter* converter) {
+	VideoCapture videoReader = openVideoReader(inputFilePath);
+	VideoWriter videoWriter = openVideoWriter(videoReader, outputFilePath);
+	handle(&videoReader, &videoWriter, converter, -1);
+}
 
-	std::cout << "video time: " << videoTime / CLOCKS_PER_SEC << "s, frames count: " << framesCount << std::endl;
-	std::cout << "avg frame time: " << int(videoTime / framesCount * 1000 / CLOCKS_PER_SEC) << "ms" << std::endl;
+void SingleThreadVideoHandler::handle(int cameraIdx, VideoConverter* converter, int frameRate) {
+	VideoCapture videoReader = openVideoReader(cameraIdx);
+	handle(&videoReader, NULL, converter, frameRate);
 }
 
 }}}

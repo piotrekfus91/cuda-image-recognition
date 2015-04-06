@@ -16,9 +16,13 @@ public:
 	virtual void handle(std::string& inputFilePath, std::string& outputFilePath,
 			VideoConverter* converter) = 0;
 
+	virtual void handle(int cameraIdx, VideoConverter* converter, int frameRate) = 0;
+
 protected:
 	virtual cv::VideoCapture openVideoReader(std::string& inputFilePath) const;
 	virtual cv::VideoWriter openVideoWriter(cv::VideoCapture& videoReader, std::string& outputFilePath) const;
+
+	virtual cv::VideoCapture openVideoReader(int cameraIdx) const;
 };
 
 }}}

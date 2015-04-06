@@ -6,7 +6,7 @@
 
 namespace cir { namespace common { namespace recognition {
 
-class MetroRecognizor : Recognizor {
+class MetroRecognizor : public Recognizor {
 public:
 	MetroRecognizor(cir::common::ImageProcessingService& service);
 	virtual ~MetroRecognizor();

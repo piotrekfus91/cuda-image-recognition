@@ -30,6 +30,13 @@ VideoCapture VideoHandler::openVideoReader(std::string& inputFilePath) const {
 	return videoReader;
 }
 
+VideoCapture VideoHandler::openVideoReader(int cameraIdx) const {
+	VideoCapture videoReader(cameraIdx);
+	if(!videoReader.isOpened())
+		throw new VideoException("cannot open camera");
+	return videoReader;
+}
+
 VideoWriter VideoHandler::openVideoWriter(VideoCapture& videoReader, std::string& outputFilePath) const {
 	double fourcc = videoReader.get(CV_CAP_PROP_FOURCC);
 	double fps = videoReader.get(CV_CAP_PROP_FPS);
