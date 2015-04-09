@@ -44,7 +44,7 @@ __device__
 bool d_is_empty(uchar* data, int addr);
 
 __device__ __host__
-void d_is_segment_applicable(cir::common::Segment* segment, bool* is_applicable, int min_size);
+void d_is_segment_applicable_rs(cir::common::Segment* segment, bool* is_applicable, int min_size);
 
 }}
 

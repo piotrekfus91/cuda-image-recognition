@@ -119,7 +119,7 @@ SegmentArray* region_splitting_segmentate(uchar* data, int step, int channels, i
 		for(int j = 0; j < width*height; j++) {
 			if(elements[j].valid) {
 				bool segment_applicable = false;
-				d_is_segment_applicable(&(segments[j]), &segment_applicable, _min_size);
+				d_is_segment_applicable_rs(&(segments[j]), &segment_applicable, _min_size);
 				if(segment_applicable) {
 					Segment segment = segments[j];
 					appliedSegments[currentSegmentIndex++] = copySegment(&segment);
@@ -176,7 +176,7 @@ void k_count_applicable_segments(element* elements, Segment* segments,
 		return;
 
 	bool is_segment_applicable = false;
-	d_is_segment_applicable(&(segments[tid]), &is_segment_applicable, min_size);
+	d_is_segment_applicable_rs(&(segments[tid]), &is_segment_applicable, min_size);
 
 	element* elem = &(elements[tid]);
 
@@ -383,7 +383,7 @@ void d_try_merge(int idx, int current_elem_id, int id_to_set, int width, int hei
 					elemToInvalidate->valid = false;
 				elemToInvalidate->id = id_to_set;
 			}
-			d_merge_segments(segm1, segm2);
+			d_merge_segments_rs(segm1, segm2);
 			if(invalidate_all)
 				elem->valid = false;
 			elem->id = id_to_set;
@@ -397,14 +397,14 @@ bool d_is_empty(uchar* data, int addr) {
 }
 
 __device__ __host__
-void d_is_segment_applicable(Segment* segment, bool* is_applicable, int min_size) {
+void d_is_segment_applicable_rs(Segment* segment, bool* is_applicable, int min_size) {
 	int width = abs(segment->rightX - segment->leftX);
 	int height = abs(segment->topY - segment->bottomY);
 	*is_applicable = width >= min_size && height >= min_size;
 }
 
 __device__
-void d_merge_segments(Segment* segm1, Segment* segm2) {
+void d_merge_segments_rs(Segment* segm1, Segment* segm2) {
 	if(segm1->leftX < segm2->leftX) {
 		segm2->leftX = segm1->leftX;
 	} else {
