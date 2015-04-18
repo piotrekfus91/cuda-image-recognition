@@ -24,6 +24,9 @@ public:
 	virtual cir::common::MatWrapper mark(cir::common::MatWrapper& input, const cir::common::SegmentArray* segmentArray);
 	virtual cir::common::MatWrapper crop(cir::common::MatWrapper& input, cir::common::Segment* segment);
 
+	virtual cir::common::MatWrapper getMatWrapper(const cv::Mat& mat) const;
+	virtual cv::Mat getMat(const cir::common::MatWrapper& matWrapper) const;
+
 protected:
 	virtual cir::common::MatWrapper doToGrey(const cir::common::MatWrapper& input);
 	virtual cir::common::MatWrapper doThreshold(const cir::common::MatWrapper& input, bool invertColors,
@@ -40,9 +43,6 @@ protected:
 	virtual cir::common::MatWrapper doEqualizeHistogram(const cir::common::MatWrapper& input);
 	virtual cir::common::SegmentArray* doSegmentate(const cir::common::MatWrapper& input);
 	virtual double* doCountHuMoments(const cir::common::MatWrapper& matWrapper);
-
-	virtual cir::common::MatWrapper getMatWrapper(const cv::Mat& mat) const;
-	virtual cv::Mat getMat(const cir::common::MatWrapper& matWrapper) const;
 
 private:
 	CpuColorDetector _cpuColorDetector;

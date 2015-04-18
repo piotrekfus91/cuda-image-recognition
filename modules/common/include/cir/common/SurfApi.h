@@ -26,7 +26,7 @@ protected:
 	virtual std::vector<cv::DMatch> doFindMatches(SurfPoints& surfPoints1,
 			SurfPoints& surfPoints2) = 0;
 	virtual float doGetSimilarity(SurfPoints& surfPoints1, Segment* segm1,
-			SurfPoints& surfPoints2, Segment* segm2, std::vector<cv::DMatch> matches) = 0;
+			SurfPoints& surfPoints2, Segment* segm2, std::vector<cv::DMatch> matches);
 };
 
 }}

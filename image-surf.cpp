@@ -22,26 +22,29 @@ int main(int argc, char** argv) {
 	loggerConf.push_back("SURF find matches");
 	loggerConf.push_back("SURF similarity");
 	BufferedConfigurableLogger logger(loggerConf);
-	CpuImageProcessingService service(logger);
+	GpuImageProcessingService service(logger);
 	MetroRecognizor recognizor(service);
 	recognizor.learn(getTestFile("metro", "metro.png").c_str());
 
 	cv::Mat mat1 = cv::imread(getTestFile("metro", "metro.png").c_str());
 //	cv::Mat mat2 = cv::imread(getTestFile("metro", "metro.png").c_str());
-	cv::Mat mat2 = cv::imread(getTestFile("metro", "metro_scaled_rotated.png").c_str());
+//	cv::Mat mat2 = cv::imread(getTestFile("metro", "metro_scaled_rotated.png").c_str());
 //	cv::Mat mat2 = cv::imread(getTestFile("metro", "metro_warszawa_450.jpeg").c_str());
-//	cv::Mat mat2 = cv::imread(getTestFile("metro", "metro-imielin.jpg").c_str());
+	cv::Mat mat2 = cv::imread(getTestFile("metro", "metro-imielin.jpg").c_str());
 
-	MatWrapper mw1(mat1);
-	MatWrapper mw2(mat2);
+	MatWrapper mw1 = service.getMatWrapper(mat1);
+	MatWrapper mw2 = service.getMatWrapper(mat2);
 
 	RecognitionInfo recognitionInfo1 = recognizor.recognize(mw1);
 	RecognitionInfo recognitionInfo2 = recognizor.recognize(mw2);
 
+	MatWrapper greyMw1 = service.toGrey(mw1);
+	MatWrapper greyMw2 = service.toGrey(mw2);
+
 	if(recognitionInfo1.isSuccess() && recognitionInfo2.isSuccess()) {
 		SurfApi* surfApi = service.getSurfApi();
-		SurfPoints surfPoints1 = surfApi->performSurf(mw1, 400);
-		SurfPoints surfPoints2 = surfApi->performSurf(mw2, 400);
+		SurfPoints surfPoints1 = surfApi->performSurf(greyMw1, 400);
+		SurfPoints surfPoints2 = surfApi->performSurf(greyMw2, 400);
 
 		std::vector<cv::DMatch> matches = surfApi->findMatches(surfPoints1, surfPoints2);
 

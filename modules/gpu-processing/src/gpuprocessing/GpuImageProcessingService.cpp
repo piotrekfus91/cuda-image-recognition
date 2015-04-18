@@ -5,6 +5,8 @@
 #include "cir/common/exception/InvalidColorSchemeException.h"
 #include "cir/common/cuda_host_util.cuh"
 #include "cir/common/concurrency/StreamHandler.h"
+#include "cir/gpuprocessing/GpuUnionFindSegmentator.h"
+#include "cir/gpuprocessing/GpuSurfApi.h"
 
 using namespace cir::common;
 using namespace cir::gpuprocessing;
@@ -13,7 +15,7 @@ using namespace cir::common::exception;
 using namespace cir::common::concurrency;
 
 GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger)
-		: ImageProcessingService(logger, NULL), _segmentator(NULL) {
+		: ImageProcessingService(logger, new GpuSurfApi(logger)), _segmentator(new GpuUnionFindSegmentator) {
 
 }
 

@@ -1,14 +1,14 @@
-#ifndef CPUSURFAPI_H_
-#define CPUSURFAPI_H_
+#ifndef GPUSURFAPI_H_
+#define GPUSURFAPI_H_
 
 #include "cir/common/SurfApi.h"
 
-namespace cir { namespace cpuprocessing {
+namespace cir { namespace gpuprocessing {
 
-class CpuSurfApi : public cir::common::SurfApi {
+class GpuSurfApi : public cir::common::SurfApi {
 public:
-	CpuSurfApi(cir::common::logger::Logger& logger);
-	virtual ~CpuSurfApi();
+	GpuSurfApi(cir::common::logger::Logger& logger);
+	virtual ~GpuSurfApi();
 
 protected:
 	virtual cir::common::SurfPoints doPerformSurf(cir::common::MatWrapper& mw, int minHessian);
@@ -16,6 +16,5 @@ protected:
 			cir::common::SurfPoints& surfPoints2);
 };
 
-}
-}
-#endif /* CPUSURFAPI_H_ */
+}}
+#endif /* GPUSURFAPI_H_ */

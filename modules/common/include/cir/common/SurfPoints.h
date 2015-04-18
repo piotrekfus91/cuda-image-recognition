@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <opencv2/gpu/gpumat.hpp>
 
 namespace cir { namespace common {
 
@@ -12,7 +13,8 @@ public:
 	virtual ~SurfPoints();
 
 	std::vector<cv::KeyPoint> keyPoints;
-	cv::Mat descriptors;
+	cv::Mat descriptorsAsMat;
+	cv::gpu::GpuMat descriptorsAsGpuMat;
 };
 
 }}
