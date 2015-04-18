@@ -8,6 +8,7 @@
 #include "cir/common/logger/Logger.h"
 #include "cir/common/Hsv.h"
 #include "cir/common/Segmentator.h"
+#include "cir/common/SurfApi.h"
 
 namespace cir { namespace common {
 
@@ -16,7 +17,7 @@ protected:
 	static int DEFAULT_LOW_PASS_KERNEL_SIZE;
 
 public:
-	ImageProcessingService(cir::common::logger::Logger& logger);
+	ImageProcessingService(cir::common::logger::Logger& logger, SurfApi* surfApi);
 	virtual ~ImageProcessingService();
 
 	virtual void init(int width, int height) = 0;
@@ -42,6 +43,7 @@ public:
 
 	virtual MatWrapper getMatWrapper(const cv::Mat& mat) const = 0;
 	virtual cv::Mat getMat(const MatWrapper& matWrapper) const = 0;
+	virtual SurfApi* getSurfApi();
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;
@@ -49,6 +51,7 @@ protected:
 	static cv::Mat DEFAULT_DILATE_KERNEL;
 
 	cir::common::logger::Logger& _logger;
+	SurfApi* _surfApi;
 
 	virtual MatWrapper doToGrey(const MatWrapper& input) = 0;
 	virtual MatWrapper doThreshold(const MatWrapper& input, bool invertColors, double thresholdValue) = 0;

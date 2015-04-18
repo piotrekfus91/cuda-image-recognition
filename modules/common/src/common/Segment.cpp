@@ -3,6 +3,10 @@
 
 namespace cir { namespace common {
 
+bool Segment::contains(int x, int y) {
+	return leftX <= x && x <= rightX && topY <= y && y <= bottomY;
+}
+
 Segment createSimpleSegment(int x, int y) {
 	Segment segment;
 	segment.leftX = x;

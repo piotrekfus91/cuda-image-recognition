@@ -13,7 +13,7 @@ using namespace cir::common::exception;
 using namespace cir::common::concurrency;
 
 GpuImageProcessingService::GpuImageProcessingService(cir::common::logger::Logger& logger)
-		: ImageProcessingService(logger), _segmentator(NULL) {
+		: ImageProcessingService(logger, NULL), _segmentator(NULL) {
 
 }
 

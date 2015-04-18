@@ -15,7 +15,8 @@ cv::Mat ImageProcessingService::DEFAULT_ERODE_KERNEL = cv::getStructuringElement
 
 cv::Mat ImageProcessingService::DEFAULT_DILATE_KERNEL = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
 
-ImageProcessingService::ImageProcessingService(Logger& logger) : _logger(logger) {
+ImageProcessingService::ImageProcessingService(Logger& logger, SurfApi* surfApi)
+		: _logger(logger), _surfApi(surfApi) {
 
 }
 
@@ -140,4 +141,8 @@ double* ImageProcessingService::countHuMoments(const cir::common::MatWrapper& in
 	double elapsed_secs = double(stop - start) / CLOCKS_PER_SEC;
 	_logger.log("Count Hu moments", elapsed_secs);
 	return huMoments;
+}
+
+SurfApi* ImageProcessingService::getSurfApi() {
+	return _surfApi;
 }

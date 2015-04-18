@@ -8,6 +8,8 @@ struct Segment {
 	int rightX;
 	int topY;
 	int bottomY;
+
+	bool contains(int x, int y);
 };
 
 Segment createSimpleSegment(int x, int y);
