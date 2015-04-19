@@ -4,6 +4,7 @@
 #include "cir/common/MatWrapper.h"
 #include "cir/common/SegmentArray.h"
 #include <iostream>
+#include <vector>
 #include <map>
 #include "cir/common/logger/Logger.h"
 #include "cir/common/Hsv.h"
@@ -38,6 +39,7 @@ public:
 	virtual MatWrapper equalizeHistogram(const MatWrapper& input);
 	virtual SegmentArray* segmentate(const MatWrapper& input);
 	virtual MatWrapper mark(MatWrapper& input, const SegmentArray* segmentArray) = 0;
+	virtual MatWrapper mark(MatWrapper& input, std::vector<std::pair<Segment*, int> > pairs) = 0;
 	virtual MatWrapper crop(MatWrapper& input, Segment* segment) = 0;
 	virtual double* countHuMoments(const MatWrapper& matWrapper);
 

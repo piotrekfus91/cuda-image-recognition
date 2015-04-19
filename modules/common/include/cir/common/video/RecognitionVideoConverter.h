@@ -3,6 +3,8 @@
 
 #include "cir/common/video/VideoConverter.h"
 #include "cir/common/recognition/Recognizor.h"
+#include "cir/common/SurfHelper.h"
+#include <vector>
 
 namespace cir { namespace common { namespace video {
 
@@ -14,8 +16,15 @@ public:
 
 	virtual cir::common::MatWrapper convert(cir::common::MatWrapper input);
 
+	void withSurf();
+	void withoutSurf();
+
 private:
 	cir::common::recognition::Recognizor* _recognizor;
+	cir::common::SurfPoints _recentSurfPoints;
+	std::vector<std::pair<cir::common::Segment*, int> > _recentPairs;
+	cir::common::SurfHelper _surfHelper;
+	bool _withSurf;
 };
 
 }}}

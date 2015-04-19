@@ -12,6 +12,8 @@ public:
 	virtual ~Marker();
 
 	virtual MatWrapper markSegments(MatWrapper input, const SegmentArray* segmentArray) = 0;
+	virtual MatWrapper markPairs(MatWrapper input,
+			std::vector<std::pair<Segment*, int> > pairs) = 0;
 };
 
 }}

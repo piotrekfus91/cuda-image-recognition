@@ -38,11 +38,12 @@ int main(int argc, char** argv) {
 	cir::common::recognition::RegistrationPlateTeacher teacher(recognizor);
 	teacher.teach(cir::common::getTestFile("registration-plate", "alphabet"));
 
-//	cir::common::video::VideoHandler* videoHandler = new cir::common::video::SingleThreadVideoHandler();
-	cir::common::video::VideoHandler* videoHandler = new cir::common::video::MultiThreadVideoHandler();
+	cir::common::video::VideoHandler* videoHandler = new cir::common::video::SingleThreadVideoHandler();
+//	cir::common::video::VideoHandler* videoHandler = new cir::common::video::MultiThreadVideoHandler();
 	cir::common::video::RecognitionVideoConverter* videoConverter
 			= new cir::common::video::RecognitionVideoConverter(recognizor, &cpuService);
 	std::string inputFilePath = cir::common::getTestFile("video", "walk.avi");
+	videoConverter->withSurf();
 	videoHandler->handle(inputFilePath, videoConverter);
 
     return EXIT_SUCCESS;

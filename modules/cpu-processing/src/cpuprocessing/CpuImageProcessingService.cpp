@@ -126,6 +126,11 @@ MatWrapper CpuImageProcessingService::mark(MatWrapper& input, const SegmentArray
 	return _marker.markSegments(input, segmentArray);
 }
 
+MatWrapper CpuImageProcessingService::mark(MatWrapper& input,
+		std::vector<std::pair<cir::common::Segment*, int> > pairs) {
+	return _marker.markPairs(input, pairs);
+}
+
 MatWrapper CpuImageProcessingService::doErode(const MatWrapper& input, int times) {
 	cv::Mat output;
 	cv::erode(input.getMat(), output, DEFAULT_ERODE_KERNEL, cv::Point(1, 1), times);

@@ -170,6 +170,11 @@ MatWrapper GpuImageProcessingService::mark(MatWrapper& input, const cir::common:
 	return _marker.markSegments(input, segmentArray);
 }
 
+MatWrapper GpuImageProcessingService::mark(MatWrapper& input,
+		std::vector<std::pair<cir::common::Segment*, int> > pairs) {
+	return _marker.markPairs(input, pairs);
+}
+
 MatWrapper GpuImageProcessingService::crop(MatWrapper& input, Segment* segment) {
 	cv::gpu::GpuMat inputMat = input.getGpuMat();
 	cv::gpu::GpuMat outputMat;
