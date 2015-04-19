@@ -36,6 +36,7 @@ add_executable(registration-plate-recognition registration-plate-recognition.cpp
 add_executable(metro-recognition metro-recognition.cpp)
 add_executable(camera-recognition camera-recognition.cpp)
 add_executable(image-surf image-surf.cpp)
+add_executable(video-recognition video-recognition.cpp)
 
 target_link_libraries(CIR tesseract)
 target_link_libraries(CIR ${OpenCV_LIBS})
@@ -86,6 +87,15 @@ target_link_libraries(image-surf opencv_gpu)
 target_link_libraries(image-surf cpu-processing)
 target_link_libraries(image-surf gpu-processing)
 target_link_libraries(image-surf common)
+
+target_link_libraries(video-recognition tesseract)
+target_link_libraries(video-recognition ${OpenCV_LIBS})
+target_link_libraries(video-recognition dev-env)
+target_link_libraries(video-recognition boost_thread boost_system)
+target_link_libraries(video-recognition opencv_gpu)
+target_link_libraries(video-recognition cpu-processing)
+target_link_libraries(video-recognition gpu-processing)
+target_link_libraries(video-recognition common)
 
 if(test)
 	find_package(GTest REQUIRED)
