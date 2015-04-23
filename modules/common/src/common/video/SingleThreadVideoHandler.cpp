@@ -57,8 +57,7 @@ void SingleThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWr
 		} else {
 			cv::imshow("Video", outMat);
 			int timeToWait = countTimeToWait(startTime, frameRate);
-			std::cerr << timeToWait << std::endl;
-			if(cv::waitKey(timeToWait) == 27) { // ESC
+			if(cv::waitKey(timeToWait) > 0) {
 				break;
 			}
 		}

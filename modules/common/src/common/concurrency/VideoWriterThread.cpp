@@ -37,7 +37,7 @@ void VideoWriterThread::operator()() {
 
 		if(_videoWriter == NULL) {
 			cv::imshow("Video", _service->getMat(mw));
-			if(cv::waitKey(1000 / _frameRate) == 27) { // ESC
+			if(cv::waitKey(1000 / _frameRate) > 0) {
 				_reader->stop();
 			}
 		} else {

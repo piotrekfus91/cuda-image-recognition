@@ -41,14 +41,14 @@ int main(int argc, char** argv) {
 	Recognizor* recognizor = getRegistrationPlateRecognizor(service);
 //	Recognizor* recognizor = getMetroRecognizor(service);
 
-//	VideoHandler* videoHandler = new SingleThreadVideoHandler();
-	VideoHandler* videoHandler = new MultiThreadVideoHandler();
+	VideoHandler* videoHandler = new SingleThreadVideoHandler();
+//	VideoHandler* videoHandler = new MultiThreadVideoHandler();
 
 	RecognitionVideoConverter* videoConverter = new RecognitionVideoConverter(recognizor, &service);
-	std::string inputFilePath = getTestFile("video", "walk.avi");
+//	std::string inputFilePath = getTestFile("video", "walk.avi");
 
-	videoHandler->handle(inputFilePath, videoConverter);
-//	videoHandler->handle(0, videoConverter, 30);
+//	videoHandler->handle(inputFilePath, videoConverter);
+	videoHandler->handle(0, videoConverter, 5);
 
     return EXIT_SUCCESS;
 }

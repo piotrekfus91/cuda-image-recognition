@@ -34,8 +34,4 @@ void ConversionThread::operator()() {
 	}
 }
 
-bool ConversionThread::isPoison(MatWrapper& mw) {
-	return mw.getWidth() == 0 && mw.getHeight() == 0;
-}
-
 }}}

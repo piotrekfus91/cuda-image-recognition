@@ -33,8 +33,8 @@ int main() {
 	RegistrationPlateRecognizor recognizor(service);
 	recognizor.setWriteLetters(false);
 
-//	showRecognitionResults(recognizor, &service);
-	experiment(recognizor, &service);
+	showRecognitionResults(recognizor, &service);
+//	experiment(recognizor, &service);
 
 	logger.flushBuffer();
 }
@@ -77,5 +77,5 @@ void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, Im
 	}
 	mat = service->getMat(mw);
 	cv::imshow("result", mat);
-//	cv::waitKey(0);
+	cv::waitKey(0);
 }
