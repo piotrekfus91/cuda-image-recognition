@@ -27,23 +27,27 @@ MatWrapper RecognitionVideoConverter::convert(MatWrapper input) {
 	RecognitionInfo recognitionInfo = _recognizor->recognize(input);
 	if(recognitionInfo.isSuccess()) {
 		if(_withSurf) {
-			MatWrapper greyInput = _service->toGrey(input);
-			if(!_recentPairs.empty()) {
-				SurfPoints currentSurfPoints = _service->getSurfApi()->performSurf(greyInput, SURF_MIN_HESSIAN);
-				_recentPairs = _surfHelper.findBestPairs(_recentSurfPoints, currentSurfPoints, _recentPairs,
-						recognitionInfo.getMatchedSegments());
-				_recentSurfPoints = currentSurfPoints;
-			} else {
-				_recentPairs = _surfHelper.generateFirstPairs(recognitionInfo.getMatchedSegments());
-				_recentSurfPoints = _service->getSurfApi()->performSurf(greyInput, SURF_MIN_HESSIAN);
-			}
-			return _service->mark(input, _recentPairs);
+			return convertWithSurf(input, recognitionInfo);
 		} else {
 			return _service->mark(input, recognitionInfo.getMatchedSegments());
 		}
 	} else {
 		return input;
 	}
+}
+
+MatWrapper RecognitionVideoConverter::convertWithSurf(MatWrapper& input, RecognitionInfo& recognitionInfo) {
+	MatWrapper greyInput = _service->toGrey(input);
+	if(!_recentPairs.empty()) {
+		SurfPoints currentSurfPoints = _service->getSurfApi()->performSurf(greyInput, SURF_MIN_HESSIAN);
+		_recentPairs = _surfHelper.findBestPairs(_recentSurfPoints, currentSurfPoints, _recentPairs,
+				recognitionInfo.getMatchedSegments());
+		_recentSurfPoints = currentSurfPoints;
+	} else {
+		_recentPairs = _surfHelper.generateFirstPairs(recognitionInfo.getMatchedSegments());
+		_recentSurfPoints = _service->getSurfApi()->performSurf(greyInput, SURF_MIN_HESSIAN);
+	}
+	return _service->mark(input, _recentPairs);
 }
 
 }}}

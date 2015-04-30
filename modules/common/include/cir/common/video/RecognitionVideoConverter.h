@@ -25,6 +25,9 @@ private:
 	std::vector<std::pair<cir::common::Segment*, int> > _recentPairs;
 	cir::common::SurfHelper _surfHelper;
 	bool _withSurf;
+
+	cir::common::MatWrapper convertWithSurf(cir::common::MatWrapper& input,
+			cir::common::recognition::RecognitionInfo& recognitionInfo);
 };
 
 }}}

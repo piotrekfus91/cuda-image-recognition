@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 	cir::common::video::RecognitionVideoConverter* videoConverter
 			= new cir::common::video::RecognitionVideoConverter(recognizor, &cpuService);
 	std::string inputFilePath = cir::common::getTestFile("video", "walk.avi");
-	videoConverter->withoutSurf();
+	videoConverter->withSurf();
 	videoHandler->handle(inputFilePath, videoConverter);
 
     return EXIT_SUCCESS;
