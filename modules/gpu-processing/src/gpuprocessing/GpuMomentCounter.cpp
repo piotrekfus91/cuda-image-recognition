@@ -44,6 +44,8 @@ double* GpuMomentCounter::countHuMoments(MatWrapper& matWrapper) {
 	double M30 = rawMoments[8];
 	double M03 = rawMoments[9];
 
+	delete rawMoments;
+
 	cv::Moments cvMoments(M00, M10, M01, M20, M11, M02, M30, M21, M12, M03);
 
 	double* huMoments = (double*) malloc(sizeof(double) * HU_MOMENTS_NUMBER);
