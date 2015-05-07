@@ -49,7 +49,11 @@ const RecognitionInfo MetroRecognizor::recognize(MatWrapper& input) {
 			if(_heuristic->isApplicable(yellowResult)) {
 				acceptedSegments.push_back(segment);
 			}
+
+			free(yellowHuMoments);
 		}
+
+		free(redHuMoments);
 	}
 
 	if(acceptedSegments.size() > 0) {

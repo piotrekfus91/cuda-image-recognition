@@ -50,6 +50,9 @@ float SurfApi::doGetSimilarity(SurfPoints& surfPoints1, Segment* segm1,
 
 	for(std::vector<cv::DMatch>::iterator it = matches.begin(); it != matches.end(); it++) {
 		cv::DMatch match = *it;
+		if(match.queryIdx >= keyPoints1.size() || match.trainIdx >= keyPoints2.size())
+			continue;
+
 		cv::KeyPoint keyPoint1 = keyPoints1[match.queryIdx];
 		cv::KeyPoint keyPoint2 = keyPoints2[match.trainIdx];
 
