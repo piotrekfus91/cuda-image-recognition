@@ -14,29 +14,37 @@
 #include "cir/common/video/SingleThreadVideoHandler.h"
 #include "cir/common/video/MultiThreadVideoHandler.h"
 #include "cir/common/video/RecognitionVideoConverter.h"
+#include "cir/common/recognition/MetroRecognizor.h"
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
 #include "cir/common/recognition/RegistrationPlateTeacher.h"
 #include "cir/devenv/ThreadInfo.h"
 
 using namespace std;
+using namespace cir::common;
+using namespace cir::common::logger;
+using namespace cir::common::recognition;
+using namespace cir::common::video;
+using namespace cir::cpuprocessing;
+using namespace cir::gpuprocessing;
 
 int main(int argc, char** argv) {
-	cir::common::logger::NullLogger logger;
-	cir::gpuprocessing::GpuImageProcessingService cpuService(logger);
-	cpuService.setSegmentator(new cir::gpuprocessing::GpuUnionFindSegmentator);
-//	cir::cpuprocessing::CpuImageProcessingService cpuService(logger);
-//	cpuService.setSegmentator(new cir::cpuprocessing::CpuUnionFindSegmentator);
+	NullLogger logger;
+	GpuImageProcessingService cpuService(logger);
+	cpuService.setSegmentator(new GpuUnionFindSegmentator);
+//	CpuImageProcessingService cpuService(logger);
+//	cpuService.setSegmentator(new CpuUnionFindSegmentator);
+	cpuService.setSegmentatorMinSize(10);
 
-	cir::common::recognition::RegistrationPlateRecognizor* recognizor
-			= new cir::common::recognition::RegistrationPlateRecognizor(cpuService);
-	cir::common::recognition::RegistrationPlateTeacher teacher(recognizor);
-	teacher.teach(cir::common::getTestFile("registration-plate", "alphabet"));
+//	RegistrationPlateRecognizor* recognizor = new RegistrationPlateRecognizor(cpuService);
+//	RegistrationPlateTeacher teacher(recognizor);
+//	teacher.teach(getTestFile("registration-plate", "alphabet"));
+	MetroRecognizor* recognizor	= new MetroRecognizor(cpuService);
+	recognizor->learn(getTestFile("metro", "metro.png").c_str());
 
-	cir::common::video::VideoHandler* videoHandler = new cir::common::video::SingleThreadVideoHandler();
-//	cir::common::video::VideoHandler* videoHandler = new cir::common::video::MultiThreadVideoHandler();
-	cir::common::video::RecognitionVideoConverter* videoConverter
-			= new cir::common::video::RecognitionVideoConverter(recognizor, &cpuService);
-	std::string inputFilePath = cir::common::getTestFile("video", "walk.avi");
+//	VideoHandler* videoHandler = new SingleThreadVideoHandler();
+	VideoHandler* videoHandler = new MultiThreadVideoHandler();
+	RecognitionVideoConverter* videoConverter = new RecognitionVideoConverter(recognizor, &cpuService);
+	std::string inputFilePath = getTestFile("video", "metro.avi");
 	videoConverter->withSurf();
 	videoHandler->handle(inputFilePath, videoConverter);
 
