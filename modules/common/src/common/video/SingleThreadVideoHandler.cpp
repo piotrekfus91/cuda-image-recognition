@@ -3,6 +3,7 @@
 #include "cir/common/exception/VideoException.h"
 #include <opencv2/opencv.hpp>
 #include <ctime>
+#include <boost/chrono.hpp>
 
 using namespace cv;
 using namespace cir::common;
@@ -25,6 +26,8 @@ void SingleThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWr
 	bool initialized = false;
 	Mat frame;
 	int frameIdx = 0;
+
+	boost::chrono::high_resolution_clock::time_point start = boost::chrono::high_resolution_clock::now();
 
 	while(true) {
 		clock_t startTime = clock();
@@ -68,6 +71,16 @@ void SingleThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWr
 	videoReader->release();
 	if(videoWriter != NULL)
 		videoWriter->release();
+
+	boost::chrono::high_resolution_clock::time_point end = boost::chrono::high_resolution_clock::now();
+	boost::chrono::nanoseconds totalTimeInNano = end - start;
+
+	int totalTimeInSec = totalTimeInNano.count() / 1000000000;
+	int totalTimeInMillis = totalTimeInNano.count() / 1000000;
+
+	std::cerr << "total time: " << totalTimeInSec << std::endl;
+	std::cerr << "frames: " << frameIdx << std::endl;
+	std::cerr << "avg time per frame: " << totalTimeInMillis / frameIdx << "s" << std::endl;
 }
 
 void SingleThreadVideoHandler::handle(std::string& inputFilePath, std::string& outputFilePath,

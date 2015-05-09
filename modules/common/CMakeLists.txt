@@ -24,7 +24,7 @@ add_library(common
 
 target_link_libraries(common tesseract)
 target_link_libraries(common dev-env)
-target_link_libraries(common boost_thread boost_system)
+target_link_libraries(common boost_thread boost_system boost_chrono)
 
 if(test)
 	enable_testing()
