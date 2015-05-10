@@ -19,7 +19,7 @@ MetroRecognizor::~MetroRecognizor() {
 
 }
 
-const RecognitionInfo MetroRecognizor::recognize(MatWrapper& input) {
+const RecognitionInfo MetroRecognizor::doRecognize(MatWrapper& input) {
 	MatWrapper inputHsv = _service.bgrToHsv(input);
 	MatWrapper mw = detectAllColors(inputHsv);
 	mw = _service.toGrey(mw);

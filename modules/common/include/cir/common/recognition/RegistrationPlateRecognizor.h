@@ -15,7 +15,6 @@ public:
 	RegistrationPlateRecognizor(cir::common::ImageProcessingService& service);
 	virtual ~RegistrationPlateRecognizor();
 
-	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input);
 	virtual void learn(cir::common::MatWrapper& input);
 	virtual void learn(const char* filePath);
 
@@ -23,6 +22,8 @@ public:
 	void setWriteLetters(bool writeLetters);
 
 private:
+	virtual const RecognitionInfo doRecognize(cir::common::MatWrapper& input);
+
 	cir::common::MatWrapper detectAllColors(cir::common::MatWrapper& input) const;
 	cir::common::MatWrapper detectBlue(cir::common::MatWrapper& input) const;
 	cir::common::MatWrapper detectWhite(cir::common::MatWrapper& input) const;

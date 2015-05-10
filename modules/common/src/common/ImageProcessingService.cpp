@@ -146,3 +146,7 @@ double* ImageProcessingService::countHuMoments(const cir::common::MatWrapper& in
 SurfApi* ImageProcessingService::getSurfApi() {
 	return _surfApi;
 }
+
+Logger* ImageProcessingService::getLogger() {
+	return &_logger;
+}

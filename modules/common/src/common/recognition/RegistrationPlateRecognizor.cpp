@@ -34,7 +34,7 @@ void RegistrationPlateRecognizor::setClassifier(Classifier* classifier) {
 	_classifier = classifier;
 }
 
-const RecognitionInfo RegistrationPlateRecognizor::recognize(MatWrapper& input) {
+const RecognitionInfo RegistrationPlateRecognizor::doRecognize(MatWrapper& input) {
 	std::list<std::string> recognizedPlates;
 	std::list<Segment*> recognizedSegments;
 

@@ -11,11 +11,12 @@ public:
 	MetroRecognizor(cir::common::ImageProcessingService& service);
 	virtual ~MetroRecognizor();
 
-	virtual const RecognitionInfo recognize(cir::common::MatWrapper& input);
 	virtual void learn(cir::common::MatWrapper& input);
 	virtual void learn(const char* filePath);
 
 private:
+	virtual const RecognitionInfo doRecognize(cir::common::MatWrapper& input);
+
 	cir::common::MatWrapper detectAllColors(cir::common::MatWrapper& input) const;
 	cir::common::MatWrapper detectRed(cir::common::MatWrapper& input) const;
 	cir::common::MatWrapper detectYellow(cir::common::MatWrapper& input) const;

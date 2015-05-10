@@ -46,6 +46,7 @@ public:
 	virtual MatWrapper getMatWrapper(const cv::Mat& mat) const = 0;
 	virtual cv::Mat getMat(const MatWrapper& matWrapper) const = 0;
 	virtual SurfApi* getSurfApi();
+	virtual cir::common::logger::Logger* getLogger();
 
 protected:
 	static cv::Mat DEFAULT_LOW_PASS_KERNEL;
