@@ -29,22 +29,22 @@ using namespace cir::gpuprocessing;
 
 int main(int argc, char** argv) {
 	NullLogger logger;
-	GpuImageProcessingService cpuService(logger);
-	cpuService.setSegmentator(new GpuUnionFindSegmentator);
-//	CpuImageProcessingService cpuService(logger);
-//	cpuService.setSegmentator(new CpuUnionFindSegmentator);
-	cpuService.setSegmentatorMinSize(10);
+	GpuImageProcessingService service(logger);
+	service.setSegmentator(new GpuUnionFindSegmentator);
+//	CpuImageProcessingService service(logger);
+//	service.setSegmentator(new CpuUnionFindSegmentator);
+//	service.setSegmentatorMinSize(10);
 
-//	RegistrationPlateRecognizor* recognizor = new RegistrationPlateRecognizor(cpuService);
-//	RegistrationPlateTeacher teacher(recognizor);
-//	teacher.teach(getTestFile("registration-plate", "alphabet"));
-	MetroRecognizor* recognizor	= new MetroRecognizor(cpuService);
-	recognizor->learn(getTestFile("metro", "metro.png").c_str());
+	RegistrationPlateRecognizor* recognizor = new RegistrationPlateRecognizor(service);
+	RegistrationPlateTeacher teacher(recognizor);
+	teacher.teach(getTestFile("registration-plate", "alphabet"));
+//	MetroRecognizor* recognizor	= new MetroRecognizor(service);
+//	recognizor->learn(getTestFile("metro", "metro.png").c_str());
 
 //	VideoHandler* videoHandler = new SingleThreadVideoHandler();
 	VideoHandler* videoHandler = new MultiThreadVideoHandler();
-	RecognitionVideoConverter* videoConverter = new RecognitionVideoConverter(recognizor, &cpuService);
-	std::string inputFilePath = getTestFile("video", "metro.avi");
+	RecognitionVideoConverter* videoConverter = new RecognitionVideoConverter(recognizor, &service);
+	std::string inputFilePath = getTestFile("video", "walk.avi");
 	videoConverter->withSurf();
 	videoHandler->handle(inputFilePath, videoConverter);
 

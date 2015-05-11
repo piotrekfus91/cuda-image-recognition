@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 //	std::string inputFilePath = getTestFile("video", "walk.avi");
 
 //	videoHandler->handle(inputFilePath, videoConverter);
-	videoHandler->handle(0, videoConverter, 5);
+	videoHandler->handle(0, videoConverter, 30);
 
     return EXIT_SUCCESS;
 }
@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
 Recognizor* getMetroRecognizor(ImageProcessingService& service) {
 	MetroRecognizor* recognizor	= new MetroRecognizor(service);
 	recognizor->learn(cir::common::getTestFile("metro", "metro.png").c_str());
+	service.setSegmentatorMinSize(30);
 	return recognizor;
 }
 
