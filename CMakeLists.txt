@@ -11,7 +11,8 @@ find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED)
 
-set(TEST_FILES_DIR "${PROJECT_SOURCE_DIR}/test_files")
+#set(TEST_FILES_DIR "${PROJECT_SOURCE_DIR}/test_files")
+set(TEST_FILES_DIR "/opt/cir/test_files")
 
 configure_file (
 	"${PROJECT_SOURCE_DIR}/modules/common/include/cir/common/config.h.in"
