@@ -8,6 +8,7 @@
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
+#include "cir/common/concurrency/StreamHandler.h"
 
 using namespace cv;
 using namespace cir::common;
@@ -68,6 +69,8 @@ void MultiThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWri
 
 	writerThread.join();
 
+	StreamHandler::waitForCompletion();
+
 	videoReader->release();
 	if(videoWriter != NULL)
 		videoWriter->release();
@@ -78,9 +81,11 @@ void MultiThreadVideoHandler::handle(cv::VideoCapture* videoReader, cv::VideoWri
 	int totalTimeInSec = totalTimeInNano.count() / 1000000000;
 	int totalTimeInMillis = totalTimeInNano.count() / 1000000;
 
-	std::cerr << "total time: " << totalTimeInSec << std::endl;
-	std::cerr << "frames: " << frames << std::endl;
-	std::cerr << "avg time per frame: " << totalTimeInMillis / frames << "s" << std::endl;
+	if(frames != -1) { // -1 - camera (no frame number available)
+		std::cerr << "total time: " << totalTimeInSec << std::endl;
+		std::cerr << "frames: " << frames << std::endl;
+		std::cerr << "avg time per frame: " << totalTimeInMillis / frames << "s" << std::endl;
+	}
 }
 
 }}}

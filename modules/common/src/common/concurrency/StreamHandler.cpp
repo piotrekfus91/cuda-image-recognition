@@ -29,4 +29,12 @@ cudaStream_t StreamHandler::nativeStream() {
 	return cv::gpu::StreamAccessor::getStream(*currentStream);
 }
 
+void StreamHandler::waitForCompletion() {
+	for(std::map<boost::thread::id, cv::gpu::Stream*>::iterator it = _threadToStreamMap.begin();
+			it != _threadToStreamMap.end(); it++) {
+		cv::gpu::Stream* stream = (*it).second;
+		stream->waitForCompletion();
+	}
+}
+
 }}}

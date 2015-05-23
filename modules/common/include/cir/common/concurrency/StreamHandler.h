@@ -13,6 +13,8 @@ public:
 	static cv::gpu::Stream* currentStream();
 	static cudaStream_t nativeStream();
 
+	static void waitForCompletion();
+
 private:
 	StreamHandler();
 	virtual ~StreamHandler();
