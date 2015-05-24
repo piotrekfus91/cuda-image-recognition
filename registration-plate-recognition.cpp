@@ -11,6 +11,7 @@
 #include "opencv2/gpu/gpu.hpp"
 #include <string>
 #include <list>
+#include "ConfigHelper.h"
 
 using namespace cir::common;
 using namespace cir::common::logger;
@@ -22,18 +23,17 @@ void showRecognitionResults(RegistrationPlateRecognizor& recognizor, ImageProces
 void recognize(std::string filePath, RegistrationPlateRecognizor& recognizor, ImageProcessingService* service);
 void experiment(RegistrationPlateRecognizor& recognizor, ImageProcessingService* service);
 
-int main() {
+int main(int argc, char** argv) {
+	ConfigHelper config(argc, argv);
+
 	std::list<std::string> loggerConf;
-	loggerConf.push_back("Segmentate");
 	BufferedConfigurableLogger logger(loggerConf);
-	GpuImageProcessingService service(logger);
-	service.setSegmentator(new GpuUnionFindSegmentator);
-	service.init(0, 0);
+	ImageProcessingService* service = config.getService(logger);
 
-	RegistrationPlateRecognizor recognizor(service);
-	recognizor.setWriteLetters(false);
+	RegistrationPlateRecognizor recognizor(*service);
+	recognizor.setWriteLetters(config.isWriteLetters());
 
-	showRecognitionResults(recognizor, &service);
+	showRecognitionResults(recognizor, service);
 //	experiment(recognizor, &service);
 
 	logger.flushBuffer();

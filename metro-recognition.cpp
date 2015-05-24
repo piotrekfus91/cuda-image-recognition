@@ -11,6 +11,7 @@
 #include "opencv2/gpu/gpu.hpp"
 #include <string>
 #include <list>
+#include "ConfigHelper.h"
 
 using namespace cir::common;
 using namespace cir::common::logger;
@@ -22,19 +23,18 @@ void showRecognitionResults(MetroRecognizor& recognizor, ImageProcessingService*
 void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessingService* service);
 void experiment(MetroRecognizor& recognizor, ImageProcessingService* service);
 
-int main() {
-	std::list<std::string> loggerConf;
-	loggerConf.push_back("Segmentate");
-	BufferedConfigurableLogger logger(loggerConf);
-	GpuImageProcessingService service(logger);
-	service.setSegmentator(new GpuUnionFindSegmentator);
-	service.init(0, 0);
-	service.setSegmentatorMinSize(30);
+int main(int argc, char** argv) {
+	ConfigHelper config = ConfigHelper(argc, argv);
 
-	MetroRecognizor recognizor(service);
+	std::list<std::string> loggerConf;
+	BufferedConfigurableLogger logger(loggerConf);
+	ImageProcessingService* service = config.getService(logger);
+	service->setSegmentatorMinSize(30);
+
+	MetroRecognizor recognizor(*service);
 	recognizor.learn(getTestFile("metro", "metro.png").c_str());
 
-	showRecognitionResults(recognizor, &service);
+	showRecognitionResults(recognizor, service);
 //	experiment(recognizor, &service);
 
 	logger.flushBuffer();

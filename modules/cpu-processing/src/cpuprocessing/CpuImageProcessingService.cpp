@@ -1,6 +1,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "cir/cpuprocessing/CpuImageProcessingService.h"
 #include "cir/cpuprocessing/CpuSurfApi.h"
+#include "cir/cpuprocessing/CpuUnionFindSegmentator.h"
 #include "cir/common/exception/InvalidColorSchemeException.h"
 
 using namespace cir::common;
@@ -10,7 +11,7 @@ using namespace cir::common::exception;
 
 CpuImageProcessingService::CpuImageProcessingService(Logger& logger)
 		: ImageProcessingService(logger, new CpuSurfApi(logger)),
-		  	  	  _segmentator(new CpuRegionGrowingSegmentator) {
+		  	  	  _segmentator(new CpuUnionFindSegmentator) {
 
 }
 

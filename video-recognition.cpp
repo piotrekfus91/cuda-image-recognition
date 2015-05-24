@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include "opencv2/gpu/gpu.hpp"
@@ -18,8 +17,8 @@
 #include "cir/common/recognition/RegistrationPlateRecognizor.h"
 #include "cir/common/recognition/RegistrationPlateTeacher.h"
 #include "cir/devenv/ThreadInfo.h"
+#include "ConfigHelper.h"
 
-using namespace std;
 using namespace cir::common;
 using namespace cir::common::logger;
 using namespace cir::common::recognition;
@@ -28,26 +27,32 @@ using namespace cir::cpuprocessing;
 using namespace cir::gpuprocessing;
 
 int main(int argc, char** argv) {
+	ConfigHelper config = ConfigHelper(argc, argv);
+
 	NullLogger logger;
-	GpuImageProcessingService service(logger);
-	service.setSegmentator(new GpuUnionFindSegmentator);
-//	CpuImageProcessingService service(logger);
-//	service.setSegmentator(new CpuUnionFindSegmentator);
-//	service.setSegmentatorMinSize(10);
 
-	RegistrationPlateRecognizor* recognizor = new RegistrationPlateRecognizor(service);
-	RegistrationPlateTeacher teacher(recognizor);
-	teacher.teach(getTestFile("registration-plate", "alphabet"));
-//	MetroRecognizor* recognizor	= new MetroRecognizor(service);
-//	recognizor->learn(getTestFile("metro", "metro.png").c_str());
+	ImageProcessingService* service = config.getService(logger);
+	Recognizor* recognizor = config.getRecognizor(service);
+	VideoHandler* videoHandler = config.getVideoHandler();
 
-//	VideoHandler* videoHandler = new SingleThreadVideoHandler();
-	VideoHandler* videoHandler = new MultiThreadVideoHandler();
-	RecognitionVideoConverter* videoConverter = new RecognitionVideoConverter(recognizor, &service);
-	std::string inputFilePath = getTestFile("video", "walk.avi");
-	videoConverter->withSurf();
-	videoHandler->handle(inputFilePath, videoConverter);
+	RecognitionVideoConverter* videoConverter = new RecognitionVideoConverter(recognizor, service);
+	if(config.withSurf())
+		videoConverter->withSurf();
 
-    return EXIT_SUCCESS;
+	std::string availableModes = "video and camera";
+
+	if(config.getMode(availableModes) == "camera") {
+		videoHandler->handle(0, videoConverter, config.getFrameRate());
+		return EXIT_SUCCESS;
+	}
+
+	if(config.getMode(availableModes) == "video")  {
+		std::string filePath = config.getVideoFilePath();
+		videoHandler->handle(filePath, videoConverter);
+		return EXIT_SUCCESS;
+	}
+
+	std::cerr << "available modes: " << availableModes;
+
+	return EXIT_FAILURE;
 }
-
