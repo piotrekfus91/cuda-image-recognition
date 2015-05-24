@@ -34,14 +34,17 @@ int main(int argc, char** argv) {
 	MetroRecognizor recognizor(*service);
 	recognizor.learn(getTestFile("metro", "metro.png").c_str());
 
-	showRecognitionResults(recognizor, service);
+	if(config.keyExists("file")) {
+		recognize(config.getMetroFilePath(), recognizor, service);
+	} else {
+		showRecognitionResults(recognizor, service);
+	}
 //	experiment(recognizor, &service);
 
 	logger.flushBuffer();
 }
 
 void showRecognitionResults(MetroRecognizor& recognizor, ImageProcessingService* service) {
-	cv::namedWindow("result");
 	recognize(getTestFile("metro", "metro.png"), recognizor, service);
 	recognize(getTestFile("metro", "warszawa_metro_swietokrzyska.jpeg"), recognizor, service);
 	recognize(getTestFile("metro", "metro_warszawa_450.jpeg"), recognizor, service);
@@ -65,6 +68,7 @@ void experiment(MetroRecognizor& recognizor, ImageProcessingService* service) {
 }
 
 void recognize(std::string filePath, MetroRecognizor& recognizor, ImageProcessingService* service) {
+	cv::namedWindow("result");
 	cv::Mat mat = cv::imread(filePath.c_str());
 	MatWrapper mw = service->getMatWrapper(mat);
 	RecognitionInfo recognitionInfo = recognizor.recognize(mw);

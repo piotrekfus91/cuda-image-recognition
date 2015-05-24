@@ -21,6 +21,7 @@ public:
 	std::string getMode(std::string& availableModes);
 	bool isWriteLetters();
 	bool withSurf();
+	bool keyExists(std::string key);
 
 private:
 	std::map<std::string, std::string> _config;

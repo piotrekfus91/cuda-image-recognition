@@ -42,7 +42,7 @@ ConfigHelper::~ConfigHelper() {
 }
 
 ImageProcessingService* ConfigHelper::getService(Logger& logger) {
-	if(_config.find("service") == _config.end()) {
+	if(!keyExists("service")) {
 		std::cerr << "no service chosen, available are CPU and GPU only";
 		exit(EXIT_FAILURE);
 	}
@@ -58,7 +58,7 @@ ImageProcessingService* ConfigHelper::getService(Logger& logger) {
 }
 
 Recognizor* ConfigHelper::getRecognizor(ImageProcessingService* service) {
-	if(_config.find("recognizor") == _config.end()) {
+	if(!keyExists("recognizor")) {
 		std::cerr << "no recognizor chosen, available are metro and plate only";
 		exit(EXIT_FAILURE);
 	}
@@ -78,7 +78,7 @@ Recognizor* ConfigHelper::getRecognizor(ImageProcessingService* service) {
 	}
 }
 VideoHandler* ConfigHelper::getVideoHandler() {
-	if(_config.find("thread") == _config.end()) {
+	if(!keyExists("thread")) {
 		std::cerr << "no thread specified, available are single and multi only";
 		exit(EXIT_FAILURE);
 	}
@@ -93,7 +93,7 @@ VideoHandler* ConfigHelper::getVideoHandler() {
 	}
 }
 int ConfigHelper::getFrameRate() {
-	if(_config.find("frameRate") == _config.end()) {
+	if(!keyExists("frameRate")) {
 		std::cerr << "no frameRate specified";
 		exit(EXIT_FAILURE);
 	}
@@ -113,7 +113,7 @@ std::string ConfigHelper::getPlateFilePath() {
 }
 
 std::string ConfigHelper::getFilePath(const char* library) {
-	if(_config.find("file") == _config.end()) {
+	if(!keyExists("file")) {
 		std::cerr << "no file specified";
 		exit(EXIT_FAILURE);
 	}
@@ -122,7 +122,7 @@ std::string ConfigHelper::getFilePath(const char* library) {
 }
 
 std::string ConfigHelper::getMode(std::string& availableModes) {
-	if(_config.find("mode") == _config.end()) {
+	if(!keyExists("mode")) {
 		std::cerr << "no mode specified, available are " << availableModes << " only";
 		exit(EXIT_FAILURE);
 	}
@@ -131,15 +131,19 @@ std::string ConfigHelper::getMode(std::string& availableModes) {
 }
 
 bool ConfigHelper::isWriteLetters() {
-	if(_config.find("writeLetters") == _config.end())
+	if(!keyExists("writeLetters"))
 		return false;
 
 	return _config["writeLetters"] == "true";
 }
 
 bool ConfigHelper::withSurf() {
-	if(_config.find("withSurf") == _config.end())
+	if(!keyExists("withSurf"))
 		return false;
 
 	return _config["withSurf"] == "true";
+}
+
+bool ConfigHelper::keyExists(std::string key) {
+	return _config.find(key) != _config.end();
 }

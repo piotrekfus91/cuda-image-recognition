@@ -33,7 +33,11 @@ int main(int argc, char** argv) {
 	RegistrationPlateRecognizor recognizor(*service);
 	recognizor.setWriteLetters(config.isWriteLetters());
 
-	showRecognitionResults(recognizor, service);
+	if(config.keyExists("file")) {
+		recognize(config.getPlateFilePath(), recognizor, service);
+	} else {
+		showRecognitionResults(recognizor, service);
+	}
 //	experiment(recognizor, &service);
 
 	logger.flushBuffer();
