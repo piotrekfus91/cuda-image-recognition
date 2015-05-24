@@ -24,24 +24,31 @@ VideoWriterThread::~VideoWriterThread() {
 }
 
 void VideoWriterThread::operator()() {
+	int poisonCount = 0;
+
 	if(_videoWriter == NULL)
 		cv::namedWindow("Video");
 
 	while(true) {
 		IndexedMatWrapper imw = readMatWrapper();
+
 		if(imw.isPoison()) {
-			break;
-		}
+			poisonCount++;
 
-		MatWrapper mw = imw.matWrapper;
-
-		if(_videoWriter == NULL) {
-			cv::imshow("Video", _service->getMat(mw));
-			if(cv::waitKey(1000 / _frameRate) > 0) {
-				_reader->stop();
+			if(poisonCount >= _threadsNumber) {
+				break;
 			}
 		} else {
-			_videoWriter->write(_service->getMat(mw));
+			MatWrapper mw = imw.matWrapper;
+
+			if(_videoWriter == NULL) {
+				cv::imshow("Video", _service->getMat(mw));
+				if(cv::waitKey(1000 / _frameRate) > 0) {
+					_reader->stop();
+				}
+			} else {
+				_videoWriter->write(_service->getMat(mw));
+			}
 		}
 	}
 }
