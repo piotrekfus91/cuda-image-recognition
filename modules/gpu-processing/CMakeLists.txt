@@ -1,6 +1,8 @@
 file(GLOB src_gpuprocessing_files "src/gpuprocessing/*.cpp")
 file(GLOB test_gpuprocessing_files "test/gpuprocessing/*.cpp")
 
+list(REMOVE_ITEM test_gpuprocessing_files ${PROJECT_SOURCE_DIR}/modules/gpu-processing/test/gpuprocessing/RegionSplittingSegmentatorTest.cpp)
+
 cuda_compile(SEGMENTATE_BASE src/gpuprocessing/segmentate_base.cu)
 cuda_compile(DETECT_COLOR src/gpuprocessing/detect_color.cu)
 cuda_compile(REGION_SPLITTING_SEGMENTATE src/gpuprocessing/region_splitting_segmentate.cu)
