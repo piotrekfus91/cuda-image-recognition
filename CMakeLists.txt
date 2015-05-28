@@ -29,18 +29,9 @@ add_subdirectory(modules/cpu-processing)
 add_subdirectory(modules/gpu-processing)
 add_subdirectory(modules/dev-env)
 
-add_executable(CIR CIR.cpp)
 add_executable(registration-plate-recognition registration-plate-recognition.cpp ConfigHelper.cpp)
 add_executable(metro-recognition metro-recognition.cpp ConfigHelper.cpp)
 add_executable(video-recognition video-recognition.cpp ConfigHelper.cpp)
-
-target_link_libraries(CIR tesseract)
-target_link_libraries(CIR ${OpenCV_LIBS})
-target_link_libraries(CIR dev-env)
-target_link_libraries(CIR boost_thread boost_system)
-target_link_libraries(CIR opencv_gpu)
-target_link_libraries(CIR cpu-processing)
-target_link_libraries(CIR gpu-processing)
 
 target_link_libraries(registration-plate-recognition tesseract)
 target_link_libraries(registration-plate-recognition ${OpenCV_LIBS})
